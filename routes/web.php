@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\website\GeneralController;
+use App\Http\Controllers\staff\GeneralController as AdminGeneralController;
 use App\Http\Controllers\Student\AuthController;
+use App\Http\Controllers\Staff\AuthController as StaffAuthController;
 use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\CourseRegistrationController;
 use App\Http\Controllers\PaymentController;
@@ -81,6 +83,23 @@ Route::prefix('students')->group(function(){
         });
 
 
+    });
+});
+
+Route::prefix('staff')->group(function(){
+    Route::controller(StaffAuthController::class)->group(function(){
+        Route::get('/', 'login')->name('staff.login');
+        Route::post('/','loginAction');
+    });
+
+
+    Route::middleware('user.type:administrator')->group(function(){
+        Route::controller(AdminGeneralController::class)->group(function(){
+            Route::get('/dashboard', 'index_admin')->name('admin.dashboard');
+            Route::post('admit/{userId}', 'admitStudent')->name('admin.admit');
+            Route::get('/export-applicants',  'exportApplicants')->name('admin.exportApplicants');
+
+        });
     });
 });
 

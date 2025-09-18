@@ -56,6 +56,37 @@ class User extends Authenticatable
         return $this->belongsTo(UserType::class, 'user_type_id');
     }
 
+    public function admissionList()
+    {
+        return $this->hasOne(AdmissionList::class);
+    }
+
+    public function campus()
+    {
+        return $this->belongsTo(Campus::class);
+    }
+    public function userApplications()
+    {
+        return $this->hasMany(UserApplications::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(UserApplications::class, 'user_id');
+    }
+
+    // In User model
+    public function courseOfStudy()
+    {
+        return $this->hasOne(CourseOfStudy::class, 'user_id');
+    }
+
+
     public function applicationSetting()
     {
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');

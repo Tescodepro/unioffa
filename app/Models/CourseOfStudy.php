@@ -19,7 +19,15 @@ class CourseOfStudy extends Model
 
     ];
     
-    
+    public function firstDepartment()
+    {
+        return $this->belongsTo(Department::class, 'first_department_id');
+    }
+
+    public function secondDepartment()
+    {
+        return $this->belongsTo(Department::class, 'second_department_id');
+    }
     
     
     

@@ -9,7 +9,9 @@ use App\Models\User;
 use App\Models\UserType;
 use App\Services\UniqueIdService;
 use Illuminate\Support\Facades\Auth;
-use App\Models\{ApplicationSetting, UserApplications, Profile, Olevel, Alevel, Campus, CourseOfStudy, Document, JambDetail, EducationHistory, Department, Faculty, Transaction};
+use App\Mail\ApplicantRegisteredMail;
+use Illuminate\Support\Facades\Mail;
+use App\Models\{ApplicationSetting, UserApplications, AdmissionList, Profile, Olevel, Alevel, Campus, CourseOfStudy, Document, JambDetail, EducationHistory, Department, Faculty, Transaction};
 
 
 class ApplicationController extends Controller
@@ -18,7 +20,9 @@ class ApplicationController extends Controller
     public function index()
     {
         $title = 'Application Registration Form';
-        return view('applications.register', compact('title'));
+        // get center
+        $campuses = Campus::all();
+        return view('applications.register', compact('title', 'campuses'));
     }
 
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
@@ -27,7 +31,7 @@ class ApplicationController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
-            'center' => 'nullable|string|max:255',
+            'center' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|max:20',
             'password' => 'required|string|min:6|confirmed',
@@ -50,9 +54,13 @@ class ApplicationController extends Controller
         ]);
 
         // get center
-        $campus = Campus::all();
+        $campuses = Campus::all();
 
-        return redirect()->route('application.login', compact('campus'))->with('success', 'Registration successful Please login to continue.');
+        // Send mail with application number
+        Mail::to($user->email)->send(new ApplicantRegisteredMail($user, $uniqueId));
+
+
+        return redirect()->route('application.login', compact('campuses'))->with('success', 'Registration successful Please login to continue.');
     }
 
     public function login()
@@ -358,9 +366,18 @@ class ApplicationController extends Controller
 
     public function handleFormSubmission(Request $request, $user_application_id)
     {
+        $user = Auth::user();
         $user_application = UserApplications::findOrFail($user_application_id);
         $user_application->submitted_by = now();
         $user_application->save();
+
+        $admission = AdmissionList::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'admission_status' => 'pending',
+                'session_admitted' => $user_application->academic_session,
+                ]
+        );
 
         return redirect()->back()->with("success", "Your application has been successfully submitted!");
     }

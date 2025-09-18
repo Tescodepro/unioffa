@@ -32,6 +32,11 @@ class ApplicationSetting extends Model
         return $this->hasMany(User::class, 'application_setting_id');
     }
 
+    public function userApplications()
+{
+    return $this->hasMany(UserApplications::class, 'application_setting_id');
+}
+
     protected static function boot()
     {
         parent::boot();

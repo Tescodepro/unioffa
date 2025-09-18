@@ -22,6 +22,9 @@ class UserTypeMiddleware
             else if ($type == 'student') {
                 $redirectRoute = route('student.login');
             }
+            else if ($type == 'administrator') {
+                $redirectRoute = route('staff.login');
+            }
             return redirect($redirectRoute)->with('error', 'You need to be logged in to access this page.');
         }
         // Ensure logged-in user has the correct type

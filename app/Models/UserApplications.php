@@ -22,17 +22,21 @@ class UserApplications extends Model
         'is_approved'
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
     public function applicationSetting()
     {
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');
     }
 
     public function transactions()
-{
-    return $this->hasMany(Transaction::class, 'session', 'academic_session')
-                ->where('user_id', Auth::id())
-                ->whereIn('payment_type', ['application', 'acceptance']);
-}
+    {
+        return $this->hasMany(Transaction::class, 'session', 'academic_session')
+                    ->where('user_id', Auth::id())
+                    ->whereIn('payment_type', ['application', 'acceptance']);
+    }
 
 
     protected static function boot()

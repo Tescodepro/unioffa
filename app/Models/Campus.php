@@ -23,6 +23,12 @@ class Campus extends Model
         'direction',
     ];
 
+    public function users()
+    {
+        return $this->hasMany(User::class, 'campus_id', 'id');
+    }
+
+
     // Automatically generate UUID on create
     protected static function booted()
     {

@@ -18,6 +18,10 @@ class UserType extends Model
     {
         return $this->hasMany(User::class, 'user_type_id');
     }
+    public function campus()
+    {
+        return $this->belongsTo(Campus::class, 'campus_id');
+    }
 
     protected static function boot()
     {

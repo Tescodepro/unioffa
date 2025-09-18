@@ -93,17 +93,21 @@
 
                                 <!-- Campus Dropdown -->
                                 <div class="form-group mb-3">
-                                    <label for="campus">Campus <code>*</code></label>
-                                    <select id="campus" name="campus" class="form-control @error('campus') is-invalid @enderror" required>
+                                    <label for="center">Center <code>*</code></label>
+                                    <select id="center" name="center" 
+                                            class="form-control @error('center') is-invalid @enderror" required>
                                         <option value=""> Select Campus </option>
-                                        <option value="main" {{ old('campus') == 'main' ? 'selected' : '' }}>Main Campus</option>
-                                        <option value="satellite" {{ old('campus') == 'satellite' ? 'selected' : '' }}>Satellite Campus</option>
-                                        <option value="online" {{ old('campus') == 'online' ? 'selected' : '' }}>Online Campus</option>
+                                        @foreach($campuses as $campus)
+                                            <option value="{{ $campus->id }}" {{ old('center') == $campus->id ? 'selected' : '' }}>
+                                                {{ $campus->name }}
+                                            </option>
+                                        @endforeach
                                     </select>
-                                    @error('campus')
+                                    @error('center')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+
 
                                 <div class="form-group mb-3">
                                     <label for="password">Password <code>*</code></label>

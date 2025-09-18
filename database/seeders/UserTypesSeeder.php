@@ -16,7 +16,7 @@ class UserTypesSeeder extends Seeder
      */
     public function run(): void
     {
-       $types = ['applicant', 'student', 'lecturer', 'hod'];
+       $types = ['applicant', 'student', 'lecturer', 'hod', 'registrar', 'administrator'];
 
         foreach ($types as $type) {
             UserType::updateOrInsert(

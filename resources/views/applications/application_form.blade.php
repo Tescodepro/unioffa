@@ -32,7 +32,7 @@
                                             @if(isset($application_payment_status['application']))
                                                 <span class="badge bg-success">✅ Application Fee Paid</span>
                                             @else
-                                                <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
+                                                <button class="theme-btn mt-3" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
                                             Pay Application Fee
                                         </button>
                                             @endif
@@ -329,7 +329,6 @@
                                                                                 {{ old('first_choice', $courseOfStudy->first_department_id ?? '') == $dept->id ? 'selected' : '' }}>
                                                                                 {{ $dept->department_name }}
                                                                             </option>
-
                                                                         @endforeach
                                                                     </optgroup>
                                                                 @endforeach
@@ -582,9 +581,9 @@
                 <div class="modal-body">
                     <div class="text-center">
                         <div class="mb-3">
-                            <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
+                            <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
                         </div>
-                        <h5>Payment Confirmation</h5>
+                        <h3>Payment Confirmation</h3>
                         <p class="mb-3">You are about to pay 
                             <strong class="text-success">{{ $application->applicationSetting->application_fee }}</strong> 
                             for <strong>{{ $application->applicationSetting->name }}</strong>.
@@ -595,7 +594,7 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="theme-btn" data-bs-dismiss="modal">
                         <i class="fas fa-times"></i> Cancel
                     </button>
                     {{-- Fixed form with proper action --}}
@@ -605,7 +604,7 @@
                         <input type="hidden" name="amount" value="{{ str_replace(['₦', ',', ' '], '', $application->applicationSetting->application_fee) }}">
                         <input type="hidden" name="fee_type" value="application">
                         <input type="hidden" name="gateway" value="oneapp">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="theme-btn">
                             <i class="fas fa-credit-card"></i> Proceed to Payment
                         </button>
                     </form>
