@@ -137,6 +137,7 @@
                                         <th>Name</th>
                                         <th>Email</th>
                                         <th>Application</th>
+                                        <th>Admittion Status</th>
                                         <th>Status</th>
                                         <th>Payment</th>
                                         <th>Applicant Details</th>
@@ -154,6 +155,16 @@
                                             <td>{{ $student->email }}</td>
                                             <td>{{ $student->application_type ?? 'N/A' }}</td>
                                             <td>
+                                                @if(optional($student->admissionList)->admission_status === 'admitted')
+                                                    <span class="badge bg-success">Admitted</span>
+                                                @elseif(optional($student->admissionList)->admission_status === 'pending')
+                                                    <span class="badge bg-warning">Pending</span>
+                                                @else
+                                                    <button class="btn btn-danger btn-sm">Rejected</button>
+                                                @endif
+                                            </td>
+
+                                            <td>
                                                 <span class="badge bg-{{ $student->application_status === 'submitted' ? 'success' : 'secondary' }}">
                                                     {{ ucfirst($student->application_status) }}
                                                 </span>
@@ -169,7 +180,7 @@
                                             </td>
                                             <td>
                                                 <a href="{{ route('admin.applicants.details', [$student->id, $student->application_id]) }}" 
-                                                class="btn btn-sm btn-info">
+                                                class="btn btn-sm btn-success">
                                                     View Details
                                                 </a>
                                             </td>
@@ -190,26 +201,28 @@
                                                             <div class="modal-content">
                                                                 
                                                                 <!-- Header -->
-                                                                <div class="modal-header bg-primary text-white">
-                                                                    <h5 class="modal-title" id="admitModalLabel{{ $student->id }}">
+                                                                <div class="modal-header bg-success text-white">
+                                                                    <h5 class="modal-title text-white" id="admitModalLabel{{ $student->id }}">
                                                                         Confirm Admission
                                                                     </h5>
                                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                                 </div>
-
+                                                            <form method="POST" action="{{ route('admin.admit', $student->id) }}" id="admitForm{{ $student->id }}">
                                                                 <!-- Body -->
                                                                 <div class="modal-body">
-                                                                    <p class="text-danger fw-bold">
-                                                                        ⚠️ Once admitted, this action <u>cannot be reverted</u>.
-                                                                    </p>
+                                                                    <center>
+                                                                        <h4 class="text-danger fw-bold align-items-center">
+                                                                        ⚠️ You are about to admit this applicant into the university.
+                                                                        </h4><hr>
+                                                                    </center>
 
-                                                                    <div class="mb-3">
+                                                                    <div class="mb-1">
                                                                         <strong>Name:</strong> {{ $student->full_name }}
                                                                     </div>
-                                                                    <div class="mb-3">
+                                                                    <div class="mb-1">
                                                                         <strong>Application Type:</strong> {{ $student->application_type }}
                                                                     </div>
-                                                                    <div class="mb-3">
+                                                                    <div class="mb-1">
                                                                         <strong>First Choice:</strong> {{ $student->first_choice ?? 'N/A' }}
                                                                     </div>
                                                                     <div class="mb-3">
@@ -229,17 +242,26 @@
                                                                             @endforeach
                                                                         </select>
                                                                     </div>
+
+                                                                    <div class="mb-3">
+                                                                        <label class="form-label">Admission Status *</label>
+                                                                        <select class="form-select" name="status" required>
+                                                                            <option value="">-- Select Final Course --</option>
+                                                                            <option value="pending">pending</option>
+                                                                            <option value="rejected">rejected</option>
+                                                                            <option value="admitted" selected>admitted</option>
+                                                                        </select>
+                                                                    </div>
                                                                 </div>
 
                                                                 <!-- Footer with form -->
-                                                                <div class="modal-footer">
-                                                                    <form method="POST" action="{{ route('admin.admit', $student->id) }}" id="admitForm{{ $student->id }}">
+                                                                    <div class="modal-footer">
                                                                         @csrf
                                                                         <input type="hidden" name="application_id" value="{{ $student->application_id }}">
                                                                         <button type="submit" class="btn btn-success">Confirm Admit</button>
                                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                                    </form>
-                                                                </div>
+                                                                    </div>
+                                                                </form>
                                                             </div>
                                                         </div>
                                                     </div>

@@ -102,16 +102,17 @@ class GeneralController extends Controller
         ));
     }
 
-    public function admitStudent($userId, $user_application_id, Request $request)
+    public function admitStudent($userId, Request $request)
     {
-
+        $user_application_id = $request->application_id;
         $user_application = UserApplications::findOrFail($user_application_id);
-        $user_application->is_admitted = 1;
+        $user_application->is_approved = 1;
         $user_application->save();
 
-        $admission = AdmissionList::where('user_id', $userId);
+        // Get or create admission record
+        $admission = AdmissionList::firstOrNew(['user_id' => $userId]);
         $admission->admission_status = 'admitted';
-        $admission->approved_department_id = $request->department;
+        $admission->approved_department_id = $request->final_course; // optional, if you want to track
         $admission->save();
 
         return back()->with('success', 'Student admitted successfully.');

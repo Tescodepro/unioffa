@@ -174,11 +174,13 @@
                                                     <h6>Subjects and Grades</h6>
                                                     <div id="olevel_subjects_container">
                                                         @php
-                                                            $savedSubjects = $olevel ? json_decode($olevel->subjects, true) : [];
-                                                            $savedGrades = $olevel ? json_decode($olevel->grades, true) : [];
+                                                            $savedSubjects = $olevel ? (is_array($olevel->subjects) ? $olevel->subjects : json_decode($olevel->subjects, true)) : [];
+                                                            $savedGrades = $olevel ? (is_array($olevel->grades) ? $olevel->grades : json_decode($olevel->grades, true)) : [];
+
                                                             $subjects = ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Further Mathematics', 'Economics', 'Government', 'Literature'];
                                                             $grades = ['A1','B2','B3','C4','C5','C6','D7','E8','F9'];
                                                         @endphp
+
                                                         
                                                         @if(count($savedSubjects) > 0)
                                                             @foreach($savedSubjects as $index => $savedSubject)
