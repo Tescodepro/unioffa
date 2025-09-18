@@ -15,16 +15,18 @@
             <div class="row align-items-center">
                 
                 <!-- Left side: Welcome -->
+                <!-- Left side: Welcome -->
                 <div class="col-lg-6 mb-4 mb-lg-0">
                     <div class="p-4">
                         <h2 class="mb-3">Welcome Back to {{ config('app.name') }}</h2>
                         <p class="lead">
-                            Log in to access your dashboard and manage your account.
+                            Please follow the instructions below to log in and access your dashboard.
                         </p>
                         <ul class="list-unstyled mt-3">
-                            <li><i class="fas fa-check-circle text-success me-2"></i> Access your profile</li>
-                            <li><i class="fas fa-check-circle text-success me-2"></i> View updates & notifications</li>
-                            <li><i class="fas fa-check-circle text-success me-2"></i> Manage your applications</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> Enter your <strong>Email or Registration Number</strong></li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> Provide your <strong>Password</strong></li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> Click the <strong>Login</strong> button to continue</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i> If you forgot your password, use the <strong>Forgot Password</strong> link</li>
                         </ul>
                         <p class="mt-4">
                             Don’t have an account yet? 
@@ -33,11 +35,13 @@
                     </div>
                 </div>
 
+
                 <!-- Right side: Login form -->
                 <div class="col-lg-6">
                     <div class="login-form shadow-lg p-4 rounded">
                         <div class="login-header text-center mb-4">
                             <img src="{{ asset('assets/img/logo/logo.svg') }}"  alt="{{ config('app.name') }}"  class="mb-3" style="max-width: 120px;">
+                            <h4>Application Portal</h4>
                             <p>Please login to continue</p>
                         </div>
 

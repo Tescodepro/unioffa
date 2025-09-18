@@ -15,16 +15,17 @@
                 <div class="row align-items-center">
                     
                     <!-- Left side: Instructions -->
-                    <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="col-lg-5 mb-4 mb-lg-0">
                         <div class="p-4">
-                            <h2 class="mb-3">Welcome to {{ config('app.name') }}</h2>
+                            <h2 class="mb-3">Welcome to {{ config('app.name') }} Application Portal</h2>
                             <p class="lead">
-                                Create your account to access the full features of our portal.
+                                Create your account to start your application process and access all features of the portal.
                             </p>
                             <ul class="list-unstyled mt-3">
                                 <li><i class="fas fa-check-circle text-success me-2"></i> Quick and easy registration</li>
-                                <li><i class="fas fa-check-circle text-success me-2"></i> Manage your profile anytime</li>
-                                <li><i class="fas fa-check-circle text-success me-2"></i> Stay connected with updates</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Select your preferred <strong>Campus</strong></li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Manage your applications anytime</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Stay updated with admission notices</li>
                             </ul>
                             <p class="mt-4">
                                 Already have an account? 
@@ -33,11 +34,13 @@
                         </div>
                     </div>
 
+
                     <!-- Right side: Form -->
-                    <div class="col-lg-6">
+                    <div class="col-lg-7">
                         <div class="login-form shadow-lg p-4 rounded">
                             <div class="login-header text-center mb-4">
                                 <img src="{{ asset('assets/img/logo/logo.svg') }}" alt="{{ config('app.name') }}" class="mb-3" style="max-width: 120px;">
+                                <h4>Application Portal</h4>
                                 <p>Create your account here.</p>
                             </div>
                             {{-- alert --}}
@@ -80,8 +83,24 @@
 
                                 <div class="form-group mb-3">
                                     <label for="phone">Phone <code>*</code></label>
-                                    <input id="phone" name="phone" type="text" class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}" required>
+                                    <input id="phone" name="phone" type="text" 
+                                        class="form-control @error('phone') is-invalid @enderror" 
+                                        value="{{ old('phone') }}" required>
                                     @error('phone')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <!-- Campus Dropdown -->
+                                <div class="form-group mb-3">
+                                    <label for="campus">Campus <code>*</code></label>
+                                    <select id="campus" name="campus" class="form-control @error('campus') is-invalid @enderror" required>
+                                        <option value=""> Select Campus </option>
+                                        <option value="main" {{ old('campus') == 'main' ? 'selected' : '' }}>Main Campus</option>
+                                        <option value="satellite" {{ old('campus') == 'satellite' ? 'selected' : '' }}>Satellite Campus</option>
+                                        <option value="online" {{ old('campus') == 'online' ? 'selected' : '' }}>Online Campus</option>
+                                    </select>
+                                    @error('campus')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>

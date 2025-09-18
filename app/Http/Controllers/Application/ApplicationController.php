@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Models\UserType;
 use App\Services\UniqueIdService;
 use Illuminate\Support\Facades\Auth;
-use App\Models\{ApplicationSetting, UserApplications, Profile, Olevel, Alevel, CourseOfStudy, Document, JambDetail, EducationHistory, Department, Faculty, Transaction};
+use App\Models\{ApplicationSetting, UserApplications, Profile, Olevel, Alevel, Campus, CourseOfStudy, Document, JambDetail, EducationHistory, Department, Faculty, Transaction};
 
 
 class ApplicationController extends Controller
@@ -27,6 +27,7 @@ class ApplicationController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
+            'center' => 'nullable|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|max:20',
             'password' => 'required|string|min:6|confirmed',
@@ -40,6 +41,7 @@ class ApplicationController extends Controller
             'last_name' => $request->last_name,
             'middle_name' => $request->middle_name,
             'email' => $request->email,
+            'campus_id' => $request->center,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
             'username' => $uniqueId,
@@ -47,7 +49,10 @@ class ApplicationController extends Controller
             'user_type_id' => UserType::where('name', 'applicant')->first()->id,
         ]);
 
-        return redirect()->route('application.login')->with('success', 'Registration successful Please login to continue.');
+        // get center
+        $campus = Campus::all();
+
+        return redirect()->route('application.login', compact('campus'))->with('success', 'Registration successful Please login to continue.');
     }
 
     public function login()
