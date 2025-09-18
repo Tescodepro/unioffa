@@ -31,6 +31,32 @@ class UserApplications extends Model
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');
     }
 
+    // relationships to modules
+     public function profile()
+    {
+        return $this->hasOne(Profile::class, 'user_application_id');
+    }
+
+    public function olevels()
+    {
+        return $this->hasMany(Olevel::class, 'user_application_id');
+    }
+
+    public function jambDetail()
+    {
+        return $this->hasOne(JambDetail::class, 'user_application_id');
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'user_application_id');
+    }
+
+    public function educationHistories()
+    {
+        return $this->hasMany(EducationHistory::class, 'user_application_id');
+    }
+
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'session', 'academic_session')

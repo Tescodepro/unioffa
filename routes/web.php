@@ -98,6 +98,7 @@ Route::prefix('staff')->group(function(){
             Route::get('/dashboard', 'index_admin')->name('admin.dashboard');
             Route::post('admit/{userId}', 'admitStudent')->name('admin.admit');
             Route::get('/export-applicants',  'exportApplicants')->name('admin.exportApplicants');
+            Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admin.applicants.details');
 
         });
     });

@@ -19,8 +19,12 @@ class EducationHistory extends Model
         'end_date',
         'grade',
         'certificate_path',
+        'user_application_id',
     ];
-
+    public function userApplication()
+    {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
     protected static function boot()
     {
         parent::boot();

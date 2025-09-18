@@ -17,12 +17,17 @@ class JambDetail extends Model
         'exam_year',
         'score',
         'subject_scores',
+        'user_application_id'
     ];
 
     protected $casts = [
         'subject_scores' => 'array',
     ];
 
+    public function userApplication()
+    {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
     protected static function boot()
     {
         parent::boot();

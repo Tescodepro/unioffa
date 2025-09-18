@@ -28,6 +28,11 @@ class CourseOfStudy extends Model
     {
         return $this->belongsTo(Department::class, 'second_department_id');
     }
+
+    public function userApplication()
+    {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
     
     
     

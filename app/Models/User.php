@@ -92,6 +92,8 @@ class User extends Authenticatable
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');
     }
 
+
+
     public function student()
     {
         return $this->hasOne(Student::class); // If extra student info is in 'students' table

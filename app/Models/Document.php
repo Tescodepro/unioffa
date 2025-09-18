@@ -20,6 +20,11 @@ class Document extends Model
         'original_name'
     ];
 
+    public function userApplication()
+    {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
+
 
     protected static function boot()
     {

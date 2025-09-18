@@ -139,11 +139,15 @@
                                         <th>Application</th>
                                         <th>Status</th>
                                         <th>Payment</th>
+                                        <th>Applicant Details</th>
                                         <th>Admit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($students as $student)
+                                    @php
+                                        $modules = json_decode($student->application_modules_enable ?? '[]', true);
+                                    @endphp
                                         <tr>
                                             <td>{{ $student->registration_no }}</td>
                                             <td>{{ $student->full_name }}</td>
@@ -156,14 +160,20 @@
                                             </td>
                                             <td>
                                                 @if ($student->payment_status == 1 && $student->payment_ref)
-                                                    <span class="badge bg-success">Paid</span><br>
-                                                    <small class="text-muted">Ref: {{ $student->payment_ref }}</small>
+                                                    <span class="badge bg-success">Paid</span>
                                                 @elseif($student->payment_status == 1 && !$student->payment_ref)
                                                     <span class="badge bg-danger">Failed</span>
                                                 @else
                                                     <span class="badge bg-warning">Unpaid</span>
                                                 @endif
                                             </td>
+                                            <td>
+                                                <a href="{{ route('admin.applicants.details', [$student->id, $student->application_id]) }}" 
+                                                class="btn btn-sm btn-info">
+                                                    View Details
+                                                </a>
+                                            </td>
+
                                             <td>
                                                 @if(optional($student->admissionList)->admission_status !== 'admitted')
                                                     <!-- Admit button -->
@@ -237,6 +247,7 @@
                                                     <span class="badge bg-success">Admitted</span>
                                                 @endif
                                             </td>
+                                            
                                         </tr>
                                     @endforeach
                                 </tbody>

@@ -22,6 +22,19 @@ class Profile extends Model
     protected $casts = [
         'date_of_birth' => 'datetime:Y-m-d',
     ];
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
+    public function application() {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
+
+    public function userApplication()
+    {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
     protected static function boot()
     {
         parent::boot();

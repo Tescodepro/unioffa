@@ -71,7 +71,8 @@ class GeneralController extends Controller
                         'full_name' => $user->first_name . ' ' . $user->last_name,
                         'email' => $user->email,
                         'application_type' => optional($user->applications->first()?->applicationSetting)->name,
-                        'application_id' => $user->applications->first()?->application_setting_id,
+                        'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
+                        'application_id' => $user->applications->first()?->id,
                         'application_status' => $user->applications->first()?->submitted_by ? 'submitted' : 'not submitted',
                         'payment_status' => $user->transactions->where('payment_type', 'application')->first()->payment_status ?? 'unpaid',
                         'payment_ref' => $user->transactions->where('payment_type', 'application')->first()->refernce_number ?? null,
@@ -81,7 +82,7 @@ class GeneralController extends Controller
                     ];
                 });
 
-            $departments = Department::all();
+        $departments = Department::all();
         $faculties = Faculty::all();
 
         return view('staff.admin_dashboard', compact(
@@ -115,6 +116,29 @@ class GeneralController extends Controller
 
         return back()->with('success', 'Student admitted successfully.');
     }
+
+    public function showApplicantDetails($userId, $applicationId)
+    {
+        $application = UserApplications::with([
+            'applicationSetting',
+            'profile',
+            'olevels',
+            'jambDetail',
+            'documents',
+            'educationHistories',
+            'user.courseOfStudy.firstDepartment',
+            'user.courseOfStudy.secondDepartment',
+        ])
+        ->where('id', $applicationId)
+        ->where('user_id', $userId)
+        ->firstOrFail();
+
+        $modules = json_decode($application->applicationSetting->modules_enable, true);
+
+        return view('staff.applicant_details', compact('application', 'modules'));
+    }
+
+
 
 }
 

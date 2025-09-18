@@ -18,6 +18,23 @@ class Olevel extends Model
         'subjects',
     ];
 
+    protected $casts = [
+        'subjects' => 'array', // 👈 this makes subjects usable as array
+    ];
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
+    public function application() {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
+
+    public function userApplication()
+    {
+        return $this->belongsTo(UserApplications::class, 'user_application_id');
+    }
+
     protected static function boot()
     {
         parent::boot();
