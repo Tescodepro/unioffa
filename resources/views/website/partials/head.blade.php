@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
     <!-- title -->
-    <title>Eduka - School, College, University And Courses HTML5 Template</title>
+    <title> {{$title}} &amp;  {{ config('app.name') }}   </title>
     <!-- favicon -->
     <link rel="icon" type="image/x-icon" href="assets/img/logo/logo.jpg">
     <!-- css -->

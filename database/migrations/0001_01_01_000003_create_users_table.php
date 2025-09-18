@@ -12,12 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->uuid('id')->primary();
+
+            // 🔹 Split name into first, middle, last
+            $table->string('first_name');
+            $table->string('last_name');
+            $table->string('middle_name')->nullable();
+
+            // 🔹 Contact info
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('phone')->unique();
+
+            // 🔹 Authentication
+            $table->string('username')->unique()->commont('The matric number for student');
+            $table->string('registration_no')->nullable()->comment('The registration number for applicant no for applicanq and reg no for staff');
             $table->string('password');
             $table->rememberToken();
+
+            // 🔹 User type (FK to user_types table)
+            $table->uuid('user_type_id');
+            $table->foreign('user_type_id')->references('id')->on('user_types')->onDelete('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
 

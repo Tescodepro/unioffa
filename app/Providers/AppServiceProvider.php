@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Models\AcademicSession;
+use App\Models\AcademicSemester;
+use App\Models\User;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        view()->composer('*', function ($view) {
+            $activeSession = AcademicSession::active();
+            $activeSemester = AcademicSemester::active();
+
+            $view->with([
+                'activeSession' => $activeSession,
+                'activeSemester' => $activeSemester,
+            ]);
+        });
     }
 }

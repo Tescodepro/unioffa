@@ -604,16 +604,12 @@
         <!-- blog area end -->
     </main>
 
-
-
    @include('website.partials.footer')
 
 
     <!-- scroll-top -->
     <a href="index-2.html#" id="scroll-top"><i class="far fa-arrow-up-from-arc"></i></a>
     <!-- scroll-top end -->
-
-
     <!-- js -->
     @include('website.partials.js')
 

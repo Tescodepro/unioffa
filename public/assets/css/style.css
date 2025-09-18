@@ -638,6 +638,19 @@ label {
 }
 
 
+/*=========
+form application
+============*/
+.header-primary {
+  background-color: #29cc10;
+  height: 40px;
+  color: #ffffff;
+  line-height: 20px;
+}
+
+
+
+
 
 /*====================
 7. Site title css
@@ -4310,7 +4323,7 @@ label {
 }
 
 .team-details{
-  padding: 45px;
+  padding: 20px;
   background: var(--theme-bg-light);
   border-radius: 50px 50px 50px 0;
 }
