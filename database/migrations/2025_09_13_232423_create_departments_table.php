@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('department_name');
             $table->string('department_code');
+            $table->string('qualification')->nullable();
             $table->uuid('faculty_id');
             $table->foreign('faculty_id')->references('id')->on('faculties')->onDelete('cascade');
             $table->text('department_description')->nullable();

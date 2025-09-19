@@ -17,6 +17,7 @@ class ApplicationSetting extends Model
         'application_code',
         'modules_enable',
         'application_fee',
+        'admission_duration',
         'acceptance_fee',
         'academic_session',
         'enabled',

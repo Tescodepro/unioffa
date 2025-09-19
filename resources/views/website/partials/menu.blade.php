@@ -159,6 +159,7 @@
                                     <li><a class="dropdown-item" href="">Application Form</a></li>
                                     <li><a class="dropdown-item" href="">Tuition Fees</a></li>
                                     <li><a class="dropdown-item" href="">Scholarships</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('application.login') }}">Admission Form</a></li>
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">

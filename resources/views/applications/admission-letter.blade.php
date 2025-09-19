@@ -140,6 +140,11 @@
 </head>
 <body>
 
+    @php
+            $formatter = new \NumberFormatter('en', \NumberFormatter::SPELLOUT);
+            $durationInWords = $formatter->format($duration->admission_duration);
+        @endphp
+
     <!-- Letterhead -->
     <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="letterhead">
 
@@ -157,8 +162,8 @@
 
         <p>
             Consequent upon your application, you are hereby offered provisional admission into the 
-            University for a Four (4) year Programme leading to the award of 
-            <strong>Bachelor of Science (B.Sc) {{ strtoupper($department->department_name) }}</strong>.
+            University for a {{ ucfirst($durationInWords) }} ({{ $duration->admission_duration }}) year Programme leading to the award of 
+            <strong>Bachelor of Science ({{ $department->qualification }}) {{ strtoupper($department->department_name) }}</strong>.
         </p>
 
         <p>The following conditions are expected to be met in respect to your admission:</p>

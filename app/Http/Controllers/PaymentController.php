@@ -6,6 +6,12 @@ use Illuminate\Http\Request;
 use App\Services\PaymentService;
 use Illuminate\Support\Str;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Campus;
+use App\Models\User;
+use App\Models\{AdmissionList, ApplicationSetting, UserType, UserApplications, Faculty, PaymentSetting, StudentApplication};
+use App\Models\Student;
+use App\Mail\{GeneralMail};
 
 class PaymentController extends Controller
 {
@@ -89,9 +95,12 @@ class PaymentController extends Controller
         $paymentType = $transaction->payment_type;
         // decide redirect route
         if (in_array($paymentType, ['application', 'acceptance'])) {
+            if($paymentType == 'acceptance'){
+                $this->migrationStudent();
+            }
             $backRoute = route('application.dashboard');
         } else {
-            $backRoute = route('students.dashboard');
+            $backRoute = route('students.load_payment');
         }
 
         if ($response['success']) {
@@ -122,4 +131,87 @@ class PaymentController extends Controller
         $reference = $payment_type . '-' . date('YmdHis') . '-' . Str::uuid()->toString();
         return $reference;
     } 
+
+    private function migrationStudent(){
+
+        $user = Auth::user();
+        $studentType = UserType::where('name', 'student')->first();
+
+        // update user type to student
+        $user->user_type_id = $studentType->id;
+        $user->save();
+
+        $current_session = activeSession()->name ?? null;
+
+         $user_application = UserApplications::where('user_id', $user->id)
+         ->where('academic_session', $current_session)->first();
+
+        $applicationSetting = ApplicationSetting::find($user_application->application_setting_id);
+        $admission = AdmissionList::where(['user_id' => $user->id]);
+
+        if($applicationSetting->programme_code == 'DE') {
+            $studentData = [
+                'programme' => 'DE',
+                'entry_mode' => 'DE',
+                'level' => '200',
+                'admission_session' => $user_application->academic_session,
+                'sex' => $user->gender,
+            ];
+        } elseif($applicationSetting->programme_code == 'TOPUP') {
+            $studentData = [
+                'programme' => 'TOPUP',
+                'entry_mode' => 'TOPUP',
+                'level' => '300',
+                'admission_session' => $user_application->academic_session,
+            ];
+        } elseif($applicationSetting->programme_code == 'TRANSFER') {
+            $studentData = [
+                'programme' => 'TRANSFER',
+                'entry_mode' => 'TRANSFER',
+                'level' => '200',
+                'admission_session' => $user_application->academic_session,
+            ];
+        } elseif($applicationSetting->programme_code == 'IDELUTME') {
+            $studentData = [
+                'programme' => 'IDELUTME',
+                'entry_mode' => 'UTME',
+                'level' => '100',
+                'admission_session' => $user_application->academic_session,
+            ];
+        }elseif($applicationSetting->programme_code == 'IDELDE') {
+            $studentData = [
+                'programme' => 'IDELDE',
+                'entry_mode' => 'DE',
+                'level' => '200',
+                'admission_session' => $user_application->academic_session,
+            ];
+        }elseif($applicationSetting->programme_code == 'UMTE') {
+            $studentData = [
+                'programme' => 'UTME',
+                'entry_mode' => 'UTME',
+                'level' => '100',
+                'admission_session' => $user_application->academic_session,
+            ];
+        }
+
+        // migrate to student table
+        $migrate_student = Student::create([
+                'id' => Str::uuid(),
+                'user_id' => $user->id,
+                'campus_id' => $user->campus_id,
+                'department_id' => $admission->approved_department_id,
+                'matric_no' => $user->registration_no,
+                'programme' => $studentData['programme'],
+                'entry_mode' => $studentData['entry_mode'],
+                'level' => $studentData['level'],
+                'admission_session' => $studentData['admission_session'],
+                'admission_date' => now(),
+                'status' => 1,
+                'sex' => $studentData['sex'],
+            ]);
+
+        $migrate_student->save();
+
+        return $migrate_student;
+    }
 }

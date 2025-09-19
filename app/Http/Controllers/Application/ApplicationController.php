@@ -442,6 +442,7 @@ class ApplicationController extends Controller
         $application = UserApplications::with(['user', 'admissionList.department'])
         ->findOrFail($applicationId);
 
+        $applicationSetting = ApplicationSetting::find($application->application_setting_id);
 
         $student = $application->user;
         $profile = $application->profile;
@@ -449,7 +450,7 @@ class ApplicationController extends Controller
         $department = AdmissionList::where('user_id', $profile->user_id)
             ->where('session_admitted', $application->academic_session)
             ->join('departments', 'admission_lists.approved_department_id', '=', 'departments.id')
-            ->select('departments.department_name')
+            ->select('departments.department_name', 'departments.qualification')
             ->first();
 
         $data = [
@@ -457,6 +458,7 @@ class ApplicationController extends Controller
             'session'=> $application->academic_session,
             'profile' => $profile,
             'department' => $department,
+            'duration' => $applicationSetting,
             'application' => $application,
             'date' => Carbon::now()->format('F d, Y'),
         ];

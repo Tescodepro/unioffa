@@ -77,7 +77,8 @@
 
                             <!-- Forgot password -->
                             <div class="text-center mt-3">
-                                <a href="{{ route('application.forgot.password') }}">Forgot Your Password?</a>
+                                <a href="{{ route('application.forgot.password') }}">Forgot Your Password?</a><br>
+                                <span> Don’t have an account <a href="{{ route('application.register') }}"> Create Account </a></span>
                             </div>
                         </form>
 

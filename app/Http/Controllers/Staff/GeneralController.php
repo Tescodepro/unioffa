@@ -11,8 +11,10 @@ use Illuminate\Http\Request;
 use App\Models\Campus;
 use App\Models\User;
 use App\Models\AdmissionList;
-use App\Exports\AppplicantsExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Models\Student;
+use App\Mail\{GeneralMail};
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class GeneralController extends Controller
 {
@@ -114,6 +116,23 @@ class GeneralController extends Controller
         $admission->admission_status = 'admitted';
         $admission->approved_department_id = $request->final_course; // optional, if you want to track
         $admission->save();
+
+        $department = Department::find($request->final_course);
+        $user = User::findOrFail($userId);
+
+        $applicationSetting = ApplicationSetting::find($user_application->application_setting_id);
+
+        $to = $user->email;
+
+        $subject = "Offer of Admission - Offa University";
+
+        $content = [
+            'title' => 'Dear '.$user->full_name . ",",
+            'body'  => "Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study " . ($department->department_name ?? 'your chosen course') . ". for the " . $user_application->academic_session . " academic session admission. This achievement is a testament to your hard work, dedication, and academic excellence.",
+            'footer'=> "Offa University Security Team"
+        ];
+
+        Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
         return back()->with('success', 'Student admitted successfully.');
     }

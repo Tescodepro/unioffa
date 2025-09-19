@@ -11,19 +11,37 @@ class ApplicationSettingsSeeder extends Seeder
     {
         $settings = [
             [
+                'name' => 'IDELDE Admission',
+                'application_code' => 'IDELDE',
+                'modules_enable' => json_encode([
+                    'profile' => true,
+                    'olevel' => true,
+                    'alevel' => false,
+                    'course_of_study' => true,
+                    'documents' => ['olevel', 'alevel'],
+                ]),
+                'application_fee' => 10000,
+                'acceptance_fee' => 25000,
+                'academic_session' => '2025/2026',
+                'enabled' => true,
+                'admission_duration' =>'2',
+                'description' => 'For IDEL DE candidates. Requires a completed profile, Olevel and Alevel results, and chosen course of study.'
+            ],
+            [
                 'name' => 'IDELUTME Admission',
                 'application_code' => 'IDELUTME',
                 'modules_enable' => json_encode([
                     'profile' => true,
                     'olevel' => true,
-                    'alevel' => true,
+                    'alevel' => false,
                     'course_of_study' => true,
-                    'documents' => ['olevel', 'alevel'],
+                    'documents' => ['olevel'],
                 ]),
-                'application_fee' => 5000,
-                'acceptance_fee' => 10000,
+                'application_fee' => 10000,
+                'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
+                'admission_duration' =>'4',
                 'description' => 'For IDEL UTME candidates. Requires a completed profile, Olevel and Alevel results, and chosen course of study.'
             ],
             [
@@ -32,14 +50,16 @@ class ApplicationSettingsSeeder extends Seeder
                 'modules_enable' => json_encode([
                     'profile' => true,
                     'olevel' => true,
+                    'jamb_detail' => true,
                     'alevel' => false,
                     'course_of_study' => true,
-                    'documents' => ['olevel'],
+                    'documents' => ['olevel', 'utme_printout'],
                 ]),
-                'application_fee' => 4000,
-                'acceptance_fee' => 9000,
+                'application_fee' => 10000,
+                'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
+                'admission_duration' =>'4',
                 'description' => 'For UTME candidates applying with Olevel results only. Requires profile, Olevel results, and course selection.'
             ],
             [
@@ -52,10 +72,11 @@ class ApplicationSettingsSeeder extends Seeder
                     'course_of_study' => true,
                     'documents' => ['olevel', 'previous_certificate'],
                 ]),
-                'application_fee' => 6000,
-                'acceptance_fee' => 12000,
+                'application_fee' => 10000,
+                'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
+                'admission_duration' =>'2',
                 'description' => 'Top-up admission for candidates with prior qualifications. Requires profile, Olevel results, previous certificate, and course selection.'
             ],
             [
@@ -66,12 +87,13 @@ class ApplicationSettingsSeeder extends Seeder
                     'olevel' => true,
                     'alevel' => false,
                     'course_of_study' => true,
-                    'documents' => ['olevel', 'transfer_letter'],
+                    'documents' => ['olevel', 'transfer_letter', 'transcript'],
                 ]),
-                'application_fee' => 5500,
-                'acceptance_fee' => 11000,
+                'application_fee' => 10000,
+                'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
+                'admission_duration' =>'3',
                 'description' => 'For students transferring from other institutions. Requires profile, Olevel results, transfer letter, and course selection.'
             ],
             [
@@ -80,14 +102,15 @@ class ApplicationSettingsSeeder extends Seeder
                 'modules_enable' => json_encode([
                     'profile' => true,
                     'olevel' => true,
-                    'alevel' => true,
+                    'alevel' => false,
                     'course_of_study' => true,
-                    'documents' => ['olevel', 'alevel', 'diploma_certificate'],
+                    'documents' => ['olevel', 'alevel_or_diploma_certificate '],
                 ]),
-                'application_fee' => 7000,
-                'acceptance_fee' => 14000,
+                'application_fee' => 10000,
+                'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
+                'admission_duration' =>'3',
                 'description' => 'Direct Entry admission for diploma holders. Requires profile, Olevel, Alevel, diploma certificate, and course selection.'
             ],
         ];

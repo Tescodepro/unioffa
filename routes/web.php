@@ -100,7 +100,6 @@ Route::prefix('staff')->group(function(){
         Route::post('/','loginAction');
     });
 
-
     Route::middleware('user.type:administrator')->group(function(){
         Route::controller(AdminGeneralController::class)->group(function(){
             Route::get('/dashboard', 'index_admin')->name('admin.dashboard');

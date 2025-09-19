@@ -3,7 +3,19 @@
 @section('title', 'Payments')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"> <!-- Adjust path as needed -->
+<style>
+    .table th, .table td {
+        vertical-align: middle;
+    }
+    .card {
+        border-radius: 0.5rem;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .badge-completed {
+        background-color: #28a745; /* Green for completed */
+    }
+</style>
 @endpush
 
 @section('content')
@@ -17,15 +29,14 @@
 
     <div class="page-wrapper">
         <div class="content">
-
             <!-- Page Header -->
             <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                 <div class="my-auto mb-4">
                     <h3 class="page-title mb-1">Payment Dashboard</h3>
-                    <p class="mb-1 text-muted">View your required payments and completed transactions.</p>
+                    <p class="mb-1 text-muted">View your required payments and completed transactions for the {{ $currentSession ?? 'N/A' }} session.</p>
 
                     <div class="bg-light p-3 rounded shadow-sm">
-                        <p class="mb-1"><strong>Current Session:</strong> {{ activeSession()->name ?? 'No active session' }}</p>
+                        <p class="mb-1"><strong>Current Session:</strong> {{ $currentSession ?? 'No active session' }}</p>
                         <p class="mb-0"><strong>Current Semester:</strong> {{ activeSemester()->name ?? 'No active semester' }}</p>
                     </div>
                 </div>
@@ -37,52 +48,97 @@
             <!-- Required Payments -->
             <div class="card mb-4">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-                    <h4 class="mb-3">Required Payments</h4>
+                    <h4 class="mb-3">Required Payments ({{ $currentSession ?? 'N/A' }})</h4>
                 </div>
                 <div class="card-body p-0 py-3">
                     <div class="table-responsive">
-                        <table class="table datatable align-middle">
+                        <table class="table align-middle">
                             <thead class="thead-light">
                                 <tr>
                                     <th>Payment Type</th>
                                     <th>Description</th>
-                                    <th>Amount</th>
-                                    <th>Paid</th>
+                                    <th>Amount to Pay</th>
+                                    <th>Amount Paid</th>
                                     <th>Balance</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($paymentSettings as $setting)
-                                    @php
-                                        $paid = $transactions
-                                            ->where('payment_type', $setting->payment_type)
-                                            ->where('payment_status', 'success')
-                                            ->sum('amount');
-
-                                        $balance = $setting->amount - $paid;
-                                    @endphp
+                                @forelse ($paymentSettings as $payment)
                                     <tr>
-                                        <td>{{ ucfirst($setting->payment_type ?? '---') }}</td>
-                                        <td>{{ $setting->description ?? '---' }}</td>
-                                        <td>{{ number_format($setting->amount ?? 0, 2) }}</td>
-                                        <td>{{ number_format($paid ?? 0, 2) }}</td>
-                                        <td>{{ number_format($balance ?? 0, 2) }}</td>
+                                        <td>{{ $payment->payment_type }}</td>
+                                        <td>{{ $payment->description ?? 'N/A' }}</td>
+                                        <td>{{ number_format($payment->amount, 2) }}</td>
+                                        <td>{{ number_format($payment->amount_paid, 2) }}</td>
+                                        <td>{{ number_format($payment->balance, 2) }}</td>
                                         <td>
-                                            @if(($balance ?? 0) > 0)
-                                                @if(($setting->payment_type ?? '') == 'tuition')
-                                                    <a href="#" class="btn btn-sm btn-primary">Pay Installment</a>
+                                            @if ($payment->balance > 0)
+                                                @if ($payment->payment_type === 'tuition' && $payment->installment_count >= 3)
+                                                    <span class="badge bg-danger">Installment Limit Reached</span>
                                                 @else
-                                                    <a href="#" class="btn btn-sm btn-success">Pay Now</a>
+                                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#paymentModal{{ $payment->id }}">
+                                                        Pay Now
+                                                    </button>
+                                                    <!-- Payment Confirmation Modal -->
+                                                    <div class="modal fade" id="paymentModal{{ $payment->id }}" tabindex="-1" aria-labelledby="paymentModalLabel{{ $payment->id }}" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="paymentModalLabel{{ $payment->id }}">Confirm Payment</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <form action="{{ route('application.payment.process') }}" method="POST">
+                                                                    @csrf
+                                                                    <div class="modal-body">
+                                                                        <div class="text-center">
+                                                                            <div class="mb-3">
+                                                                                <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
+                                                                            </div>
+                                                                            <h3>Payment Confirmation</h3>
+                                                                            <p>Are you sure you want to make a payment for <strong>{{ $payment->payment_type }}</strong>?</p>
+                                                                            <div class="alert alert-info">
+                                                                                <small><i class="fas fa-info-circle"></i> You will be redirected to our secure payment gateway to complete this transaction.</small>
+                                                                            </div>
+                                                                            @if ($payment->payment_type === 'tuition')
+                                                                                <div class="mb-3">
+                                                                                    <label for="amount{{ $payment->id }}" class="form-label">Select Amount to Pay</label>
+                                                                                    <select name="amount" id="amount{{ $payment->id }}" class="form-select" required>
+                                                                                        <option value="" disabled selected>Choose amount</option>
+                                                                                        @if ($payment->balance >= $payment->amount / 3)
+                                                                                            <option value="{{ $payment->amount / 3 }}">{{ number_format($payment->amount / 3, 2) }}</option>
+                                                                                        @endif
+                                                                                        @if ($payment->balance >= $payment->amount * 2 / 3)
+                                                                                            <option value="{{ $payment->amount * 2 / 3 }}">{{ number_format($payment->amount * 2 / 3, 2) }}</option>
+                                                                                        @endif
+                                                                                        <option value="{{ $payment->amount }}">{{ number_format($payment->amount, 2) }}</option>
+                                                                                    </select>
+                                                                                    <p class="text-muted mt-2">Installments used: {{ $payment->installment_count }}/3</p>
+                                                                                </div>
+                                                                            @else
+                                                                                <p>Amount: <strong>{{ number_format($payment->amount, 2) }}</strong></p>
+                                                                                <input type="hidden" name="amount" value="{{ $payment->amount }}">
+                                                                            @endif
+                                                                            <input type="hidden" name="fee_type" value="{{ $payment->payment_type }}">
+                                                                            <input type="hidden" name="gateway" value="oneapp">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                        <button type="submit" class="btn btn-primary">Confirm Payment</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 @endif
                                             @else
-                                                <span class="badge bg-success">Completed</span>
+                                                <span class="badge badge-completed">Paid</span>
                                             @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">No required payments found.</td>
+                                        <td colspan="6" class="text-center">No required payments found for the current session.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -95,11 +151,11 @@
             <!-- Transactions -->
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-                    <h4 class="mb-3">Payment History</h4>
+                    <h4 class="mb-3">Payment History ({{ $currentSession ?? 'N/A' }})</h4>
                 </div>
                 <div class="card-body p-0 py-3">
                     <div class="table-responsive">
-                        <table class="table datatable align-middle">
+                        <table class="table align-middle">
                             <thead class="thead-light">
                                 <tr>
                                     <th>Reference</th>
@@ -112,27 +168,21 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($transactions as $tx)
+                                @forelse ($transactions as $transaction)
                                     <tr>
-                                        <td>{{ $tx->reference_number ?? '---' }}</td>
-                                        <td>{{ ucfirst($tx->payment_type ?? '---') }}</td>
-                                        <td>{{ number_format($tx->amount ?? 0, 2) }}</td>
+                                        <td>{{ $transaction->refernce_number }}</td>
+                                        <td>{{ $transaction->payment_type }}</td>
+                                        <td>{{ number_format($transaction->amount, 2) }}</td>
                                         <td>
-                                            @if(($tx->payment_status ?? '') === 'success')
-                                                <span class="badge bg-success">Success</span>
-                                            @elseif(($tx->payment_status ?? '') === 'pending')
-                                                <span class="badge bg-warning">Pending</span>
-                                            @else
-                                                <span class="badge bg-danger">Failed</span>
-                                            @endif
+                                            <span class="badge badge-completed">Completed</span>
                                         </td>
-                                        <td>{{ $tx->payment_method ?? '---' }}</td>
-                                        <td>{{ $tx->session ?? '---' }}</td>
-                                        <td>{{ $tx->created_at?->format('d M, Y h:i A') ?? '---' }}</td>
+                                        <td>{{ $transaction->payment_method }}</td>
+                                        <td>{{ $transaction->session }}</td>
+                                        <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted">No transactions found.</td>
+                                        <td colspan="7" class="text-center">No completed transactions found for the current session.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -147,14 +197,5 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-        $('.datatable').DataTable({
-            "order": [], // Optional: disable initial sorting
-        });
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 @endpush

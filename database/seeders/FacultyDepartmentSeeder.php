@@ -14,6 +14,7 @@ class FacultyDepartmentSeeder extends Seeder
             'FSC' => [
                 'name' => 'Faculty of Science and Computing',
                 'description' => 'Faculty of Science and Computing description',
+                'qualification' => 'B.Sc',
                 'departments' => [
                     'Computer Science' => 'CSC',
                     'Cybersecurity' => 'CYS',
@@ -26,6 +27,7 @@ class FacultyDepartmentSeeder extends Seeder
             'FMSS' => [
                 'name' => 'Faculty of Management and Social Sciences',
                 'description' => 'Faculty of Management and Social Sciences description',
+                'qualification' => 'B.Sc',
                 'departments' => [
                     'Accounting' => 'ACC',
                     'Business Administration' => 'BUS',
@@ -37,6 +39,7 @@ class FacultyDepartmentSeeder extends Seeder
             'FE' => [
                 'name' => 'Faculty of Education',
                 'description' => 'Faculty of Education description',
+                'qualification' => 'B.Ed',
                 'departments' => [
                     'Economics Education' => 'ECE',
                     'Social Studies Education' => 'SSE',
@@ -77,6 +80,7 @@ class FacultyDepartmentSeeder extends Seeder
                         'id' => $deptId,
                         'department_name' => $deptName,
                         'department_description' => $deptName . ' description',
+                        'qualification' => $faculty['qualification'],
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]

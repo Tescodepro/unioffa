@@ -69,7 +69,7 @@
                                 </div>
                             </div>
                         </div>
-                    @elseif($application->is_approved && $admission_status == 1 && isset($application_payment_status['acceptance']))
+                    @elseif($application->is_approved && $admission_status == 1)
                         <div class="col-xl-12">
                             <div id="admission_letter_section">
                                 <div class="card">
