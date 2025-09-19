@@ -162,6 +162,12 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="" data-bs-toggle="dropdown">Portals</a>
+                                <ul class="dropdown-menu fade-down">
+                                    <li><a class="dropdown-item" href="{{ route('student.login') }}">Student Portal</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Support Units</a>
                                 <ul class="dropdown-menu fade-down">
                                     <li><a class="dropdown-item" href="">Academic Planning Unit</a></li>
