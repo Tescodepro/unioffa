@@ -43,5 +43,22 @@ class AdmissionList extends Model
     {
         return $this->belongsTo(Department::class, 'approved_department_id');
     }
+    // link to application setting
+    public function applicationSetting()
+    {
+        return $this->belongsTo(ApplicationSetting::class);
+    }
+
+    // add admission relationship
+    public function admissionList()
+    {
+        return $this->hasOne(AdmissionList::class, 'user_application_id', 'id');
+    }
+
+    public function userApplication()
+{
+    return $this->belongsTo(UserApplications::class, 'user_id', 'user_id')
+                ->where('academic_session', $this->session);
+}
 }
 

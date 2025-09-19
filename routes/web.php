@@ -38,6 +38,8 @@ Route::prefix('admission')->group(function(){
         Route::get('/register', 'index')->name('application.register');
         Route::post('/register', 'createAccount');
 
+        Route::get('logout', 'logoutAction')->name('application.logout');
+
         Route::get('/dashboard', 'dashboard')->middleware('user.type:applicant')->name('application.dashboard');
         Route::post('/start-application', 'startApplication')->middleware('user.type:applicant')->name('application.start');
 
@@ -50,6 +52,7 @@ Route::prefix('admission')->group(function(){
         Route::post('/form/save-course-of-study/{user_application_id}', 'saveCourseOfStudy')->middleware('user.type:applicant')->name('application.course_of_study.submit');
         Route::post('/form/save-documents/{user_application_id}', 'saveDocuments')->middleware('user.type:applicant')->name('application.documents.submit'); 
         Route::post('/form/handle-form-submission/{user_application_id}', 'handleFormSubmission')->middleware('user.type:applicant')->name('application.handle_form_submission');
+        Route::get('/admission-letter/{applicationId}', 'downloadAdmissionLetter')->name('student.admission.letter')->middleware('auth');
 
 
 	});

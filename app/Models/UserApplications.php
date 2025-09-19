@@ -57,6 +57,12 @@ class UserApplications extends Model
         return $this->hasMany(EducationHistory::class, 'user_application_id');
     }
 
+    // 🔹 add admission relationship
+    public function admissionList()
+    {
+        return $this->hasOne(AdmissionList::class, 'user_id', 'user_id')
+                    ->where('session_admitted', $this->academic_session);
+    }
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'session', 'academic_session')

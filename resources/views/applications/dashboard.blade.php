@@ -24,11 +24,9 @@
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h6 class="mb-0">
-                                                    <i class="fas fa-graduation-cap text-primary"></i>
+                                                    <i class="fas fa-graduation-cap text-success"></i>
                                                     {{ $application->applicationSetting->academic_session }} - {{ $application->applicationSetting->name }}
                                                 </h6>
-                                                <small class="text-muted">Application ID: {{ $application->application_id }}</small>
-                                                <small class="text-muted">Payment Statud: {{ $application->application_id }}</small>
                                             </div>
                                             <div>
                                                 <div class="mb-2">
@@ -102,34 +100,9 @@
                                         <div class="card-footer bg-light">
                                             <div class="d-flex justify-content-between">
                                                 <div>
-                                                    @if($application->status == 'draft')
-                                                        <a href="" class="btn btn-sm btn-primary">
-                                                            <i class="fas fa-edit"></i> Continue Application
-                                                        </a>
-                                                    @elseif($application->status == 'pending_payment')
-                                                        <a href="" class="btn btn-sm btn-warning">
-                                                            <i class="fas fa-credit-card"></i> Make Payment
-                                                        </a>
-                                                    @endif
-                                                    
-                                                    <a href="{{ route('application.form', ['user_application_id' => $application->id ]) }}" class="btn btn-sm btn-outline-info">
+                                                    <a href="{{ route('application.form', ['user_application_id' => $application->id ]) }}" class="btn btn-outline-info" text-white>
                                                         <i class="fas fa-eye"></i> View Details
                                                     </a>
-                                                </div>
-
-                                                <div>
-                                                    @if(in_array($application->status, ['submitted', 'approved', 'completed']))
-                                                        <a href="" class="btn btn-sm btn-outline-secondary">
-                                                            <i class="fas fa-print"></i> Print
-                                                        </a>
-                                                    @endif
-                                                    
-                                                    @if($application->status == 'draft')
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                                onclick="deleteApplication({{ $application->id }})">
-                                                            <i class="fas fa-trash"></i> Delete
-                                                        </button>
-                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

@@ -41,6 +41,51 @@
                                 </div>
                             </div>
                         </div>
+                    @elseif($application->is_approved && $admission_status == 1 && !isset($application_payment_status['acceptance']))
+                        <div class="col-xl-12">
+                            <div id="welcome_section">
+                                <div class="card">
+                                    <div class="card-body text-center py-5">
+                                        @include('layouts.flash-message')
+                                        <h4>Acceptance Fee Payment</h4>
+                                        <p class="text-muted mb-4">
+                                            Congratulations! You have been admitted. Before proceeding, you must pay the acceptance fee.
+                                        </p>
+                                        <p><strong>Application Type:</strong> {{ $application->applicationSetting->name }}</p>
+                                        <p><strong>Academic Session:</strong> {{ $application->academic_session }}</p>
+                                        <p><strong>Acceptance Fee:</strong> {{ $application->applicationSetting->acceptance_fee }}</p>
+
+                                        {{-- Payment Status & Action --}}
+                                        <div class="mt-4">
+                                            @if(isset($application_payment_status['acceptance']))
+                                                <span class="badge bg-success">✅ Acceptance Fee Paid</span>
+                                            @else
+                                                <button class="theme-btn mt-3" data-bs-toggle="modal" data-bs-target="#confirmAcceptance">
+                                                    Pay Acceptance Fee
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($application->is_approved && $admission_status == 1 && isset($application_payment_status['acceptance']))
+                        <div class="col-xl-12">
+                            <div id="admission_letter_section">
+                                <div class="card">
+                                    <div class="card-body text-center py-5">
+                                        <h4>Congratulations, {{ $application->user->full_name ?? 'Student' }}!</h4>
+                                        <p class="text-muted mb-4">
+                                            You have been officially admitted. You can now download your admission letter.
+                                        </p>
+                                        <a href="{{ route('student.admission.letter', $application->id) }}" 
+                                        class="theme-btn" target="_blank">
+                                            <i class="fas fa-file-pdf"></i> Download Admission Letter
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @else
                         <!-- Sidebar Menu -->
                         <div class="col-xl-4 col-lg-4">
@@ -614,6 +659,53 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="confirmAcceptance" tabindex="-1" aria-labelledby="confirmAcceptanceLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmAcceptanceLabel">Confirm Acceptance Fee Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
+                        </div>
+                        <h3>Acceptance Fee Payment</h3>
+                        <p class="mb-3">
+                            You are about to pay 
+                            <strong class="text-success">{{ $application->applicationSetting->acceptance_fee }}</strong> 
+                            as your <strong>Acceptance Fee</strong>.
+                        </p>
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle"></i> 
+                                You will be redirected to our secure payment gateway to complete this transaction.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="theme-btn" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    {{-- Payment form --}}
+                    <form action="{{ route('application.payment.process') }}" method="post" style="display: inline;">
+                        @csrf
+                        <input type="hidden" name="application_id" value="{{ $application->id }}">
+                        <input type="hidden" name="amount" value="{{ str_replace(['₦', ',', ' '], '', $application->applicationSetting->acceptance_fee) }}">
+                        <input type="hidden" name="fee_type" value="acceptance">
+                        <input type="hidden" name="gateway" value="oneapp">
+                        <button type="submit" class="theme-btn">
+                            <i class="fas fa-credit-card"></i> Proceed to Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     {{-- Loading Overlay for Payment Processing --}}
     <div id="payment-loading" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;">

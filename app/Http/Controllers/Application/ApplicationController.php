@@ -11,6 +11,8 @@ use App\Services\UniqueIdService;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\ApplicantRegisteredMail;
 use Illuminate\Support\Facades\Mail;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use App\Models\{ApplicationSetting, UserApplications, AdmissionList, Profile, Olevel, Alevel, Campus, CourseOfStudy, Document, JambDetail, EducationHistory, Department, Faculty, Transaction};
 
 
@@ -91,6 +93,12 @@ class ApplicationController extends Controller
         }
 
         return back()->with( 'error', 'The provided credentials do not match our records.' );
+    }
+
+    public function logoutAction(Request $request)
+    {
+        Auth::logout();
+        return redirect()->route('application.login')->with('success','Log out');
     }
 
     public function dashboard()
@@ -189,6 +197,11 @@ class ApplicationController extends Controller
             ->get()
             ->keyBy('payment_type');  // 👈 This makes ['application'] and ['acceptance'] available
 
+        $admission_status = AdmissionList::where('user_id', $users->id)
+                ->where('session_admitted', $application->academic_session)
+                ->where('admission_status', 'admitted')
+                ->count();
+
 
 
         return view('applications.application_form', compact(
@@ -207,10 +220,9 @@ class ApplicationController extends Controller
             'faculties',
             'payment_transaction',
             'application_payment_status',
+            'admission_status',
         ));
     }
-
-
     public function saveProfile(Request $request, $user_application_id)
     {
         $request->validate([
@@ -382,5 +394,34 @@ class ApplicationController extends Controller
         return redirect()->back()->with("success", "Your application has been successfully submitted!");
     }
 
+    public function downloadAdmissionLetter($applicationId)
+    {
+        $application = UserApplications::with(['user', 'admissionList.department'])
+        ->findOrFail($applicationId);
+
+
+        $student = $application->user;
+        $profile = $application->profile;
+
+        $department = AdmissionList::where('user_id', $profile->user_id)
+            ->where('session_admitted', $application->academic_session)
+            ->join('departments', 'admission_lists.approved_department_id', '=', 'departments.id')
+            ->select('departments.department_name')
+            ->first();
+
+        $data = [
+            'student' => $student,
+            'session'=> $application->academic_session,
+            'profile' => $profile,
+            'department' => $department,
+            'application' => $application,
+            'date' => Carbon::now()->format('F d, Y'),
+        ];
+
+        $pdf = Pdf::loadView('applications.admission-letter', $data)
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
+    }
 
 }

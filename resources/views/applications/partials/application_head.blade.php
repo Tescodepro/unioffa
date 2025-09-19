@@ -1,5 +1,5 @@
 
-                <div class="row align-items-center">
+                <div class="row align-items-center mt-5">
                     <div class="col-md-12">
                         <div class="team-details">
                             <center>
