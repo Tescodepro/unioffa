@@ -89,7 +89,7 @@ class StudentSeeder extends Seeder
                 'phone' => $studentData['phone'],
                 'username' => $matricNo,
                 'registration_no' => null,
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('password@123'),
                 'user_type_id' => $studentType->id,
                 
             ]);
