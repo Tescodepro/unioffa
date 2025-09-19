@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\{ApplicantRegisteredMail, GeneralMail};
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -30,6 +32,24 @@ class AuthController extends Controller
 
         if (Auth::attempt($authCredentials)) {
             $request->session()->regenerate();
+            
+            $to = Auth::user()->email;
+            $subject = "Login Notification";
+             $content = [
+                'title' => Auth::user()->full_name . ",",
+                'body'  => "We noticed a login to your Offa University account.<br><br>
+
+            Details:<br>  
+            - Date: " . now()->format('Y-m-d H:i:s') . "<br>  
+            - IP Address: " . request()->ip() . " <br><br>
+
+            If this was you, no action is required. If not, please reset your password immediately.",
+            'footer'=> "Stay safe,  
+            Offa University Security Team"
+            ]; 
+
+            Mail::to($to)->send(new GeneralMail($subject, $content, false));
+
             return redirect()->intended(route('students.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }
 

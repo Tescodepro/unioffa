@@ -23,6 +23,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('phone')->unique();
+            $table->string('otp')->nullable();
+            $table->string('otp_expires_at')->nullable();
+            $table->string('profile_picture')->nullable();
             $table->string('campus_id')->nullable();
 
             // 🔹 Authentication

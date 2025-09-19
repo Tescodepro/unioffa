@@ -5,7 +5,7 @@
     <title>Your Application Number</title>
 </head>
 <body>
-    <h2>Hello {{ $user->first_name }},</h2>
+    <h5>Hello {{ $user->first_name }},</h5>
 
     <p>Thank you for registering on the <strong>{{ config('app.name') }} Application Portal</strong>.</p>
 

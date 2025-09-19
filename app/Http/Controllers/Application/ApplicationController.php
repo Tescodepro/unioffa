@@ -9,10 +9,14 @@ use App\Models\User;
 use App\Models\UserType;
 use App\Services\UniqueIdService;
 use Illuminate\Support\Facades\Auth;
-use App\Mail\ApplicantRegisteredMail;
+use App\Mail\{ApplicantRegisteredMail, GeneralMail};
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Exception;
 use App\Models\{ApplicationSetting, UserApplications, AdmissionList, Profile, Olevel, Alevel, Campus, CourseOfStudy, Document, JambDetail, EducationHistory, Department, Faculty, Transaction};
 
 
@@ -26,6 +30,7 @@ class ApplicationController extends Controller
         $campuses = Campus::all();
         return view('applications.register', compact('title', 'campuses'));
     }
+
 
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
     {
@@ -41,28 +46,44 @@ class ApplicationController extends Controller
 
         $uniqueId = $uniqueIdService->generate('applicant');
 
-        // Save user (example)
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'middle_name' => $request->middle_name,
-            'email' => $request->email,
-            'campus_id' => $request->center,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'username' => $uniqueId,
-            'registration_no' => $uniqueId,
-            'user_type_id' => UserType::where('name', 'applicant')->first()->id,
-        ]);
+        DB::beginTransaction();
 
-        // get center
-        $campuses = Campus::all();
+        try {
+            // Create the user but keep inside transaction
+            $user = User::create([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name,
+                'email' => $request->email,
+                'campus_id' => $request->center,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'username' => $uniqueId,
+                'registration_no' => $uniqueId,
+                'user_type_id' => UserType::where('name', 'applicant')->first()->id,
+            ]);
 
-        // Send mail with application number
-        Mail::to($user->email)->send(new ApplicantRegisteredMail($user, $uniqueId));
+            // Try sending email
+            Mail::to($user->email)->send(new ApplicantRegisteredMail($user, $uniqueId));
 
+            // If no exception thrown, log success
+            Log::info("📧 Mail sent successfully to {$user->email} with registration no: {$uniqueId}");
 
-        return redirect()->route('application.login', compact('campuses'))->with('success', 'Registration successful Please login to continue.');
+            DB::commit();
+
+            $campuses = Campus::all();
+
+            return redirect()->route('application.login', compact('campuses'))
+                            ->with('success', 'Registration successful. Please login to continue.');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            // Log failure with details
+            Log::error("❌ Failed to send mail to {$request->email}. Error: " . $e->getMessage());
+
+            return back()->withErrors(['email' => 'Registration failed because email could not be sent. Try again.']);
+        }
     }
 
     public function login()
@@ -82,13 +103,35 @@ class ApplicationController extends Controller
         $fieldType = filter_var($credentials['email_registration_number'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         // Build proper credentials array
-        $authCredentials = [
-            $fieldType => $credentials['email_registration_number'],
-            'password' => $credentials['password'],
-        ];
+            $authCredentials = [
+                $fieldType => $credentials['email_registration_number'],
+                'password' => $credentials['password'],
+            ];
+
 
         if (Auth::attempt($authCredentials)) {
             $request->session()->regenerate();
+
+            $to = Auth::user()->email;
+
+            $subject = "Login Notification";
+
+             $content = [
+                'title' => Auth::user()->full_name . ",",
+                'body'  => "We noticed a login to your Offa University account.<br><br>
+
+            Details:<br>  
+            - Date: " . now()->format('Y-m-d H:i:s') . "<br>  
+            - IP Address: " . request()->ip() . " <br><br>
+
+            If this was you, no action is required. If not, please reset your password immediately.",
+            'footer'=> "Stay safe,  
+            Offa University Security Team"
+            ];  
+
+            Mail::to($to)->send(new GeneralMail($subject, $content, false));
+
+
             return redirect()->intended(route('application.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }
 
@@ -422,6 +465,102 @@ class ApplicationController extends Controller
             ->setPaper('A4', 'portrait');
 
         return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
+    }
+
+    public function showForgotPasswordForm()
+    {
+        $title = 'Forgot Password';
+        return view('applications.forget_password', compact('title'));
+    }
+
+    public function postForgotPassword(Request $request)
+    {
+        // ✅ Validate request
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        try {
+            // ✅ Generate OTP
+            $otp = rand(100000, 999999);
+
+            // ✅ Find the user
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user) {
+                return back()->withErrors(['email' => 'No account found with that email address.']);
+            }
+
+            // ✅ Save OTP (you may want to add `otp_expires_at`)
+            $user->otp = $otp;
+            $user->otp_expires_at = now()->addMinutes(10); // OTP valid for 10 mins
+            $user->save();
+
+            // ✅ Prepare email
+            $subject = "Password Reset Request - Offa University";
+
+            $content = [
+                'title' => $user->full_name . ",",
+                'body'  => "
+                    We received a request to reset your password.  
+                    Please use the following One-Time Password (OTP):  
+                    <h2>{$otp}</h2>  
+
+                    Details:<br>  
+                    - Date: " . now()->format('Y-m-d H:i:s') . "<br>  
+                    - IP Address: " . $request->ip() . " <br><br>
+
+                    If this was you, proceed with resetting your password.  
+                    If not, please secure your account immediately.",
+                'footer'=> "Stay safe,  
+                            Offa University Security Team"
+            ];
+
+            // ✅ Send email
+            Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
+
+            return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address.');
+
+        } catch (Exception $e) {
+            Log::error('Forgot Password Error: ' . $e->getMessage());
+            return back()->withErrors(['email' => 'Something went wrong. Please try again later.']);
+        }
+    }
+
+    public function showUpdateWithOtp()
+    {
+        $title = 'Reset Password with OTP';
+        return view('applications.change_pasword', compact('title'));
+    }
+
+    public function updateWithOtp(Request $request)
+    {
+        $request->validate([
+            'otp' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Find OTP record (depends on how you store OTPs)
+        $otpRecord = DB::table('users')
+            ->where('otp', $request->otp)
+            ->where('otp_expires_at', '>', now())
+            ->first();
+
+        if (!$otpRecord) {
+            return back()->withErrors(['otp' => 'Invalid or expired OTP.']);
+        }
+
+        // Update user password
+        $user = User::where('email', $otpRecord->email)->first();
+
+        if (!$user) {
+            return back()->withErrors(['otp' => 'User not found.']);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return redirect()->route('application.login')->with('success', 'Password updated successfully! Please login.');
     }
 
 }
