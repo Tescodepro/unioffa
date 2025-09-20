@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -15,6 +14,7 @@ class ApplicantRegisteredMail extends Mailable
     use Queueable, SerializesModels;
 
     public $user;
+
     public $applicationNumber;
 
     /**
@@ -32,7 +32,7 @@ class ApplicantRegisteredMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Application Number - ' . config('app.name'),
+            subject: 'Your Application Number - '.config('app.name'),
         );
     }
 

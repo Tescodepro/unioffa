@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ApplicationSetting;
+use Illuminate\Database\Seeder;
 
 class ApplicationSettingsSeeder extends Seeder
 {
@@ -24,8 +24,8 @@ class ApplicationSettingsSeeder extends Seeder
                 'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
-                'admission_duration' =>'2',
-                'description' => 'For IDEL DE candidates. Requires a completed profile, Olevel and Alevel results, and chosen course of study.'
+                'admission_duration' => '2',
+                'description' => 'For IDEL DE candidates. Requires a completed profile, Olevel and Alevel results, and chosen course of study.',
             ],
             [
                 'name' => 'IDELUTME Admission',
@@ -41,8 +41,8 @@ class ApplicationSettingsSeeder extends Seeder
                 'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
-                'admission_duration' =>'4',
-                'description' => 'For IDEL UTME candidates. Requires a completed profile, Olevel and Alevel results, and chosen course of study.'
+                'admission_duration' => '4',
+                'description' => 'For IDEL UTME candidates. Requires a completed profile, Olevel and Alevel results, and chosen course of study.',
             ],
             [
                 'name' => 'UTME Admission',
@@ -59,8 +59,8 @@ class ApplicationSettingsSeeder extends Seeder
                 'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
-                'admission_duration' =>'4',
-                'description' => 'For UTME candidates applying with Olevel results only. Requires profile, Olevel results, and course selection.'
+                'admission_duration' => '4',
+                'description' => 'For UTME candidates applying with Olevel results only. Requires profile, Olevel results, and course selection.',
             ],
             [
                 'name' => 'Top-up Admission',
@@ -76,8 +76,8 @@ class ApplicationSettingsSeeder extends Seeder
                 'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
-                'admission_duration' =>'2',
-                'description' => 'Top-up admission for candidates with prior qualifications. Requires profile, Olevel results, previous certificate, and course selection.'
+                'admission_duration' => '2',
+                'description' => 'Top-up admission for candidates with prior qualifications. Requires profile, Olevel results, previous certificate, and course selection.',
             ],
             [
                 'name' => 'Transfer Admission',
@@ -93,8 +93,8 @@ class ApplicationSettingsSeeder extends Seeder
                 'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
-                'admission_duration' =>'3',
-                'description' => 'For students transferring from other institutions. Requires profile, Olevel results, transfer letter, and course selection.'
+                'admission_duration' => '3',
+                'description' => 'For students transferring from other institutions. Requires profile, Olevel results, transfer letter, and course selection.',
             ],
             [
                 'name' => 'DE Admission',
@@ -110,8 +110,8 @@ class ApplicationSettingsSeeder extends Seeder
                 'acceptance_fee' => 25000,
                 'academic_session' => '2025/2026',
                 'enabled' => true,
-                'admission_duration' =>'3',
-                'description' => 'Direct Entry admission for diploma holders. Requires profile, Olevel, Alevel, diploma certificate, and course selection.'
+                'admission_duration' => '3',
+                'description' => 'Direct Entry admission for diploma holders. Requires profile, Olevel, Alevel, diploma certificate, and course selection.',
             ],
         ];
 
@@ -124,4 +124,3 @@ class ApplicationSettingsSeeder extends Seeder
         }
     }
 }
-

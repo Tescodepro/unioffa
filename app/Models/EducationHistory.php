@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-
 class EducationHistory extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -21,10 +21,12 @@ class EducationHistory extends Model
         'certificate_path',
         'user_application_id',
     ];
+
     public function userApplication()
     {
         return $this->belongsTo(UserApplications::class, 'user_application_id');
     }
+
     protected static function boot()
     {
         parent::boot();

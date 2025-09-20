@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
+use App\Mail\GeneralMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Mail\{ApplicantRegisteredMail, GeneralMail};
 use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
-    public function login(){
+    public function login()
+    {
         return view('staff.auth.login');
     }
 
@@ -29,20 +30,20 @@ class AuthController extends Controller
 
             $to = Auth::user()->email;
 
-            $subject = "Login Notification";
+            $subject = 'Login Notification';
 
             $content = [
-                'title' => Auth::user()->full_name . ",",
-                'body'  => "We noticed a login to your Offa University account.<br><br>
+                'title' => Auth::user()->full_name.',',
+                'body' => 'We noticed a login to your Offa University account.<br><br>
 
             Details:<br>  
-            - Date: " . now()->format('Y-m-d H:i:s') . "<br>  
-            - IP Address: " . request()->ip() . " <br><br>
+            - Date: '.now()->format('Y-m-d H:i:s').'<br>  
+            - IP Address: '.request()->ip().' <br><br>
 
-            If this was you, no action is required. If not, please reset your password immediately.",
-            'footer'=> "Stay safe,  
-            Offa University Security Team"
-            ]; 
+            If this was you, no action is required. If not, please reset your password immediately.',
+                'footer' => 'Stay safe,  
+            Offa University Security Team',
+            ];
 
             Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
@@ -53,6 +54,7 @@ class AuthController extends Controller
 
                 default:
                     Auth::logout();
+
                     return redirect()->route('home')->with('error', 'Unauthorized access.');
             }
 
@@ -60,5 +62,4 @@ class AuthController extends Controller
 
         return back()->with('error', 'The provided credentials do not match our records.');
     }
-
 }

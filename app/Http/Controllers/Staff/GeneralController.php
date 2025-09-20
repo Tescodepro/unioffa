@@ -3,23 +3,21 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
+use App\Mail\GeneralMail;
+use App\Models\AdmissionList;
 use App\Models\ApplicationSetting;
+use App\Models\Campus;
 use App\Models\Department;
 use App\Models\Faculty;
+use App\Models\User;
 use App\Models\UserApplications;
 use Illuminate\Http\Request;
-use App\Models\Campus;
-use App\Models\User;
-use App\Models\AdmissionList;
-use App\Models\Student;
-use App\Mail\{GeneralMail};
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class GeneralController extends Controller
 {
     public function index_admin(Request $request)
-    {    
+    {
         $sessions = UserApplications::select('academic_session')->distinct()->pluck('academic_session');
 
         $selectedSession = $request->get('academic_session', $sessions->first());
@@ -35,15 +33,15 @@ class GeneralController extends Controller
         // Applicants per campus (with count)
         $campusApplicants = Campus::withCount([
             'users as applicant_count' => function ($q) {
-                $q->whereHas('userType', fn($q2) => $q2->where('name', 'applicant'))
-                ->whereHas('applications', fn($q3) => $q3->whereNotNull('submitted_by'));
-            }
+                $q->whereHas('userType', fn ($q2) => $q2->where('name', 'applicant'))
+                    ->whereHas('applications', fn ($q3) => $q3->whereNotNull('submitted_by'));
+            },
         ])->get();
 
         // Applicants per application type
         $applicationApplicants = ApplicationSetting::withCount(['userApplications as applicant_count' => function ($q) use ($selectedSession) {
             $q->where('academic_session', $selectedSession)
-            ->whereNotNull('submitted_by');
+                ->whereNotNull('submitted_by');
         }])->get();
 
         // Admitted + not admitted stats
@@ -53,36 +51,36 @@ class GeneralController extends Controller
             ->count();
 
         // Query students with filters
-        $students = User::whereHas('userType', fn($q) => $q->where('name', 'applicant'))
-                ->with([
-                    'applications.applicationSetting',
-                    'transactions',
-                    'admissionList',
-                    'courseOfStudy.firstDepartment',   // <-- Add this
-                    'courseOfStudy.secondDepartment',  // <-- And this
-                ])
-                ->when($selectedCampusId, fn($q) => $q->where('campus_id', $selectedCampusId))
-                ->when($selectedApplicationId, function ($q) use ($selectedApplicationId) {
-                    $q->whereHas('applications', fn($qa) => $qa->where('application_setting_id', $selectedApplicationId));
-                })
-                ->get()
-                ->map(function ($user) {
-                    return (object)[
-                        'id' => $user->id,
-                        'registration_no' => $user->registration_no,
-                        'full_name' => $user->first_name . ' ' . $user->last_name,
-                        'email' => $user->email,
-                        'application_type' => optional($user->applications->first()?->applicationSetting)->name,
-                        'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
-                        'application_id' => $user->applications->first()?->id,
-                        'application_status' => $user->applications->first()?->submitted_by ? 'submitted' : 'not submitted',
-                        'payment_status' => $user->transactions->where('payment_type', 'application')->first()->payment_status ?? 'unpaid',
-                        'payment_ref' => $user->transactions->where('payment_type', 'application')->first()->refernce_number ?? null,
-                        'admissionList' => $user->admissionList,
-                        'first_choice' => $user->courseOfStudy?->firstDepartment?->department_name,
-                        'second_choice' => $user->courseOfStudy?->secondDepartment?->department_name,
-                    ];
-                });
+        $students = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
+            ->with([
+                'applications.applicationSetting',
+                'transactions',
+                'admissionList',
+                'courseOfStudy.firstDepartment',   // <-- Add this
+                'courseOfStudy.secondDepartment',  // <-- And this
+            ])
+            ->when($selectedCampusId, fn ($q) => $q->where('campus_id', $selectedCampusId))
+            ->when($selectedApplicationId, function ($q) use ($selectedApplicationId) {
+                $q->whereHas('applications', fn ($qa) => $qa->where('application_setting_id', $selectedApplicationId));
+            })
+            ->get()
+            ->map(function ($user) {
+                return (object) [
+                    'id' => $user->id,
+                    'registration_no' => $user->registration_no,
+                    'full_name' => $user->first_name.' '.$user->last_name,
+                    'email' => $user->email,
+                    'application_type' => optional($user->applications->first()?->applicationSetting)->name,
+                    'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
+                    'application_id' => $user->applications->first()?->id,
+                    'application_status' => $user->applications->first()?->submitted_by ? 'submitted' : 'not submitted',
+                    'payment_status' => $user->transactions->where('payment_type', 'application')->first()->payment_status ?? 'unpaid',
+                    'payment_ref' => $user->transactions->where('payment_type', 'application')->first()->refernce_number ?? null,
+                    'admissionList' => $user->admissionList,
+                    'first_choice' => $user->courseOfStudy?->firstDepartment?->department_name,
+                    'second_choice' => $user->courseOfStudy?->secondDepartment?->department_name,
+                ];
+            });
 
         $departments = Department::all();
         $faculties = Faculty::all();
@@ -124,12 +122,12 @@ class GeneralController extends Controller
 
         $to = $user->email;
 
-        $subject = "Offer of Admission - Offa University";
+        $subject = 'Offer of Admission - Offa University';
 
         $content = [
-            'title' => 'Dear '.$user->full_name . ",",
-            'body'  => "Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study " . ($department->department_name ?? 'your chosen course') . ". for the " . $user_application->academic_session . " academic session admission. This achievement is a testament to your hard work, dedication, and academic excellence.",
-            'footer'=> "Offa University Security Team"
+            'title' => 'Dear '.$user->full_name.',',
+            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study '.($department->department_name ?? 'your chosen course').'. for the '.$user_application->academic_session.' academic session admission. This achievement is a testament to your hard work, dedication, and academic excellence.',
+            'footer' => 'Offa University Security Team',
         ];
 
         Mail::to($to)->send(new GeneralMail($subject, $content, false));
@@ -149,16 +147,12 @@ class GeneralController extends Controller
             'user.courseOfStudy.firstDepartment',
             'user.courseOfStudy.secondDepartment',
         ])
-        ->where('id', $applicationId)
-        ->where('user_id', $userId)
-        ->firstOrFail();
+            ->where('id', $applicationId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
 
         $modules = json_decode($application->applicationSetting->modules_enable, true);
 
         return view('staff.applicant_details', compact('application', 'modules'));
     }
-
-
-
 }
-

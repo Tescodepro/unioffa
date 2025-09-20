@@ -17,8 +17,7 @@ class ApplicantsExport implements FromView
     public function view(): View
     {
         return view('exports.applicants', [
-            'students' => $this->students
+            'students' => $this->students,
         ]);
     }
 }
-

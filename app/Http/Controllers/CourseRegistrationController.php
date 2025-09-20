@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
-use App\Models\{CourseRegistration, AcademicSemester, AcademicSession};
+use App\Models\CourseRegistration;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Barryvdh\DomPDF\Facade\Pdf;
-
 
 class CourseRegistrationController extends Controller
 {
@@ -26,8 +25,8 @@ class CourseRegistrationController extends Controller
         // Search filter for registered courses
         $query = CourseRegistration::where('student_id', $student->id);
         if ($request->has('search')) {
-            $query->where('course_title', 'like', '%' . $request->search . '%')
-                  ->orWhere('course_code', 'like', '%' . $request->search . '%');
+            $query->where('course_title', 'like', '%'.$request->search.'%')
+                ->orWhere('course_code', 'like', '%'.$request->search.'%');
         }
 
         $registrations = $query->with('course', 'session', 'semester')->get();
@@ -37,7 +36,6 @@ class CourseRegistrationController extends Controller
             ->where('session_id', activeSession()->id ?? null)
             ->where('semester_id', activeSemester()->id ?? null)
             ->get();
-
 
         return view('student.course-registration', compact('courses', 'registrations', 'registeredCourses'));
     }
@@ -60,23 +58,22 @@ class CourseRegistrationController extends Controller
                 ->where('semester_id', activeSemester()->id)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 CourseRegistration::create([
-                    'student_id'   => $student->id,
-                    'course_id'    => $course->id,
-                    'course_code'  => $course->course_code,
+                    'student_id' => $student->id,
+                    'course_id' => $course->id,
+                    'course_code' => $course->course_code,
                     'course_title' => $course->course_title,
-                    'course_unit'  => $course->course_unit,
-                    'session_id'   => activeSession()->id,
-                    'semester_id'  => activeSemester()->id,
-                    'status'       => 'pending',
+                    'course_unit' => $course->course_unit,
+                    'session_id' => activeSession()->id,
+                    'semester_id' => activeSemester()->id,
+                    'status' => 'pending',
                 ]);
             }
         }
 
         return redirect()->back()->with('success', 'Selected courses registered successfully.');
     }
-
 
     public function approve($id)
     {
@@ -111,6 +108,6 @@ class CourseRegistrationController extends Controller
             'semester' => activeSemester(),
         ]);
 
-        return $pdf->download('course_form_' . $student->full_name . '.pdf');
+        return $pdf->download('course_form_'.$student->full_name.'.pdf');
     }
 }

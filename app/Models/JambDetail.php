@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 class JambDetail extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -17,7 +18,7 @@ class JambDetail extends Model
         'exam_year',
         'score',
         'subject_scores',
-        'user_application_id'
+        'user_application_id',
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class JambDetail extends Model
     {
         return $this->belongsTo(UserApplications::class, 'user_application_id');
     }
+
     protected static function boot()
     {
         parent::boot();

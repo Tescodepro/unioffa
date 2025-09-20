@@ -11,32 +11,32 @@ class CampusSeeder extends Seeder
     {
         $campuses = [
             [
-                'name'         => 'Main Campus',
-                'address'      => 'Beside Len Poly',
+                'name' => 'Main Campus',
+                'address' => 'Beside Len Poly',
                 'phone_number' => '+2349036154339',
-                'email'        => 'info1@unioffa.edu.ng',
-                'direction'    => 'Offa Kwara State',
+                'email' => 'info1@unioffa.edu.ng',
+                'direction' => 'Offa Kwara State',
             ],
             [
-                'name'         => 'Ilorin Campus',
-                'address'      => 'Muhydeen College Of Education, Ilorin',
+                'name' => 'Ilorin Campus',
+                'address' => 'Muhydeen College Of Education, Ilorin',
                 'phone_number' => '+2348068242496',
-                'email'        => 'info3@university.edu',
-                'direction'    => 'Behind the science park',
+                'email' => 'info3@university.edu',
+                'direction' => 'Behind the science park',
             ],
             [
-                'name'         => 'Ogun Campus',
-                'address'      => 'DSP Adegbenro ICT Polythenic Itori',
+                'name' => 'Ogun Campus',
+                'address' => 'DSP Adegbenro ICT Polythenic Itori',
                 'phone_number' => '+2348066280969',
-                'email'        => 'info2@university.edu',
-                'direction'    => 'Next to University Teaching Hospital',
+                'email' => 'info2@university.edu',
+                'direction' => 'Next to University Teaching Hospital',
             ],
             [
-                'name'         => 'Igbeti Campus',
-                'address'      => 'Igbeti Oyo State',
+                'name' => 'Igbeti Campus',
+                'address' => 'Igbeti Oyo State',
                 'phone_number' => '+2348027216771',
-                'email'        => 'info4@university.edu',
-                'direction'    => 'Next to University Teaching Hospital',
+                'email' => 'info4@university.edu',
+                'direction' => 'Next to University Teaching Hospital',
             ],
         ];
 

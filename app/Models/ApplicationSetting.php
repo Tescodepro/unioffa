@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use App\Models\User;
-
 
 class ApplicationSetting extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -34,9 +33,9 @@ class ApplicationSetting extends Model
     }
 
     public function userApplications()
-{
-    return $this->hasMany(UserApplications::class, 'application_setting_id');
-}
+    {
+        return $this->hasMany(UserApplications::class, 'application_setting_id');
+    }
 
     protected static function boot()
     {

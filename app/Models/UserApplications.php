@@ -9,8 +9,8 @@ use Illuminate\Support\Str;
 class UserApplications extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
-    
 
     protected $fillable = [
         'id',
@@ -19,20 +19,21 @@ class UserApplications extends Model
         'academic_session',
         'submitted_by',
         'remarks',
-        'is_approved'
+        'is_approved',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
     public function applicationSetting()
     {
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');
     }
 
     // relationships to modules
-     public function profile()
+    public function profile()
     {
         return $this->hasOne(Profile::class, 'user_application_id');
     }
@@ -61,15 +62,15 @@ class UserApplications extends Model
     public function admissionList()
     {
         return $this->hasOne(AdmissionList::class, 'user_id', 'user_id')
-                    ->where('session_admitted', $this->academic_session);
+            ->where('session_admitted', $this->academic_session);
     }
+
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'session', 'academic_session')
-                    ->where('user_id', Auth::id())
-                    ->whereIn('payment_type', ['application', 'acceptance']);
+            ->where('user_id', Auth::id())
+            ->whereIn('payment_type', ['application', 'acceptance']);
     }
-
 
     protected static function boot()
     {

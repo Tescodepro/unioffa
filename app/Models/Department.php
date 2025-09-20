@@ -11,6 +11,7 @@ class Department extends Model
     use HasFactory;
 
     public $incrementing = false; // UUIDs
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -36,7 +37,6 @@ class Department extends Model
     {
         return $this->belongsTo(Faculty::class);
     }
-
 
     public function students()
     {

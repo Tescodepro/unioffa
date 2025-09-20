@@ -11,7 +11,9 @@ class GeneralMail extends Mailable
     use Queueable, SerializesModels;
 
     public $subjectText;
+
     public $content;
+
     public $isPlainText;
 
     /**
@@ -34,11 +36,11 @@ class GeneralMail extends Mailable
         if ($this->isPlainText) {
             // Use plain text template
             return $mail->text('emails.general_plain')
-                        ->with(['content' => $this->content]);
+                ->with(['content' => $this->content]);
         } else {
             // Use HTML template
             return $mail->view('emails.general')
-                        ->with(['content' => $this->content]);
+                ->with(['content' => $this->content]);
         }
     }
 }

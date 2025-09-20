@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('enabled')->default(true);
             $table->string('academic_session');
             $table->string('admission_duration')->nullable();
-            $table->json('modules_enable')->nullable()->comment("JSON object with module names as keys and booleans as values"); // can hold nested JSON
+            $table->json('modules_enable')->nullable()->comment('JSON object with module names as keys and booleans as values'); // can hold nested JSON
             $table->decimal('application_fee', 10, 2)->default(0.00);
             $table->decimal('acceptance_fee', 10, 2)->default(0.00);
             $table->timestamps();

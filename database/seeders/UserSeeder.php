@@ -15,8 +15,9 @@ class UserSeeder extends Seeder
         // Get the "administrator" user type
         $adminType = UserType::where('name', 'administrator')->first();
 
-        if (!$adminType) {
+        if (! $adminType) {
             $this->command->warn('⚠️ UserType "administrator" not found. Please run UserTypeSeeder first.');
+
             return;
         }
 
@@ -24,20 +25,19 @@ class UserSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@example.com'], // unique check
             [
-                'id'              => (string) Str::uuid(),
-                'first_name'      => 'Olamilekan',
-                'middle_name'     => null,
-                'last_name'       => 'Testing',
-                'email'           => 'admin@gmail.com',
-                'phone'           => '08010000001',
-                'username'        => 'ADMIN001',
+                'id' => (string) Str::uuid(),
+                'first_name' => 'Olamilekan',
+                'middle_name' => null,
+                'last_name' => 'Testing',
+                'email' => 'admin@gmail.com',
+                'phone' => '08010000001',
+                'username' => 'ADMIN001',
                 'registration_no' => null, // admins usually don’t have matric no
-                'password'        => Hash::make('password'),
-                'user_type_id'    => $adminType->id,
-                'created_at'      => now(),
-                'updated_at'      => now(),
+                'password' => Hash::make('password'),
+                'user_type_id' => $adminType->id,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         );
     }
-
 }

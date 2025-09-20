@@ -2,10 +2,9 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use App\Models\AcademicSession;
 use App\Models\AcademicSemester;
-use App\Models\User;
+use App\Models\AcademicSession;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

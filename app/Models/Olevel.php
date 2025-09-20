@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 class Olevel extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -22,11 +23,13 @@ class Olevel extends Model
         'subjects' => 'array', // 👈 this makes subjects usable as array
     ];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function application() {
+    public function application()
+    {
         return $this->belongsTo(UserApplications::class, 'user_application_id');
     }
 

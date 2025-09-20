@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Models\Department;
 
 class CourseSeeder extends Seeder
 {
@@ -44,8 +44,9 @@ class CourseSeeder extends Seeder
 
             $department = Department::where('department_code', $deptCode)->first();
 
-            if (!$department) {
+            if (! $department) {
                 $this->command->warn("⚠️ Department {$deptCode} not found. Skipping course {$code}.");
+
                 continue;
             }
 
@@ -67,6 +68,6 @@ class CourseSeeder extends Seeder
             );
         }
 
-        $this->command->info("✅ " . count($courses) . " courses seeded successfully.");
+        $this->command->info('✅ '.count($courses).' courses seeded successfully.');
     }
 }

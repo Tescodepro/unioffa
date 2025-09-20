@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
 class UserTypeMiddleware
@@ -15,16 +14,15 @@ class UserTypeMiddleware
     public function handle($request, Closure $next, $type)
     {
         // Check if user is logged in
-        if (!Auth::check()) {
-            if ($type == "applicant") {
+        if (! Auth::check()) {
+            if ($type == 'applicant') {
                 $redirectRoute = route('application.login'); // generates URL
-            }
-            else if ($type == 'student') {
+            } elseif ($type == 'student') {
                 $redirectRoute = route('student.login');
-            }
-            else if ($type == 'administrator') {
+            } elseif ($type == 'administrator') {
                 $redirectRoute = route('staff.login');
             }
+
             return redirect($redirectRoute)->with('error', 'You need to be logged in to access this page.');
         }
         // Ensure logged-in user has the correct type

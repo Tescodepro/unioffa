@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 class CourseOfStudy extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -18,7 +19,7 @@ class CourseOfStudy extends Model
         'second_department_id',
 
     ];
-    
+
     public function firstDepartment()
     {
         return $this->belongsTo(Department::class, 'first_department_id');
@@ -33,9 +34,7 @@ class CourseOfStudy extends Model
     {
         return $this->belongsTo(UserApplications::class, 'user_application_id');
     }
-    
-    
-    
+
     protected static function boot()
     {
         parent::boot();

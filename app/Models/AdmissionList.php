@@ -20,6 +20,7 @@ class AdmissionList extends Model
     ];
 
     public $incrementing = false;   // UUIDs aren’t auto-incrementing
+
     protected $keyType = 'string';  // UUIDs are strings
 
     protected static function boot()
@@ -43,6 +44,7 @@ class AdmissionList extends Model
     {
         return $this->belongsTo(Department::class, 'approved_department_id');
     }
+
     // link to application setting
     public function applicationSetting()
     {
@@ -56,9 +58,8 @@ class AdmissionList extends Model
     }
 
     public function userApplication()
-{
-    return $this->belongsTo(UserApplications::class, 'user_id', 'user_id')
-                ->where('academic_session', $this->session);
+    {
+        return $this->belongsTo(UserApplications::class, 'user_id', 'user_id')
+            ->where('academic_session', $this->session);
+    }
 }
-}
-

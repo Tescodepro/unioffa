@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Student;
-use App\Models\UserType;
-use App\Models\Department;
 use App\Models\Campus;
+use App\Models\Department;
+use App\Models\Student;
+use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -17,22 +17,25 @@ class StudentSeeder extends Seeder
     {
         // 🔹 Get student user type
         $studentType = UserType::where('name', 'student')->first();
-        if (!$studentType) {
+        if (! $studentType) {
             $this->command->error(" User type 'student' not found. Please seed user_types first.");
+
             return;
         }
 
         // 🔹 Pick a campus
         $campus = Campus::first();
-        if (!$campus) {
-            $this->command->error(" No campus found. Please seed campuses first.");
+        if (! $campus) {
+            $this->command->error(' No campus found. Please seed campuses first.');
+
             return;
         }
 
         // 🔹 Helper: generate matric numbers
         $generateMatric = function ($facultyCode, $deptCode, $serial) {
             $year = now()->format('y'); // e.g. 24 for 2024
-            return sprintf("%s/%s/%s/%03d", $year, $facultyCode, $deptCode, $serial);
+
+            return sprintf('%s/%s/%s/%03d', $year, $facultyCode, $deptCode, $serial);
         };
 
         // 🔹 Define students
@@ -49,7 +52,7 @@ class StudentSeeder extends Seeder
                 'level' => '100',
                 'admission_session' => '2024/2025',
                 'serial' => 1,
-                'sex' => 'male'
+                'sex' => 'male',
             ],
             [
                 'first_name' => 'Jane',
@@ -63,7 +66,7 @@ class StudentSeeder extends Seeder
                 'level' => '200',
                 'admission_session' => '2023/2024',
                 'serial' => 2,
-                'sex' => 'female'
+                'sex' => 'female',
             ],
         ];
 
@@ -71,8 +74,9 @@ class StudentSeeder extends Seeder
             // 🔹 Find department
             $department = Department::where('department_code', $studentData['department_code'])->first();
 
-            if (!$department) {
+            if (! $department) {
                 $this->command->warn(" Department {$studentData['department_code']} not found. Skipping...");
+
                 continue;
             }
 
@@ -91,7 +95,7 @@ class StudentSeeder extends Seeder
                 'registration_no' => null,
                 'password' => Hash::make('password@123'),
                 'user_type_id' => $studentType->id,
-                
+
             ]);
 
             // 🔹 Create student record
@@ -111,6 +115,6 @@ class StudentSeeder extends Seeder
             ]);
         }
 
-        $this->command->info("✅ " . count($students) . " students seeded successfully.");
+        $this->command->info('✅ '.count($students).' students seeded successfully.');
     }
 }

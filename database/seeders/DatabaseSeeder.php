@@ -2,13 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Course;
-use App\Models\Student;
-use App\Models\User;
-use Faker\Provider\ar_EG\Payment;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use phpDocumentor\Reflection\DocBlock\Tags\See;
 
 class DatabaseSeeder extends Seeder
 {
@@ -28,7 +23,6 @@ class DatabaseSeeder extends Seeder
         $this->call(SemesterSeeder::class);
         $this->call(SessionSeeder::class);
         $this->call(PaymentSettingsSeeder::class);
-
 
     }
 }

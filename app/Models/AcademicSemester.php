@@ -11,7 +11,9 @@ class AcademicSemester extends Model
     use HasFactory;
 
     protected $table = 'academic_semesters';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = ['id', 'name', 'code', 'status', 'status_upload_result', 'lecturar_ids', 'students_ids'];

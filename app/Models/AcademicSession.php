@@ -11,7 +11,9 @@ class AcademicSession extends Model
     use HasFactory;
 
     protected $table = 'academic_sessions';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = ['id', 'name', 'status', 'status_upload_result', 'lecturar_ids', 'students_ids'];

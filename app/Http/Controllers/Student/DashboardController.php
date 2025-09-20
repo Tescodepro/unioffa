@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\PaymentSetting;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use App\Models\{AcademicSemester, PaymentSetting, Transaction};
 
 class DashboardController extends Controller
 {
@@ -23,10 +22,10 @@ class DashboardController extends Controller
         $currentSession = activeSession()->name ?? null;
 
         // Check if student profile and session exist
-        if (!$user->student) {
+        if (! $user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
-        if (!$currentSession) {
+        if (! $currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
 
@@ -34,23 +33,23 @@ class DashboardController extends Controller
         $paymentSettings = PaymentSetting::query()
             ->where(function ($q) use ($user) {
                 $q->whereNull('faculty_id')
-                  ->orWhere('faculty_id', $user->faculty_id);
+                    ->orWhere('faculty_id', $user->faculty_id);
             })
             ->where(function ($q) use ($user) {
                 $q->whereNull('department_id')
-                  ->orWhere('department_id', $user->student->department_id);
+                    ->orWhere('department_id', $user->student->department_id);
             })
             ->where(function ($q) use ($user) {
                 $q->whereNull('level')
-                  ->orWhere('level', $user->student->level);
+                    ->orWhere('level', $user->student->level);
             })
             ->where(function ($q) use ($user) {
                 $q->whereNull('sex')
-                  ->orWhere('sex', $user->student->sex);
+                    ->orWhere('sex', $user->student->sex);
             })
             ->where(function ($q) use ($user) {
                 $q->whereNull('matric_number')
-                  ->orWhere('matric_number', $user->username);
+                    ->orWhere('matric_number', $user->username);
             })
             ->get()
             ->map(function ($payment) use ($user, $currentSession) {
@@ -85,5 +84,4 @@ class DashboardController extends Controller
 
         return view('student.payment', compact('paymentSettings', 'transactions', 'currentSession'));
     }
-
 }

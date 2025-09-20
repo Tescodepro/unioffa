@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\AcademicSession;
 use App\Models\AcademicSemester;
+use App\Models\AcademicSession;
 
 if (! function_exists('activeSession')) {
     function activeSession()

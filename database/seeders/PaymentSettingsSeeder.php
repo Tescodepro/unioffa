@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use App\Models\Faculty;
 use App\Models\Department;
+use App\Models\Faculty;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PaymentSettingsSeeder extends Seeder
 {
@@ -22,7 +22,7 @@ class PaymentSettingsSeeder extends Seeder
                 'sex' => null, // Applies to all
                 'matric_number' => null,
                 'payment_type' => 'tuition',
-                'student_type'=> null,
+                'student_type' => null,
                 'amount' => 220000,
                 'description' => 'Tuition fee for 200 level FSC students',
             ],
@@ -55,10 +55,11 @@ class PaymentSettingsSeeder extends Seeder
         foreach ($settingsData as $data) {
             // Find faculty if code provided
             $facultyId = null;
-            if (!empty($data['faculty_code'])) {
+            if (! empty($data['faculty_code'])) {
                 $faculty = Faculty::where('faculty_code', $data['faculty_code'])->first();
-                if (!$faculty) {
+                if (! $faculty) {
                     $this->command->warn("Faculty {$data['faculty_code']} not found. Skipping...");
+
                     continue;
                 }
                 $facultyId = $faculty->id;
@@ -66,13 +67,14 @@ class PaymentSettingsSeeder extends Seeder
 
             // Find department if code provided
             $departmentId = null;
-            if (!empty($data['department_code'])) {
+            if (! empty($data['department_code'])) {
                 $department = Department::where('department_code', $data['department_code'])
                     ->where('faculty_id', $facultyId)
                     ->first();
 
-                if (!$department) {
+                if (! $department) {
                     $this->command->warn("Department {$data['department_code']} not found. Skipping...");
+
                     continue;
                 }
                 $departmentId = $department->id;

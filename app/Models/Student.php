@@ -11,6 +11,7 @@ class Student extends Model
     use HasFactory;
 
     public $incrementing = false; // because UUID
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -78,5 +79,4 @@ class Student extends Model
         // Return matric number
         return strtoupper("{$yearShort}/{$faculty->faculty_code}/{$department->department_code}/{$sequence}");
     }
-
 }

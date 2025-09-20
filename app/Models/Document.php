@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 class Document extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -17,14 +18,13 @@ class Document extends Model
         'type',
         'file_path',
         'file_size',
-        'original_name'
+        'original_name',
     ];
 
     public function userApplication()
     {
         return $this->belongsTo(UserApplications::class, 'user_application_id');
     }
-
 
     protected static function boot()
     {

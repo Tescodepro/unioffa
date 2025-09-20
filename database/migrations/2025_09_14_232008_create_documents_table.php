@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('file_size'); // storage path
             $table->string('original_name'); // storage path
 
-            
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

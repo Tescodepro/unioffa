@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
-
 
 class UserType extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = ['id', 'name'];
@@ -18,6 +17,7 @@ class UserType extends Model
     {
         return $this->hasMany(User::class, 'user_type_id');
     }
+
     public function campus()
     {
         return $this->belongsTo(Campus::class, 'campus_id');

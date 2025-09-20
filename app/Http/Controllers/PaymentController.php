@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\PaymentService;
-use Illuminate\Support\Str;
-use App\Models\Transaction;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Campus;
-use App\Models\User;
-use App\Models\{AdmissionList, ApplicationSetting, UserType, UserApplications, Faculty, PaymentSetting, StudentApplication};
+use App\Models\AdmissionList;
+use App\Models\ApplicationSetting;
 use App\Models\Student;
-use App\Mail\{GeneralMail};
+use App\Models\Transaction;
+use App\Models\User;
+use App\Models\UserApplications;
+use App\Models\UserType;
+use App\Services\PaymentService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
@@ -30,16 +31,16 @@ class PaymentController extends Controller
 
         // Log transaction as pending
         $transaction = Transaction::create([
-            'id'              => Str::uuid(),
-            'user_id'         => $user->id,
-            'description'     => $request->fee_type ?? 'Payment',
+            'id' => Str::uuid(),
+            'user_id' => $user->id,
+            'description' => $request->fee_type ?? 'Payment',
             'refernce_number' => $reference,
-            'amount'          => $request->amount,
-            'payment_status'  => 0, // pending
-            'payment_type'    => $request->fee_type ?? 'tuition',
-            'payment_method'  => $gateway,
-            'session'         => activeSession()->name ?? '---',
-            'meta_data'       => json_encode([
+            'amount' => $request->amount,
+            'payment_status' => 0, // pending
+            'payment_type' => $request->fee_type ?? 'tuition',
+            'payment_method' => $gateway,
+            'session' => activeSession()->name ?? '---',
+            'meta_data' => json_encode([
                 'user_agent' => $request->userAgent(),
                 'ip_address' => $request->ip(),
             ]),
@@ -47,14 +48,14 @@ class PaymentController extends Controller
 
         // Prepare gateway data
         $data = [
-            'amount'       => $request->amount,
-            'email'        => $user->email,
-            'name'         => $user->name,
-            'reference'    => $reference,
+            'amount' => $request->amount,
+            'email' => $user->email,
+            'name' => $user->name,
+            'reference' => $reference,
             'callback_url' => route('payment.callback'),
-            'metadata'     => [
-                'user_id'        => $user->id,
-                'fee_type'       => $request->fee_type,
+            'metadata' => [
+                'user_id' => $user->id,
+                'fee_type' => $request->fee_type,
                 'transaction_id' => $transaction->id,
             ],
         ];
@@ -63,7 +64,7 @@ class PaymentController extends Controller
         $response = $paymentService->generatePaymentLink($data);
         // dd($response);
 
-        if ($response['status'] && !empty($response['checkout_url'])) {
+        if ($response['status'] && ! empty($response['checkout_url'])) {
             return redirect()->away($response['checkout_url']);
         }
 
@@ -95,7 +96,7 @@ class PaymentController extends Controller
         $paymentType = $transaction->payment_type;
         // decide redirect route
         if (in_array($paymentType, ['application', 'acceptance'])) {
-            if($paymentType == 'acceptance'){
+            if ($paymentType == 'acceptance') {
                 $this->migrationStudent();
             }
             $backRoute = route('application.dashboard');
@@ -104,10 +105,11 @@ class PaymentController extends Controller
         }
 
         if ($response['success']) {
-            
+
             if ($transaction) {
                 $transaction->update(['payment_status' => 1]); // success
             }
+
             return view('payment-status-page', compact('paymentType', 'transaction', 'backRoute'))->with('success', 'Payment successful');
         }
 
@@ -128,11 +130,13 @@ class PaymentController extends Controller
 
     private function generateReference($payment_type): string
     {
-        $reference = $payment_type . '-' . date('YmdHis') . '-' . Str::uuid()->toString();
-        return $reference;
-    } 
+        $reference = $payment_type.'-'.date('YmdHis').'-'.Str::uuid()->toString();
 
-    private function migrationStudent(){
+        return $reference;
+    }
+
+    private function migrationStudent()
+    {
 
         $user = Auth::user();
         $studentType = UserType::where('name', 'student')->first();
@@ -143,13 +147,13 @@ class PaymentController extends Controller
 
         $current_session = activeSession()->name ?? null;
 
-         $user_application = UserApplications::where('user_id', $user->id)
-         ->where('academic_session', $current_session)->first();
+        $user_application = UserApplications::where('user_id', $user->id)
+            ->where('academic_session', $current_session)->first();
 
         $applicationSetting = ApplicationSetting::find($user_application->application_setting_id);
         $admission = AdmissionList::where(['user_id' => $user->id]);
 
-        if($applicationSetting->programme_code == 'DE') {
+        if ($applicationSetting->programme_code == 'DE') {
             $studentData = [
                 'programme' => 'DE',
                 'entry_mode' => 'DE',
@@ -157,35 +161,35 @@ class PaymentController extends Controller
                 'admission_session' => $user_application->academic_session,
                 'sex' => $user->gender,
             ];
-        } elseif($applicationSetting->programme_code == 'TOPUP') {
+        } elseif ($applicationSetting->programme_code == 'TOPUP') {
             $studentData = [
                 'programme' => 'TOPUP',
                 'entry_mode' => 'TOPUP',
                 'level' => '300',
                 'admission_session' => $user_application->academic_session,
             ];
-        } elseif($applicationSetting->programme_code == 'TRANSFER') {
+        } elseif ($applicationSetting->programme_code == 'TRANSFER') {
             $studentData = [
                 'programme' => 'TRANSFER',
                 'entry_mode' => 'TRANSFER',
                 'level' => '200',
                 'admission_session' => $user_application->academic_session,
             ];
-        } elseif($applicationSetting->programme_code == 'IDELUTME') {
+        } elseif ($applicationSetting->programme_code == 'IDELUTME') {
             $studentData = [
                 'programme' => 'IDELUTME',
                 'entry_mode' => 'UTME',
                 'level' => '100',
                 'admission_session' => $user_application->academic_session,
             ];
-        }elseif($applicationSetting->programme_code == 'IDELDE') {
+        } elseif ($applicationSetting->programme_code == 'IDELDE') {
             $studentData = [
                 'programme' => 'IDELDE',
                 'entry_mode' => 'DE',
                 'level' => '200',
                 'admission_session' => $user_application->academic_session,
             ];
-        }elseif($applicationSetting->programme_code == 'UMTE') {
+        } elseif ($applicationSetting->programme_code == 'UMTE') {
             $studentData = [
                 'programme' => 'UTME',
                 'entry_mode' => 'UTME',
@@ -196,19 +200,19 @@ class PaymentController extends Controller
 
         // migrate to student table
         $migrate_student = Student::create([
-                'id' => Str::uuid(),
-                'user_id' => $user->id,
-                'campus_id' => $user->campus_id,
-                'department_id' => $admission->approved_department_id,
-                'matric_no' => $user->registration_no,
-                'programme' => $studentData['programme'],
-                'entry_mode' => $studentData['entry_mode'],
-                'level' => $studentData['level'],
-                'admission_session' => $studentData['admission_session'],
-                'admission_date' => now(),
-                'status' => 1,
-                'sex' => $studentData['sex'],
-            ]);
+            'id' => Str::uuid(),
+            'user_id' => $user->id,
+            'campus_id' => $user->campus_id,
+            'department_id' => $admission->approved_department_id,
+            'matric_no' => $user->registration_no,
+            'programme' => $studentData['programme'],
+            'entry_mode' => $studentData['entry_mode'],
+            'level' => $studentData['level'],
+            'admission_session' => $studentData['admission_session'],
+            'admission_date' => now(),
+            'status' => 1,
+            'sex' => $studentData['sex'],
+        ]);
 
         $migrate_student->save();
 

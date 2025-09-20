@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('course_status')->nullable();
             $table->foreignUuid('department_id')->constrained('departments')->cascadeOnDelete();
             $table->unsignedSmallInteger('level');
-            $table->enum('semester', ['1st', '2nd','3rd','4th','5th','6th']);
+            $table->enum('semester', ['1st', '2nd', '3rd', '4th', '5th', '6th']);
             $table->boolean('active_for_register')->default(true);
             $table->timestamps();
         });

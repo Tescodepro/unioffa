@@ -11,7 +11,7 @@ class UniqueIdService
     {
         $userType = UserType::where('name', $userTypeName)->first();
 
-        if (!$userType) {
+        if (! $userType) {
             throw new \Exception("Invalid user type: {$userTypeName}");
         }
 
@@ -20,11 +20,11 @@ class UniqueIdService
 
         // Start counting from the current number of users
         $count = User::where('user_type_id', $userType->id)
-                    ->whereYear('created_at', $year)
-                    ->count() + 1;
+            ->whereYear('created_at', $year)
+            ->count() + 1;
 
         do {
-            $uniqueId = 'UOO/'.$prefix . '/' . $year . '/' . str_pad($count, 5, '0', STR_PAD_LEFT);
+            $uniqueId = 'UOO/'.$prefix.'/'.$year.'/'.str_pad($count, 5, '0', STR_PAD_LEFT);
             $count++; // 🔹 increment until we find a free one
         } while (User::where('username', $uniqueId)->exists());
 

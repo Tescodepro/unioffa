@@ -7,7 +7,8 @@ use Illuminate\Support\Str;
 
 class Transaction extends Model
 {
-     public $incrementing = false;
+    public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -19,8 +20,9 @@ class Transaction extends Model
         'payment_status',
         'payment_type',
         'payment_method',
-        'session'
+        'session',
     ];
+
     protected static function boot()
     {
         parent::boot();

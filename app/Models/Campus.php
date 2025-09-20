@@ -12,6 +12,7 @@ class Campus extends Model
 
     // UUID instead of auto-increment
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -27,7 +28,6 @@ class Campus extends Model
     {
         return $this->hasMany(User::class, 'campus_id', 'id');
     }
-
 
     // Automatically generate UUID on create
     protected static function booted()

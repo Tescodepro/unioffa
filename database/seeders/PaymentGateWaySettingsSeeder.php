@@ -49,10 +49,10 @@ class PaymentGateWaySettingsSeeder extends Seeder
                 ['name' => $gateway['name']], // check unique column
                 [
                     'display_name' => $gateway['display_name'],
-                    'is_active'    => $gateway['is_active'],
-                    'settings'     => $gateway['settings'],
-                    'updated_at'   => now(),
-                    'created_at'   => now(),
+                    'is_active' => $gateway['is_active'],
+                    'settings' => $gateway['settings'],
+                    'updated_at' => now(),
+                    'created_at' => now(),
                 ]
             );
         }

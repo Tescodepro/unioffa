@@ -11,7 +11,9 @@ class Course extends Model
     use HasFactory;
 
     protected $table = 'courses';
+
     public $incrementing = false; // since we're using UUID
+
     protected $keyType = 'string';
 
     protected $fillable = [

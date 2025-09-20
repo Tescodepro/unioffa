@@ -3,34 +3,46 @@
 namespace App\Http\Controllers\Application;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use App\Mail\ApplicantRegisteredMail;
+use App\Mail\GeneralMail;
+use App\Models\AdmissionList;
+use App\Models\Alevel;
+use App\Models\ApplicationSetting;
+use App\Models\Campus;
+use App\Models\CourseOfStudy;
+use App\Models\Department;
+use App\Models\Document;
+use App\Models\EducationHistory;
+use App\Models\Faculty;
+use App\Models\JambDetail;
+use App\Models\Olevel;
+use App\Models\Profile;
+use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserApplications;
 use App\Models\UserType;
 use App\Services\UniqueIdService;
-use Illuminate\Support\Facades\Auth;
-use App\Mail\{ApplicantRegisteredMail, GeneralMail};
-use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Exception;
-use App\Models\{ApplicationSetting, UserApplications, AdmissionList, Profile, Olevel, Alevel, Campus, CourseOfStudy, Document, JambDetail, EducationHistory, Department, Faculty, Transaction};
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class ApplicationController extends Controller
 {
-
     public function index()
     {
         $title = 'Application Registration Form';
         // get center
         $campuses = Campus::all();
+
         return view('applications.register', compact('title', 'campuses'));
     }
-
 
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
     {
@@ -74,13 +86,13 @@ class ApplicationController extends Controller
             $campuses = Campus::all();
 
             return redirect()->route('application.login', compact('campuses'))
-                            ->with('success', 'Registration successful. Please login to continue.');
+                ->with('success', 'Registration successful. Please login to continue.');
 
         } catch (Exception $e) {
             DB::rollBack();
 
             // Log failure with details
-            Log::error("❌ Failed to send mail to {$request->email}. Error: " . $e->getMessage());
+            Log::error("❌ Failed to send mail to {$request->email}. Error: ".$e->getMessage());
 
             return back()->withErrors(['email' => 'Registration failed because email could not be sent. Try again.']);
         }
@@ -89,6 +101,7 @@ class ApplicationController extends Controller
     public function login()
     {
         $title = 'Login Page';
+
         return view('applications.login', compact('title'));
     }
 
@@ -103,67 +116,65 @@ class ApplicationController extends Controller
         $fieldType = filter_var($credentials['email_registration_number'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         // Build proper credentials array
-            $authCredentials = [
-                $fieldType => $credentials['email_registration_number'],
-                'password' => $credentials['password'],
-            ];
-
+        $authCredentials = [
+            $fieldType => $credentials['email_registration_number'],
+            'password' => $credentials['password'],
+        ];
 
         if (Auth::attempt($authCredentials)) {
             $request->session()->regenerate();
 
             $to = Auth::user()->email;
 
-            $subject = "Login Notification";
+            $subject = 'Login Notification';
 
-             $content = [
-                'title' => Auth::user()->full_name . ",",
-                'body'  => "We noticed a login to your Offa University account.<br><br>
+            $content = [
+                'title' => Auth::user()->full_name.',',
+                'body' => 'We noticed a login to your Offa University account.<br><br>
 
             Details:<br>  
-            - Date: " . now()->format('Y-m-d H:i:s') . "<br>  
-            - IP Address: " . request()->ip() . " <br><br>
+            - Date: '.now()->format('Y-m-d H:i:s').'<br>  
+            - IP Address: '.request()->ip().' <br><br>
 
-            If this was you, no action is required. If not, please reset your password immediately.",
-            'footer'=> "Stay safe,  
-            Offa University Security Team"
-            ];  
+            If this was you, no action is required. If not, please reset your password immediately.',
+                'footer' => 'Stay safe,  
+            Offa University Security Team',
+            ];
 
             Mail::to($to)->send(new GeneralMail($subject, $content, false));
-
 
             return redirect()->intended(route('application.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }
 
-        return back()->with( 'error', 'The provided credentials do not match our records.' );
+        return back()->with('error', 'The provided credentials do not match our records.');
     }
 
     public function logoutAction(Request $request)
     {
         Auth::logout();
-        return redirect()->route('application.login')->with('success','Log out');
+
+        return redirect()->route('application.login')->with('success', 'Log out');
     }
 
     public function dashboard()
     {
         $title = 'Application Dashboard';
         $applicationSettings = ApplicationSetting::where('enabled', 1)->get();
-        
+
         $applications = UserApplications::with(['applicationSetting', 'transactions'])
             ->where('user_id', Auth::id())
             ->paginate(10);
-
 
         return view('applications.dashboard', compact('title', 'applicationSettings', 'applications'));
     }
 
     public function startApplication(Request $request)
-    { 
+    {
         $request->validate([
-            'application_setting_id' => 'required|exists:application_settings,id'
+            'application_setting_id' => 'required|exists:application_settings,id',
         ]);
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->back()->with('error', 'Please login first');
         }
 
@@ -174,7 +185,7 @@ class ApplicationController extends Controller
 
         if ($userApplication) {
             return redirect()->route('application.form', [
-                'user_application_id' => $userApplication->id
+                'user_application_id' => $userApplication->id,
             ])->with('success', 'You have already initialized this application before.');
         }
 
@@ -192,7 +203,7 @@ class ApplicationController extends Controller
             ]);
 
             return redirect()->route('application.form', [
-                'user_application_id' => $recordApplicationInitialization->id
+                'user_application_id' => $recordApplicationInitialization->id,
             ])->with('success', 'Application initialized successfully');
         } catch (\Exception $th) {
             return redirect()->back()->with('error', 'An error occurred while initializing the application');
@@ -202,7 +213,7 @@ class ApplicationController extends Controller
     public function applicationForm($user_application_id)
     {
         $users = Auth::user();
-        $title = Auth::user()->full_name . ' Application Form';
+        $title = Auth::user()->full_name.' Application Form';
 
         $application = UserApplications::with('applicationSetting')
             ->where('user_id', Auth::id())
@@ -210,8 +221,6 @@ class ApplicationController extends Controller
             ->firstOrFail();
 
         $modules = json_decode($application->applicationSetting->modules_enable, true);
-
-
 
         // Load each module's data
         $profile = Profile::where('user_application_id', $user_application_id)->first();
@@ -227,12 +236,12 @@ class ApplicationController extends Controller
         $departments = Department::all();
         $faculties = Faculty::all();
 
-        // Payment Settings 
+        // Payment Settings
         $payment_transaction = Transaction::where('user_id', $users->id)
-                    ->where('session', $application->academic_session)
-                    ->whereIn('payment_type', ['application', 'acceptance'])
-                    ->get();
-        
+            ->where('session', $application->academic_session)
+            ->whereIn('payment_type', ['application', 'acceptance'])
+            ->get();
+
         $application_payment_status = Transaction::where('user_id', $users->id)
             ->where('session', $application->academic_session)
             ->whereIn('payment_type', ['application', 'acceptance'])
@@ -241,11 +250,9 @@ class ApplicationController extends Controller
             ->keyBy('payment_type');  // 👈 This makes ['application'] and ['acceptance'] available
 
         $admission_status = AdmissionList::where('user_id', $users->id)
-                ->where('session_admitted', $application->academic_session)
-                ->where('admission_status', 'admitted')
-                ->count();
-
-
+            ->where('session_admitted', $application->academic_session)
+            ->where('admission_status', 'admitted')
+            ->count();
 
         return view('applications.application_form', compact(
             'title',
@@ -266,6 +273,7 @@ class ApplicationController extends Controller
             'admission_status',
         ));
     }
+
     public function saveProfile(Request $request, $user_application_id)
     {
         $request->validate([
@@ -295,7 +303,7 @@ class ApplicationController extends Controller
     {
         $request->validate([
             'olevel_exam_type' => 'required|in:waec,neco,nabteb',
-            'olevel_year' => 'required|integer|min:2010|max:' . date('Y'),
+            'olevel_year' => 'required|integer|min:2010|max:'.date('Y'),
             'olevel_subjects' => 'required|array|min:1',
             'olevel_subjects.*' => 'required|string',
             'olevel_grades' => 'required|array|min:1',
@@ -376,9 +384,9 @@ class ApplicationController extends Controller
         foreach ($requiredDocs as $doc) {
             // Check if document already exists
             $existingDoc = Document::where('user_application_id', $user_application_id)
-                                ->where('type', $doc)
-                                ->first();
-            
+                ->where('type', $doc)
+                ->first();
+
             $rules["documents.{$doc}"] = $existingDoc ? 'nullable|file|mimes:pdf|max:2048' : 'required|file|mimes:pdf|max:2048';
         }
 
@@ -387,24 +395,24 @@ class ApplicationController extends Controller
         foreach ($requiredDocs as $doc) {
             if ($request->hasFile("documents.{$doc}")) {
                 $file = $request->file("documents.{$doc}");
-                
+
                 // Delete old file if exists
                 $existingDoc = Document::where('user_application_id', $user_application_id)
-                                    ->where('type', $doc)
-                                    ->first();
-                
+                    ->where('type', $doc)
+                    ->first();
+
                 if ($existingDoc && Storage::exists($existingDoc->file_path)) {
                     Storage::delete($existingDoc->file_path);
                 }
 
                 // Store new file
-                $filename = time() . '_' . $doc . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('documents/' . Auth::id(), $filename, 'public');
+                $filename = time().'_'.$doc.'_'.$file->getClientOriginalName();
+                $filePath = $file->storeAs('documents/'.Auth::id(), $filename, 'public');
 
                 Document::updateOrCreate(
                     [
                         'user_application_id' => $user_application_id,
-                        'type' => $doc
+                        'type' => $doc,
                     ],
                     [
                         'user_id' => Auth::id(),
@@ -431,16 +439,16 @@ class ApplicationController extends Controller
             [
                 'admission_status' => 'pending',
                 'session_admitted' => $user_application->academic_session,
-                ]
+            ]
         );
 
-        return redirect()->back()->with("success", "Your application has been successfully submitted!");
+        return redirect()->back()->with('success', 'Your application has been successfully submitted!');
     }
 
     public function downloadAdmissionLetter($applicationId)
     {
         $application = UserApplications::with(['user', 'admissionList.department'])
-        ->findOrFail($applicationId);
+            ->findOrFail($applicationId);
 
         $applicationSetting = ApplicationSetting::find($application->application_setting_id);
 
@@ -455,7 +463,7 @@ class ApplicationController extends Controller
 
         $data = [
             'student' => $student,
-            'session'=> $application->academic_session,
+            'session' => $application->academic_session,
             'profile' => $profile,
             'department' => $department,
             'duration' => $applicationSetting,
@@ -466,12 +474,13 @@ class ApplicationController extends Controller
         $pdf = Pdf::loadView('applications.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
+        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
     }
 
     public function showForgotPasswordForm()
     {
         $title = 'Forgot Password';
+
         return view('applications.forget_password', compact('title'));
     }
 
@@ -489,7 +498,7 @@ class ApplicationController extends Controller
             // ✅ Find the user
             $user = User::where('email', $request->email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return back()->withErrors(['email' => 'No account found with that email address.']);
             }
 
@@ -499,23 +508,23 @@ class ApplicationController extends Controller
             $user->save();
 
             // ✅ Prepare email
-            $subject = "Password Reset Request - Offa University";
+            $subject = 'Password Reset Request - Offa University';
 
             $content = [
-                'title' => $user->full_name . ",",
-                'body'  => "
+                'title' => $user->full_name.',',
+                'body' => "
                     We received a request to reset your password.  
                     Please use the following One-Time Password (OTP):  
                     <h2>{$otp}</h2>  
 
                     Details:<br>  
-                    - Date: " . now()->format('Y-m-d H:i:s') . "<br>  
-                    - IP Address: " . $request->ip() . " <br><br>
+                    - Date: ".now()->format('Y-m-d H:i:s').'<br>  
+                    - IP Address: '.$request->ip().' <br><br>
 
                     If this was you, proceed with resetting your password.  
-                    If not, please secure your account immediately.",
-                'footer'=> "Stay safe,  
-                            Offa University Security Team"
+                    If not, please secure your account immediately.',
+                'footer' => 'Stay safe,  
+                            Offa University Security Team',
             ];
 
             // ✅ Send email
@@ -524,7 +533,8 @@ class ApplicationController extends Controller
             return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address.');
 
         } catch (Exception $e) {
-            Log::error('Forgot Password Error: ' . $e->getMessage());
+            Log::error('Forgot Password Error: '.$e->getMessage());
+
             return back()->withErrors(['email' => 'Something went wrong. Please try again later.']);
         }
     }
@@ -532,6 +542,7 @@ class ApplicationController extends Controller
     public function showUpdateWithOtp()
     {
         $title = 'Reset Password with OTP';
+
         return view('applications.change_pasword', compact('title'));
     }
 
@@ -548,14 +559,14 @@ class ApplicationController extends Controller
             ->where('otp_expires_at', '>', now())
             ->first();
 
-        if (!$otpRecord) {
+        if (! $otpRecord) {
             return back()->withErrors(['otp' => 'Invalid or expired OTP.']);
         }
 
         // Update user password
         $user = User::where('email', $otpRecord->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors(['otp' => 'User not found.']);
         }
 
@@ -564,5 +575,4 @@ class ApplicationController extends Controller
 
         return redirect()->route('application.login')->with('success', 'Password updated successfully! Please login.');
     }
-
 }

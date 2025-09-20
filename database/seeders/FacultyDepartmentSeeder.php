@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class FacultyDepartmentSeeder extends Seeder
 {
@@ -79,7 +79,7 @@ class FacultyDepartmentSeeder extends Seeder
                     [
                         'id' => $deptId,
                         'department_name' => $deptName,
-                        'department_description' => $deptName . ' description',
+                        'department_description' => $deptName.' description',
                         'qualification' => $faculty['qualification'],
                         'created_at' => now(),
                         'updated_at' => now(),

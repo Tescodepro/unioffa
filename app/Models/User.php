@@ -9,18 +9,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\ApplicationSetting;
-use App\Models\UserType;
-
-
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     public $incrementing = false;
-    protected $keyType = 'string';
 
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id',
@@ -33,7 +29,7 @@ class User extends Authenticatable
         'user_type_id',
         'campus_id',
         'username',
-        'registration_no'
+        'registration_no',
     ];
 
     /**
@@ -65,6 +61,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Campus::class);
     }
+
     public function userApplications()
     {
         return $this->hasMany(UserApplications::class);
@@ -86,13 +83,10 @@ class User extends Authenticatable
         return $this->hasOne(CourseOfStudy::class, 'user_id');
     }
 
-
     public function applicationSetting()
     {
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');
     }
-
-
 
     public function student()
     {
@@ -109,8 +103,6 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class);
     }
 
-
-
     /**
      * Get the attributes that should be cast.
      *
@@ -123,9 +115,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-
-
 
     protected static function boot()
     {

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignUuid('department_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('level')->nullable();
             $table->enum('sex', ['male', 'female'])->nullable();
-            $table->string('matric_number')->nullable()->unique(); 
+            $table->string('matric_number')->nullable()->unique();
             $table->string('payment_type'); // payment category
             $table->decimal('amount', 10, 2);
             $table->text('description')->nullable();

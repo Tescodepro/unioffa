@@ -11,6 +11,7 @@ class Faculty extends Model
     use HasFactory;
 
     public $incrementing = false; // UUIDs, not auto-increment
+
     protected $keyType = 'string';
 
     protected $fillable = [
