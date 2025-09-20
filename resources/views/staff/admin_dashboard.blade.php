@@ -10,8 +10,8 @@
 @section('content')
 <div class="main-wrapper">
 
-    @include('layouts.header')
-    @include('layouts.sidebar')
+    @include('staff.layouts.header')
+    @include('staff.layouts.sidebar')
 
     <div class="page-wrapper">
         <div class="content">
@@ -136,9 +136,9 @@
                                         <th>Applicant No</th>
                                         <th>Name</th>
                                         <th>Email</th>
-                                        <th>Application</th>
+                                        <th>Application Type</th>
                                         <th>Admittion Status</th>
-                                        <th>Status</th>
+                                        <th>Submittion</th>
                                         <th>Payment</th>
                                         <th>Applicant Details</th>
                                         <th>Admit</th>

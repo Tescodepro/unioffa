@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('registration_number')->unique();
             $table->year('exam_year');
             $table->string('jamb_type'); // 'UTME' or 'direct entry'
-            $table->integer('score')->nullable(); // total JAMB score
+            $table->string('score')->nullable(); // total JAMB score
+            $table->json('subjects')->nullable();
             $table->json('subject_scores')->nullable();
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

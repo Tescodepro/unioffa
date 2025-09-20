@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('exam_type'); // WAEC, NECO, etc.
             $table->string('exam_year');
             $table->json('subjects'); // JSON { "Mathematics": "A1", "English": "B2", ... }
+            $table->json('grades'); // JSON { "Mathematics": "A1", "English": "B2", ... }
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

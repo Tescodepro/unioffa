@@ -17,11 +17,13 @@ class JambDetail extends Model
         'jamb_type', // 'utme' or 'direct_entry
         'exam_year',
         'score',
+        'subjects',
         'subject_scores',
         'user_application_id',
     ];
 
     protected $casts = [
+        'subjects' => 'array',
         'subject_scores' => 'array',
     ];
 

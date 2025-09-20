@@ -17,10 +17,12 @@ class Olevel extends Model
         'exam_type',
         'exam_year',
         'subjects',
+        'grades',
     ];
 
     protected $casts = [
-        'subjects' => 'array', // 👈 this makes subjects usable as array
+        'subjects' => 'array',
+        'grades'=> 'array', 
     ];
 
     public function user()

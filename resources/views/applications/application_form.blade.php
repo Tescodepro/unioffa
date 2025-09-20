@@ -69,6 +69,23 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-xl-12 mt-5">
+                            <div id="admission_letter_section">
+                                <div class="card">
+                                    <div class="card-body text-center py-5">
+                                        <h4>Congratulations, {{ $application->user->full_name ?? 'Student' }}!</h4>
+                                        <p class="text-muted mb-4">
+                                            You have been officially admitted. You can now download your admission letter.
+                                        </p>
+                                        <a href="{{ route('student.admission.letter', $application->id) }}" 
+                                        class="theme-btn" target="_blank">
+                                            <i class="fas fa-file-pdf"></i> Download Admission Letter
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @elseif($application->is_approved && $admission_status == 1)
                         <div class="col-xl-12">
                             <div id="admission_letter_section">
@@ -98,10 +115,12 @@
                                                 'profile' => 'Personal Profile',
                                                 'olevel' => 'O\'Level Results',
                                                 'alevel' => 'A\'Level Results', 
+                                                'jamb_detail' => 'JAMB Details',
                                                 'course_of_study' => 'Course of Study',
                                                 'documents' => 'Document Upload'
                                             ];
                                         @endphp
+
                                         
                                         @foreach($moduleOrder as $key => $title)
                                             @if(isset($modules[$key]) && $modules[$key])
@@ -112,7 +131,8 @@
                                                         ($key == 'olevel' && $olevel) ||
                                                         ($key == 'alevel' && $alevel) ||
                                                         ($key == 'course_of_study' && $courseOfStudy) ||
-                                                        ($key == 'documents' && $documents->count() > 0)
+                                                        ($key == 'jamb_detail' && $jambDetails) ||
+                                                        ($key == 'documents' && $documents->count() > 0) 
                                                     )
                                                         <span class="badge bg-success ms-2">✓</span>
                                                     @endif
@@ -210,7 +230,7 @@
                                                         <div class="col-md-6 mb-3">
                                                             <label class="form-label">Examination Year *</label>
                                                             <input type="number" class="form-control" name="olevel_year" 
-                                                                min="2010" max="{{ date('Y') }}" 
+                                                                min="1010" max="{{ date('Y') }}" 
                                                                 value="{{ old('olevel_year', $olevel->exam_year ?? '') }}" required>
                                                         </div>
                                                     </div>
@@ -222,7 +242,8 @@
                                                             $savedSubjects = $olevel ? (is_array($olevel->subjects) ? $olevel->subjects : json_decode($olevel->subjects, true)) : [];
                                                             $savedGrades = $olevel ? (is_array($olevel->grades) ? $olevel->grades : json_decode($olevel->grades, true)) : [];
 
-                                                            $subjects = ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Further Mathematics', 'Economics', 'Government', 'Literature'];
+                                                            $subjects = config('subjects.secondary_subjects');
+
                                                             $grades = ['A1','B2','B3','C4','C5','C6','D7','E8','F9'];
                                                         @endphp
 
@@ -289,6 +310,136 @@
                                             </div>
                                         </div>
                                     </div>
+                                @endif
+
+                                <!-- JAMB Section -->
+                                @if(isset($modules['jamb_detail']) && $modules['jamb_detail'])
+                                    <div class="form-section" id="jamb_detail_section" style="display: none;">
+                                        <div class="card mb-4">
+                                            <div class="card-header header-primary">
+                                                <h5 class="text-white">JAMB Details</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <form id="jamb_form" action="{{ route('application.jamb_details.submit', $user_application_id) }}" method="POST">
+                                                    @csrf
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-3">
+                                                            <label class="form-label">Registration Number *</label>
+                                                            <input type="text" class="form-control" name="registration_number"
+                                                                value="{{ old('registration_number', $jambDetails ? ($jambDetails->registration_number ?? '') : '') }}" required>
+                                                        </div>
+                                                        <div class="col-md-6 mb-3">
+                                                            <label class="form-label">Examination Year *</label>
+                                                            <input type="number" class="form-control" name="exam_year"
+                                                                min="2000" max="{{ date('Y') }}"
+                                                                value="{{ old('exam_year', $jambDetails ? ($jambDetails->exam_year ?? '') : '') }}" required>
+                                                        </div>
+                                                        <div class="col-md-6 mb-3">
+                                                            <label class="form-label">JAMB Type *</label>
+                                                            <select class="form-select" name="jamb_type" id="jamb_type" required>
+                                                                <option value="">Select Type</option>
+                                                                <option value="utme" {{ old('jamb_type', $jambDetails ? ($jambDetails->jamb_type ?? '') : '') == 'utme' ? 'selected' : '' }}>UTME</option>
+                                                                <option value="direct_entry" {{ old('jamb_type', $jambDetails ? ($jambDetails->jamb_type ?? '') : '') == 'direct_entry' ? 'selected' : '' }}>Direct Entry</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- UTME extra fields --}}
+                                                    <div id="utme_fields" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label">Total Score</label>
+                                                                <input type="number" class="form-control" name="score" id="total_score" min="0" max="400"
+                                                                    value="{{ old('score', $jambDetails && $jambDetails->jamb_type == 'utme' ? ($jambDetails->score ?? '') : '') }}" readonly>
+                                                                <small class="text-muted">Automatically calculated from subject scores</small>
+                                                            </div>
+                                                        </div>
+
+                                                        <h6>Subject Scores (Select up to 4 Subjects)</h6>
+                                                        <div id="jamb_subjects_container">
+                                                            @php
+                                                                $subjects = config('subjects.secondary_subjects');
+                                                                $savedSubjects = $jambDetails && $jambDetails->subjects ? (is_array($jambDetails->subjects) ? $jambDetails->subjects : json_decode($jambDetails->subjects, true)) : [];
+                                                                $savedScores = $jambDetails && $jambDetails->subject_scores ? (is_array($jambDetails->subject_scores) ? $jambDetails->subject_scores : json_decode($jambDetails->subject_scores, true)) : [];
+                                                            @endphp
+
+                                                            @if(count($savedSubjects) > 0)
+                                                                @foreach($savedSubjects as $index => $savedSubject)
+                                                                    <div class="row mb-2 jamb-row">
+                                                                        <div class="col-md-6">
+                                                                            <select class="form-select" name="jamb_subjects[]" required>
+                                                                                <option value="">Select Subject</option>
+                                                                                @foreach($subjects as $subject)
+                                                                                    <option value="{{ $subject }}" {{ $savedSubject == $subject ? 'selected' : '' }}>{{ $subject }}</option>
+                                                                                @endforeach
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-4">
+                                                                            <input type="number" class="form-control jamb-subject-score" name="jamb_subject_scores[]" min="0" max="100"
+                                                                                value="{{ old('jamb_subject_scores.'.$index, $savedScores[$index] ?? '') }}" required>
+                                                                        </div>
+                                                                        <div class="col-md-2">
+                                                                            <button type="button" class="btn btn-danger btn-remove-jamb">Remove</button>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            @else
+                                                                <div class="row mb-2 jamb-row">
+                                                                    <div class="col-md-6">
+                                                                        <select class="form-select" name="jamb_subjects[]" required>
+                                                                            <option value="">Select Subject</option>
+                                                                            @foreach($subjects as $subject)
+                                                                                <option value="{{ $subject }}">{{ $subject }}</option>
+                                                                            @endforeach
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <input type="number" class="form-control jamb-subject-score" name="jamb_subject_scores[]" min="0" max="100" required>
+                                                                    </div>
+                                                                    <div class="col-md-2">
+                                                                        <button type="button" class="btn btn-danger btn-remove-jamb">Remove</button>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+
+                                                        <button type="button" id="add_jamb_subject_btn" class="btn btn-primary mb-3">Add Subject</button>
+                                                        <div id="jamb_subject_error" class="text-danger" style="display: none;">You can only add up to 4 subjects.</div>
+                                                    </div>
+
+                                                    {{-- Direct Entry extra fields --}}
+                                                    <div id="direct_entry_fields" style="display: none;">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label">Grade *</label>
+                                                                <select class="form-select" name="score" id="direct_entry_score"
+                                                                    {{ old('jamb_type', $jambDetails ? ($jambDetails->jamb_type ?? '') : '') == 'direct_entry' ? 'required' : '' }}>
+                                                                    <option value="">Select Grade</option>
+                                                                    @php
+                                                                        $grades = ['A', 'B', 'C', 'D', 'E', 'F'];
+                                                                    @endphp
+                                                                    @foreach($grades as $grade)
+                                                                        <option value="{{ $grade }}"
+                                                                            {{ old('score', $jambDetails && $jambDetails->jamb_type == 'direct_entry' ? ($jambDetails->score ?? '') : '') == $grade ? 'selected' : '' }}>
+                                                                            {{ $grade }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="text-center mt-4">
+                                                        <button type="submit" name="action" value="save_continue" class="theme-btn me-2">
+                                                            Save & Continue
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                
                                 @endif
 
                                 <!-- A'Level Section -->
@@ -506,6 +657,14 @@
                                                             </span>
                                                         </div>
                                                     @endif
+                                                    @if(isset($modules['jamb_detail']) && $modules['jamb_detail'])
+                                                        <div class="col-md-6 mb-2">
+                                                            <span class="badge {{ $jambDetails ? 'bg-success' : 'bg-secondary' }}">
+                                                                JAMB Details {{ $jambDetails ? '✓' : '' }}
+                                                            </span>
+                                                        </div>
+                                                    @endif
+
                                                 </div>
                                                 {{-- Check if all required modules are completed --}}
                                                 @php
@@ -522,6 +681,9 @@
                                                     }
                                                     if(isset($modules['course_of_study']) && $modules['course_of_study']) {
                                                         $allCompleted = $allCompleted && (!empty($courseOfStudy));
+                                                    }
+                                                    if(isset($modules['jamb_detail']) && $modules['jamb_detail']) {
+                                                        $allCompleted = $allCompleted && (!empty($jambDetails));
                                                     }
                                                     if(isset($modules['documents']) && is_array($modules['documents'])) {
                                                         $allCompleted = $allCompleted && ($documents->count() > 0);
@@ -559,7 +721,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     @endif
@@ -567,8 +728,8 @@
                     <!-- Transaction History Section -->
                     @if($payment_transaction->count() > 0)
                         <div class="card mt-4">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0">Transaction History</h5>
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0 text-white">Transaction History</h5>
                             </div>
                             <div class="card-body p-0">
                                 <div class="table-responsive">
@@ -737,6 +898,7 @@
             document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
         }
     </script>
+   
     <script>
         const subjects = {!! json_encode(['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Further Mathematics', 'Economics', 'Government', 'Literature']) !!};
         const grades = {!! json_encode(['A1','B2','B3','C4','C5','C6','D7','E8','F9']) !!};
@@ -804,6 +966,155 @@
             btn.addEventListener('click', function() {
                 btn.closest('.olevel-row').remove();
             });
+        });
+    </script>
+    
+     {{-- JavaScript for JAMB Section --}}
+    <script>
+        // Polyfill for crypto.randomUUID
+        if (!window.crypto || !window.crypto.randomUUID) {
+            window.crypto = window.crypto || {};
+            window.crypto.randomUUID = function() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = (Math.random() * 16) | 0;
+                    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                    return v.toString(16);
+                });
+            };
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Toggle UTME/Direct Entry fields
+            function toggleFields() {
+                let type = document.getElementById('jamb_type').value;
+                const utmeFields = document.getElementById('utme_fields');
+                const directEntryFields = document.getElementById('direct_entry_fields');
+                const directEntryScore = document.getElementById('direct_entry_score');
+
+                utmeFields.style.display = type === 'utme' ? 'block' : 'none';
+                directEntryFields.style.display = type === 'direct_entry' ? 'block' : 'none';
+                
+                // Dynamically toggle required attribute
+                if (type === 'direct_entry') {
+                    directEntryScore.setAttribute('required', 'required');
+                } else {
+                    directEntryScore.removeAttribute('required');
+                }
+            }
+            document.getElementById('jamb_type').addEventListener('change', toggleFields);
+            toggleFields(); // Initialize on page load
+
+            // JAMB Subject Management
+            const jambSubjects = {!! json_encode(config('subjects.secondary_subjects')) !!};
+            const maxJambSubjects = 4;
+
+            // Function to calculate total score
+            function calculateTotalScore() {
+                const scoreInputs = document.querySelectorAll('.jamb-subject-score');
+                let total = 0;
+                scoreInputs.forEach(input => {
+                    const value = parseInt(input.value) || 0;
+                    total += value;
+                });
+                document.getElementById('total_score').value = total > 0 ? total : '';
+            }
+
+            // Add new subject row
+            document.getElementById('add_jamb_subject_btn').addEventListener('click', function() {
+                const container = document.getElementById('jamb_subjects_container');
+                const currentRows = container.querySelectorAll('.jamb-row').length;
+
+                if (currentRows >= maxJambSubjects) {
+                    document.getElementById('jamb_subject_error').style.display = 'block';
+                    return;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'row mb-2 jamb-row';
+
+                const subjectCol = document.createElement('div');
+                subjectCol.className = 'col-md-6';
+                const subjectSelect = document.createElement('select');
+                subjectSelect.className = 'form-select';
+                subjectSelect.name = 'jamb_subjects[]';
+                subjectSelect.required = true;
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.text = 'Select Subject';
+                subjectSelect.appendChild(defaultOption);
+                jambSubjects.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s;
+                    option.text = s;
+                    subjectSelect.appendChild(option);
+                });
+                subjectCol.appendChild(subjectSelect);
+
+                const scoreCol = document.createElement('div');
+                scoreCol.className = 'col-md-4';
+                const scoreInput = document.createElement('input');
+                scoreInput.type = 'number';
+                scoreInput.className = 'form-control jamb-subject-score';
+                scoreInput.name = 'jamb_subject_scores[]';
+                scoreInput.min = '0';
+                scoreInput.max = '100';
+                scoreInput.required = true;
+                scoreInput.addEventListener('input', calculateTotalScore);
+                scoreCol.appendChild(scoreInput);
+
+                const removeCol = document.createElement('div');
+                removeCol.className = 'col-md-2';
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-danger btn-remove-jamb';
+                removeBtn.innerText = 'Remove';
+                removeBtn.addEventListener('click', () => {
+                    row.remove();
+                    calculateTotalScore();
+                    if (container.querySelectorAll('.jamb-row').length < maxJambSubjects) {
+                        document.getElementById('jamb_subject_error').style.display = 'none';
+                    }
+                });
+                removeCol.appendChild(removeBtn);
+
+                row.appendChild(subjectCol);
+                row.appendChild(scoreCol);
+                row.appendChild(removeCol);
+
+                container.appendChild(row);
+                calculateTotalScore();
+            });
+
+            // Remove button for initial rows and attach score calculation
+            document.querySelectorAll('.btn-remove-jamb').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    btn.closest('.jamb-row').remove();
+                    calculateTotalScore();
+                    if (document.getElementById('jamb_subjects_container').querySelectorAll('.jamb-row').length < maxJambSubjects) {
+                        document.getElementById('jamb_subject_error').style.display = 'none';
+                    }
+                });
+            });
+
+            // Attach input event listeners to existing score inputs for total calculation
+            document.querySelectorAll('.jamb-subject-score').forEach(input => {
+                input.addEventListener('input', calculateTotalScore);
+            });
+
+            // Form submission validation
+            document.getElementById('jamb_form').addEventListener('submit', function(event) {
+                const jambType = document.getElementById('jamb_type').value;
+                if (jambType === 'utme') {
+                    const subjectRows = document.getElementById('jamb_subjects_container').querySelectorAll('.jamb-row').length;
+                    if (subjectRows === 0) {
+                        event.preventDefault();
+                        alert('Please add at least one subject for UTME.');
+                    }
+                }
+            });
+
+            // Initial calculation on page load
+            calculateTotalScore();
         });
     </script>
 </body>

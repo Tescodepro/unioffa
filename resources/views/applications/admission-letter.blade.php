@@ -163,7 +163,16 @@
         <p>
             Consequent upon your application, you are hereby offered provisional admission into the 
             University for a {{ ucfirst($durationInWords) }} ({{ $duration->admission_duration }}) year Programme leading to the award of 
-            <strong>Bachelor of Science ({{ $department->qualification }}) {{ strtoupper($department->department_name) }}</strong>.
+
+            <strong>
+                @if($department->qualification == 'B.Ed' || $department->qualification == 'BEd')
+                    Bachelor of Education
+                @else
+                    Bachelor of Science
+                @endif
+                ({{ $department->qualification }}) {{ strtoupper($department->department_name) }}
+            </strong>.
+
         </p>
 
         <p>The following conditions are expected to be met in respect to your admission:</p>

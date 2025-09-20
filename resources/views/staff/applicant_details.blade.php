@@ -59,8 +59,8 @@
                         <div class="card mb-4">
                             <div class="card-header bg-light fw-bold">O’Level Results</div>
                             <div class="card-body">
-                                @forelse($application->olevels as $olevel)
-                                    <p><strong>{{ $olevel->exam_type }}</strong> - {{ $olevel->exam_year }}</p>
+                                @foreach($application->olevels as $olevel)
+                                    <h3>O-Level Results ({{ $olevel->exam_type }} - {{ $olevel->exam_year }})</h3>
                                     <table class="table table-sm table-bordered">
                                         <thead class="table-light">
                                             <tr>
@@ -69,38 +69,44 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($olevel->subjects as $subject => $grade)
+                                            @if(is_array($olevel->subjects) && !empty($olevel->subjects))
+                                                @foreach($olevel->subjects as $subject => $grade)
+                                                    <tr>
+                                                        <td>{{ $subject }}</td>
+                                                        <td>{{ $grade }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @else
                                                 <tr>
-                                                    <td>{{ $subject }}</td>
-                                                    <td>{{ $grade }}</td>
+                                                    <td colspan="2">No subjects available</td>
                                                 </tr>
-                                            @endforeach
+                                            @endif
                                         </tbody>
                                     </table>
-                                @empty
-                                    <p class="text-muted">No O’Level records submitted.</p>
-                                @endforelse
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
                     <!-- JAMB / A-Level -->
-                    @if(!empty($modules['alevel']) && $modules['alevel'])
+                    @if(!empty($modules['jamb_detail']) && $modules['jamb_detail'])
                         <div class="card mb-4">
-                            <div class="card-header bg-light fw-bold">JAMB / A-Level</div>
+                            <div class="card-header bg-light fw-bold">JAMB Details</div>
                             <div class="card-body">
                                 @if($application->jambDetail)
                                     <p><strong>Reg No:</strong> {{ $application->jambDetail->registration_number }}</p>
                                     <p><strong>Exam Year:</strong> {{ $application->jambDetail->exam_year }}</p>
                                     <p><strong>Type:</strong> {{ $application->jambDetail->jamb_type }}</p>
-                                    <p><strong>Total Score:</strong> {{ $application->jambDetail->score }}</p>
-                                    @if($application->jambDetail->subject_scores)
+                                    <p><strong>Total Score:</strong> {{ $application->jambDetail->score ?? 'N/A' }}</p>
+                                    @if(is_array($application->jambDetail->subject_scores) && !empty($application->jambDetail->subject_scores))
                                         <h6>Subject Scores:</h6>
                                         <ul>
                                             @foreach($application->jambDetail->subject_scores as $subject => $score)
-                                                <li>{{ $subject }}: {{ $score }}</li>
+                                                <li>{{ $subject }} : {{ $score }}</li>
                                             @endforeach
                                         </ul>
+                                    @else
+                                        <p class="text-muted">No subject scores available.</p>
                                     @endif
                                 @else
                                     <p class="text-muted">No JAMB / A-Level details submitted.</p>

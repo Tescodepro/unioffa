@@ -141,7 +141,7 @@ class ApplicationController extends Controller
             Offa University Security Team',
             ];
 
-            Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            // Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
             return redirect()->intended(route('application.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }
@@ -307,7 +307,7 @@ class ApplicationController extends Controller
             'olevel_subjects' => 'required|array|min:1',
             'olevel_subjects.*' => 'required|string',
             'olevel_grades' => 'required|array|min:1',
-            'olevel_grades.*' => 'required|in:A1,B2,B3,C4,C5,C6,D7,E8,F9',
+            'olevel_grades.*' => 'required|string',
         ]);
 
         // Ensure subjects and grades arrays have the same count
@@ -425,6 +425,47 @@ class ApplicationController extends Controller
         }
 
         return redirect()->back()->with('success', 'Documents uploaded successfully!');
+    }
+
+    public function saveJambDetails(Request $request, $user_application_id)
+    {
+        $rules = [
+            'registration_number' => 'required|string|max:255',
+            'exam_year' => 'required|integer|min:2000|max:' . date('Y'),
+            'jamb_type' => 'required|in:utme,direct_entry',
+        ];
+
+        if ($request->jamb_type === 'utme') {
+            $rules['jamb_subjects'] = 'required|array|min:1|max:4';
+            $rules['jamb_subjects.*'] = 'required|string';
+            $rules['jamb_subject_scores'] = 'required|array|min:1|max:4';
+            $rules['jamb_subject_scores.*'] = 'required|integer|min:0|max:100';
+
+         } else {
+            $rules['score'] = 'required';
+        }
+
+        $request->validate($rules);
+
+        $request->score = array_sum($request->jamb_subject_scores);
+
+        $data = [
+            'user_id' => Auth::id(),
+            'user_application_id' => $user_application_id,
+            'registration_number' => $request->registration_number,
+            'exam_year' => $request->exam_year,
+            'jamb_type' => $request->jamb_type,
+            'score' => $request->score,
+            'subjects' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subjects) : null,
+            'subject_scores' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subject_scores) : null,
+        ];
+
+        JambDetail::updateOrCreate(
+            ['user_application_id' => $user_application_id],
+            $data
+        );
+
+        return redirect()->back()->with('success', 'JAMB details saved successfully.');
     }
 
     public function handleFormSubmission(Request $request, $user_application_id)

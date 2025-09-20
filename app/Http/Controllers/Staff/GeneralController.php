@@ -74,8 +74,8 @@ class GeneralController extends Controller
                     'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
                     'application_id' => $user->applications->first()?->id,
                     'application_status' => $user->applications->first()?->submitted_by ? 'submitted' : 'not submitted',
-                    'payment_status' => $user->transactions->where('payment_type', 'application')->first()->payment_status ?? 'unpaid',
-                    'payment_ref' => $user->transactions->where('payment_type', 'application')->first()->refernce_number ?? null,
+                    'payment_status' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->payment_status ?? 'unpaid',
+                    'payment_ref' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->refernce_number ?? null,
                     'admissionList' => $user->admissionList,
                     'first_choice' => $user->courseOfStudy?->firstDepartment?->department_name,
                     'second_choice' => $user->courseOfStudy?->secondDepartment?->department_name,
@@ -150,6 +150,32 @@ class GeneralController extends Controller
             ->where('id', $applicationId)
             ->where('user_id', $userId)
             ->firstOrFail();
+
+        // Process olevels to fix double-encoded JSON and pair subjects with grades
+        foreach ($application->olevels as $olevel) {
+            $subjects = is_string($olevel->subjects) ? json_decode($olevel->subjects, true) : $olevel->subjects;
+            $subjects = is_string($subjects) ? json_decode($subjects, true) : $subjects;
+            $subjects = is_array($subjects) ? $subjects : [];
+
+            $grades = is_string($olevel->grades) ? json_decode($olevel->grades, true) : $olevel->grades;
+            $grades = is_string($grades) ? json_decode($grades, true) : $grades;
+            $grades = is_array($grades) ? $grades : [];
+
+            $olevel->subjects = array_combine($subjects, $grades) ?: [];
+        }
+
+        // Process jambDetail to fix double-encoded JSON and pair subjects with scores
+        if ($application->jambDetail) {
+            $subjects = is_string($application->jambDetail->subjects) ? json_decode($application->jambDetail->subjects, true) : $application->jambDetail->subjects;
+            $subjects = is_string($subjects) ? json_decode($subjects, true) : $subjects;
+            $subjects = is_array($subjects) ? $subjects : [];
+
+            $scores = is_string($application->jambDetail->subject_scores) ? json_decode($application->jambDetail->subject_scores, true) : $application->jambDetail->subject_scores;
+            $scores = is_string($scores) ? json_decode($scores, true) : $scores;
+            $scores = is_array($scores) ? $scores : [];
+
+            $application->jambDetail->subject_scores = array_combine($subjects, $scores) ?: [];
+        }
 
         $modules = json_decode($application->applicationSetting->modules_enable, true);
 
