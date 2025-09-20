@@ -24,7 +24,7 @@ class UniqueIdService
                     ->count() + 1;
 
         do {
-            $uniqueId = $prefix . '/' . $year . '/' . str_pad($count, 5, '0', STR_PAD_LEFT);
+            $uniqueId = 'UOO/'.$prefix . '/' . $year . '/' . str_pad($count, 5, '0', STR_PAD_LEFT);
             $count++; // 🔹 increment until we find a free one
         } while (User::where('username', $uniqueId)->exists());
 

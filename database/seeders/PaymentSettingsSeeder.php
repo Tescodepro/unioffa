@@ -15,12 +15,14 @@ class PaymentSettingsSeeder extends Seeder
         $settingsData = [
             // Tuition (general)
             [
-                'faculty_code' => 'FSC',
+                'all' => true,
+                'faculty_code' => null,
                 'department_code' => null,
-                'level' => '200',
+                'level' => null,
                 'sex' => null, // Applies to all
                 'matric_number' => null,
                 'payment_type' => 'tuition',
+                'student_type'=> null,
                 'amount' => 220000,
                 'description' => 'Tuition fee for 200 level FSC students',
             ],
