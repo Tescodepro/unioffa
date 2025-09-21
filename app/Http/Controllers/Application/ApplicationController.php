@@ -304,9 +304,9 @@ class ApplicationController extends Controller
         $request->validate([
             'olevel_exam_type' => 'required|in:waec,neco,nabteb',
             'olevel_year' => 'required|integer|min:2010|max:'.date('Y'),
-            'olevel_subjects' => 'required|array|min:1',
+            'olevel_subjects' => 'required|array|min:5|max:8',
             'olevel_subjects.*' => 'required|string',
-            'olevel_grades' => 'required|array|min:1',
+            'olevel_grades' => 'required|array|min:5|max:8',
             'olevel_grades.*' => 'required|string',
         ]);
 

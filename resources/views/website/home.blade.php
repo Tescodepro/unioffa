@@ -14,7 +14,7 @@
         <div class="hero-section">
             <div class="hero-slider owl-carousel owl-theme">
                 <!-- Slide 1 -->
-                <div class="hero-single" style="background: url(assets/img/slider/slider-1.jpg)">
+                <div class="hero-single" style="background: url(assets/img/slider/slider-1.jpg)" loading="lazy">
                     <div class="container">
                         <div class="row align-items-center">
                             <div class="col-md-12 col-lg-8 mx-auto">
@@ -39,7 +39,7 @@
                     </div>
                 </div>
                 <!-- Slide 2 -->
-                <div class="hero-single" style="background: url(assets/img/slider/slider-2.jpg)">
+                <div class="hero-single" style="background: url(assets/img/slider/slider-2.jpg)" loading="lazy">
                     <div class="container">
                         <div class="row align-items-center">
                             <div class="col-md-12 col-lg-8 mx-auto">
@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <!-- Slide 3 -->
-                <div class="hero-single" style="background: url(assets/img/slider/slider-3.jpg)">
+                <div class="hero-single" style="background: url(assets/img/slider/slider-3.jpg)" loading="lazy">
                     <div class="container">
                         <div class="row align-items-center">
                             <div class="col-md-12 col-lg-8 mx-auto">
@@ -101,7 +101,7 @@
                             <div class="about-img">
                                 <!-- <div class="row g-4"> -->
                                     <div class="col-md-12">
-                                        <img class="img-1" src="assets/img/about/vc.png" alt="">
+                                        <img class="img-1" src="assets/img/about/vc.png" alt="" loading="lazy">
                                     </div>
                                 <!-- </div> -->
                             </div>
@@ -183,7 +183,7 @@
                                         <div class="col-md-6">
                                             <div class="choose-item">
                                                 <div class="choose-item-icon">
-                                                    <img src="assets/img/icon/teacher-2.svg" alt="Faculty of Education">
+                                                    <img src="assets/img/icon/teacher-2.svg" alt="Faculty of Education" loading="lazy">
                                                 </div>
                                                 <div class="choose-item-info">
                                                     <h4>Faculty of Education</h4>
@@ -211,7 +211,7 @@
                                         <div class="col-md-6">
                                             <div class="choose-item">
                                                 <div class="choose-item-icon">
-                                                    <img src="assets/img/icon/online-course.svg" alt="Faculty of Sciences and Computing">
+                                                    <img src="assets/img/icon/online-course.svg" alt="Faculty of Sciences and Computing" loading="lazy">
                                                 </div>
                                                 <div class="choose-item-info">
                                                     <h4>Faculty of Sciences & Computing</h4>
@@ -231,7 +231,7 @@
                     <!-- Faculty Image -->
                     <div class="col-lg-4">
                         <div class="choose-img wow fadeInRight" data-wow-delay=".25s">
-                            <img src="assets/img/choose/faculty.png" alt="University Faculties">
+                            <img src="{{ asset('assets/img/choose/faculty.png') }}" alt="University Faculties" loading="lazy">
                         </div>
                     </div>
                 </div>
