@@ -1,4 +1,5 @@
 <?php
+
 // config/subjects.php
 
 return [

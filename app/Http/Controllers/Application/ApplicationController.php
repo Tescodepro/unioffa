@@ -431,7 +431,7 @@ class ApplicationController extends Controller
     {
         $rules = [
             'registration_number' => 'required|string|max:255',
-            'exam_year' => 'required|integer|min:2000|max:' . date('Y'),
+            'exam_year' => 'required|integer|min:2000|max:'.date('Y'),
             'jamb_type' => 'required|in:utme,direct_entry',
         ];
 
@@ -441,7 +441,7 @@ class ApplicationController extends Controller
             $rules['jamb_subject_scores'] = 'required|array|min:1|max:4';
             $rules['jamb_subject_scores.*'] = 'required|integer|min:0|max:100';
 
-         } else {
+        } else {
             $rules['score'] = 'required';
         }
 

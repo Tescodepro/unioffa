@@ -22,7 +22,7 @@ class Olevel extends Model
 
     protected $casts = [
         'subjects' => 'array',
-        'grades'=> 'array', 
+        'grades' => 'array',
     ];
 
     public function user()

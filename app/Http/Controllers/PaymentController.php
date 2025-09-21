@@ -151,9 +151,10 @@ class PaymentController extends Controller
             ->where('academic_session', $current_session)->first();
 
         $applicationSetting = ApplicationSetting::find($user_application->application_setting_id);
-        $admission = AdmissionList::where(['user_id' => $user->id]);
 
-        if ($applicationSetting->programme_code == 'DE') {
+        $admission = AdmissionList::where(['user_id' => $user->id])->first();
+
+        if ($applicationSetting->application_code == 'DE') {
             $studentData = [
                 'programme' => 'DE',
                 'entry_mode' => 'DE',
@@ -161,35 +162,35 @@ class PaymentController extends Controller
                 'admission_session' => $user_application->academic_session,
                 'sex' => $user->gender,
             ];
-        } elseif ($applicationSetting->programme_code == 'TOPUP') {
+        } elseif ($applicationSetting->application_code == 'TOPUP') {
             $studentData = [
                 'programme' => 'TOPUP',
                 'entry_mode' => 'TOPUP',
                 'level' => '300',
                 'admission_session' => $user_application->academic_session,
             ];
-        } elseif ($applicationSetting->programme_code == 'TRANSFER') {
+        } elseif ($applicationSetting->application_code == 'TRANSFER') {
             $studentData = [
                 'programme' => 'TRANSFER',
                 'entry_mode' => 'TRANSFER',
                 'level' => '200',
                 'admission_session' => $user_application->academic_session,
             ];
-        } elseif ($applicationSetting->programme_code == 'IDELUTME') {
+        } elseif ($applicationSetting->application_code == 'IDELUTME') {
             $studentData = [
                 'programme' => 'IDELUTME',
                 'entry_mode' => 'UTME',
                 'level' => '100',
                 'admission_session' => $user_application->academic_session,
             ];
-        } elseif ($applicationSetting->programme_code == 'IDELDE') {
+        } elseif ($applicationSetting->application_code == 'IDELDE') {
             $studentData = [
                 'programme' => 'IDELDE',
                 'entry_mode' => 'DE',
                 'level' => '200',
                 'admission_session' => $user_application->academic_session,
             ];
-        } elseif ($applicationSetting->programme_code == 'UMTE') {
+        } elseif ($applicationSetting->application_code == 'UTME') {
             $studentData = [
                 'programme' => 'UTME',
                 'entry_mode' => 'UTME',
@@ -211,7 +212,7 @@ class PaymentController extends Controller
             'admission_session' => $studentData['admission_session'],
             'admission_date' => now(),
             'status' => 1,
-            'sex' => $studentData['sex'],
+            'sex' => $user->sex,
         ]);
 
         $migrate_student->save();

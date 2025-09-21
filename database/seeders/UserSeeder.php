@@ -26,14 +26,14 @@ class UserSeeder extends Seeder
             ['email' => 'admin@example.com'], // unique check
             [
                 'id' => (string) Str::uuid(),
-                'first_name' => 'Olamilekan',
+                'first_name' => 'Kamaldeeen',
                 'middle_name' => null,
-                'last_name' => 'Testing',
-                'email' => 'admin@gmail.com',
-                'phone' => '08010000001',
+                'last_name' => 'Gbolagade',
+                'email' => 'admin@unioffa.edu.ng',
+                'phone' => '+2349036154339',
                 'username' => 'ADMIN001',
                 'registration_no' => null, // admins usually don’t have matric no
-                'password' => Hash::make('password'),
+                'password' => Hash::make('Admin@123'), // default password
                 'user_type_id' => $adminType->id,
                 'created_at' => now(),
                 'updated_at' => now(),

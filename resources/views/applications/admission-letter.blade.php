@@ -141,9 +141,9 @@
 <body>
 
     @php
-            $formatter = new \NumberFormatter('en', \NumberFormatter::SPELLOUT);
-            $durationInWords = $formatter->format($duration->admission_duration);
-        @endphp
+        $formatter = new \NumberFormatter('en', \NumberFormatter::SPELLOUT);
+        $durationInWords = $formatter->format($duration->admission_duration);
+    @endphp
 
     <!-- Letterhead -->
     <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="letterhead">

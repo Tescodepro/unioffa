@@ -11,9 +11,9 @@
 				<a href="" class="dark-logo">
 					<img src="{{asset('assets/img/logo/logo_white.svg')}}" style="height: 60px;" alt="Logo">
 				</a>
-				{{-- <a id="toggle_btn" href="javascript:void(0);">
+				<a id="toggle_btn" href="javascript:void(0);">
 					<i class="ti ti-menu-deep"></i>
-				</a> --}}
+				</a>
 			</div>
 			<!-- /Logo -->
 
@@ -45,7 +45,7 @@
 						</div> --}}
 					</div>
 					<!-- /Search -->
-
+					<div class="d-flex align-items-center">
 						<div class="dropdown ms-1">
 							<a href="javascript:void(0);" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
 								<span class="avatar avatar-md rounded">
