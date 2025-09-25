@@ -193,8 +193,7 @@
                         </ul>
                         <div class="nav-right">
                             <div class="nav-right-btn mt-2">
-                                <a href="{{ route('application.login') }}" class="theme-btn"><span
-                                        class="fal fa-pencil"></span>Apply Now</a>
+                                <a href="{{ route('application.login') }}" class="theme-btn"><span class="fal fa-pencil"></span>Apply Now</a>
                             </div>
                         </div>
                     </div>
