@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Exception;
 
 class Student extends Model
 {
@@ -59,24 +61,59 @@ class Student extends Model
         return $this->belongsTo(Department::class);
     }
 
-    public static function generateMatricNo(string $departmentCode, int $admissionYear): string
+    public static function generateMatricNo(string $departmentCode, int $admissionYear, string $programme): string
     {
-        // Get department and faculty
-        $department = Department::where('department_code', $departmentCode)->firstOrFail();
-        $faculty = $department->faculty;
+        return DB::transaction(function () use ($departmentCode, $admissionYear, $programme) {
+            // Validate programme
+            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDEL', 'UTME', 'Transfer', 'DIPLOMA'];
+            if (!in_array($programme, $validProgrammes)) {
+                throw new InvalidArgumentException('Invalid programme specified.');
+            }
 
-        // Count students in this department + year
-        $count = self::where('department_id', $department->id)
-            ->whereYear('admission_date', $admissionYear)
-            ->count() + 1;
+            // Modify department code based on programme
+            $modifiedCode = match ($programme) {
+                'TOPUP' => 'T' . $departmentCode,        // e.g., CSC -> TCSC
+                'IDELUTME', 'IDEL' => 'D' . $departmentCode, // e.g., CSC -> DCSC
+                'DIPLOMA' => 'DP' . $departmentCode,     // e.g., CSC -> DPCSC
+                default => $departmentCode,              // UTME, Transfer: no change
+            };
 
-        // Format year (last 2 digits only)
-        $yearShort = substr((string) $admissionYear, -2);
+            // Get department and faculty
+            $department = Department::where('department_code', $departmentCode)->firstOrFail();
+            $faculty = $department->faculty;
 
-        // Format sequence (3 digits: 001, 002, etc.)
-        $sequence = str_pad($count, 3, '0', STR_PAD_LEFT);
+            // Count students in this department + year
+            $count = self::where('department_id', $department->id)
+                ->whereYear('admission_date', $admissionYear)
+                ->lockForUpdate()
+                ->count() + 1;
 
-        // Return matric number
-        return strtoupper("{$yearShort}/{$faculty->faculty_code}/{$department->department_code}/{$sequence}");
+            // Format year (last 2 digits only)
+            $yearShort = substr((string) $admissionYear, -2); // e.g., 2023 -> "23"
+
+            // Format sequence (3 digits: 001, 002, etc.)
+            $sequence = str_pad($count, 3, '0', STR_PAD_LEFT);
+
+            // Generate matric number
+            $matricNo = strtoupper("{$yearShort}/{$faculty->faculty_code}/{$modifiedCode}/{$sequence}");
+
+            // Check for duplicates in users and students tables
+            $maxAttempts = 999; // Max sequence number
+            while ($count <= $maxAttempts) {
+                $existsInUsers = User::where('username', $matricNo)->exists();
+                $existsInStudents = self::where('matric_no', $matricNo)->exists();
+
+                if (!$existsInUsers && !$existsInStudents) {
+                    return $matricNo; // Matric number is unique
+                }
+
+                // Increment sequence and try again
+                $count++;
+                $sequence = str_pad($count, 3, '0', STR_PAD_LEFT);
+                $matricNo = strtoupper("{$yearShort}/{$faculty->faculty_code}/{$modifiedCode}/{$sequence}");
+            }
+
+            throw new Exception('Unable to generate unique matric number. Maximum student limit reached.');
+        });
     }
 }

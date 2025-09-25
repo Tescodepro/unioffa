@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Payments')
+@section('title', 'Required Payments')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"> <!-- Adjust path as needed -->
@@ -24,16 +24,16 @@
 </div>
 
 <div class="main-wrapper">
-    @include('layouts.header')
-    @include('layouts.sidebar')
+    @include('student.partials.header')
+    @include('student.partials.sidebar')
 
     <div class="page-wrapper">
         <div class="content">
             <!-- Page Header -->
             <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                 <div class="my-auto mb-4">
-                    <h3 class="page-title mb-1">Payment Dashboard</h3>
-                    <p class="mb-1 text-muted">View your required payments and completed transactions for the {{ $currentSession ?? 'N/A' }} session.</p>
+                    <h3 class="page-title mb-1">Required Payments</h3>
+                    <p class="mb-1 text-muted">View your required payments for the {{ $currentSession ?? 'N/A' }} session.</p>
 
                     <div class="bg-light p-3 rounded shadow-sm">
                         <p class="mb-1"><strong>Current Session:</strong> {{ $currentSession ?? 'No active session' }}</p>
@@ -147,50 +147,6 @@
                 </div>
             </div>
             <!-- /Required Payments -->
-
-            <!-- Transactions -->
-            <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-                    <h4 class="mb-3">Payment History ({{ $currentSession ?? 'N/A' }})</h4>
-                </div>
-                <div class="card-body p-0 py-3">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Reference</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Method</th>
-                                    <th>Session</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($transactions as $transaction)
-                                    <tr>
-                                        <td>{{ $transaction->refernce_number }}</td>
-                                        <td>{{ $transaction->payment_type }}</td>
-                                        <td>{{ number_format($transaction->amount, 2) }}</td>
-                                        <td>
-                                            <span class="badge badge-completed">Completed</span>
-                                        </td>
-                                        <td>{{ $transaction->payment_method }}</td>
-                                        <td>{{ $transaction->session }}</td>
-                                        <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center">No completed transactions found for the current session.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <!-- /Transactions -->
         </div>
     </div>
 </div>

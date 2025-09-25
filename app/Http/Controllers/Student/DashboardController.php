@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\PaymentSetting;
+use App\Models\{PaymentSetting, ApplicationSetting};
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -84,4 +86,102 @@ class DashboardController extends Controller
 
         return view('student.payment', compact('paymentSettings', 'transactions', 'currentSession'));
     }
+
+    public function paymentHistory()
+    {
+        $user = Auth::user()->load('student.department.faculty');
+
+        // Load all transactions for the user
+        $transactions = Transaction::where('user_id', $user->id)
+            ->where('payment_status', '1')
+            ->latest()
+            ->get();
+
+        return view('student.payment-history', compact('transactions'));
+    }
+
+    public function downloadAdmissionLetter()
+    {
+        $user = Auth::user();
+
+        $student = $user->student;
+
+        if (! $student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        $department = $student->department;
+        if($student->programme == 'IDEL'){
+            $student->programme = 'IDELDE';
+        }
+        $applicationSetting = ApplicationSetting::where('application_code', $student->programme)->first();
+
+        $data = [
+            'student' => $student,
+            'session' => $student->admission_session,
+            'department' => $department,
+            'duration' => $applicationSetting,
+            'date' => Carbon::now()->format('F d, Y'),
+        ];
+
+        $pdf = Pdf::loadView('student.admission-letter', $data)
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
+    }
+
+    public function profile()
+    {
+        $user = Auth::user()->load('student.department.faculty');
+
+        return view('student.profile', compact('user'));
+    }
+
+    public function updateProfile(\Illuminate\Http\Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+        ]);
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->phone = $request->phone;
+        $user->address = $request->address;
+        $user->save();
+
+        return redirect()->back()->with('success', 'Profile updated successfully.');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if (! \Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()->with('error', 'Current password is incorrect.');
+        }
+
+        $user->password = bcrypt($request->new_password);
+        $user->save();
+
+        return redirect()->back()->with('success', 'Password changed successfully.');
+    }
+
+    public function logoutAction()
+    {
+        Auth::logout();
+
+        return redirect()->route('student.login')->with('success', 'Logged out successfully.');
+    }
+
+
 }

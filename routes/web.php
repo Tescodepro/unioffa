@@ -78,6 +78,12 @@ Route::prefix('students')->group(function () {
         Route::controller(DashboardController::class)->group(function () {
             Route::get('/dashboard', 'index')->name('students.dashboard');
             Route::get('/payment', 'loadPayment')->name('students.load_payment');
+            Route::get('/payment-history', 'paymentHistory')->name('students.payment.history');
+            Route::get('logout', 'logoutAction')->name('students.logout');
+            Route::get('/profile', 'profile')->name('students.profile');
+            Route::post('/profile', 'updateProfile')->name('students.profile.update');
+            Route::post('/change-password', 'changePassword')->name('students.change.password');
+            Route::get('/admission-letter', 'downloadAdmissionLetter')->name('students.admission.letter');
         });
 
         Route::controller(CourseRegistrationController::class)->group(function () {
@@ -85,6 +91,7 @@ Route::prefix('students')->group(function () {
             Route::post('course-registration', 'store');
             Route::get('course-registration/download', 'downloadCourseForm')->name('students.course.download');
         });
+
 
     });
 });

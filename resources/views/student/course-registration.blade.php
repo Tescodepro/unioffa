@@ -12,8 +12,8 @@
 </div>
 
 <div class="main-wrapper">
-    @include('layouts.header')
-    @include('layouts.sidebar')
+    @include('student.partials.header')
+    @include('student.partials.sidebar')
 
     <div class="page-wrapper">
         <div class="content">
