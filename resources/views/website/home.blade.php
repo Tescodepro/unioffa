@@ -541,7 +541,7 @@
                                 Apply today and become part of a vibrant academic community dedicated to 
                                 excellence in teaching, research, and innovation.</p>
                                 <div class="cta-btn">
-                                    <a href="/admissions" class="theme-btn">Apply Now<i class="fas fa-arrow-right-long"></i></a>
+                                    <a href="{{ route('application.login') }}" class="theme-btn">Apply Now<i class="fas fa-arrow-right-long"></i></a>
                                 </div>
                             </div>
                         </div>
