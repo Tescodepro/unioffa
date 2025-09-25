@@ -81,7 +81,7 @@
                                     </p>
                                     <div class="hero-btn justify-content-center" data-animation="fadeInUp" data-delay="1s">
                                         <a href="" class="theme-btn">About Us <i class="fas fa-arrow-right-long"></i></a>
-                                        <a href="" class="theme-btn theme-btn2">Apply Now <i class="fas fa-arrow-right-long"></i></a>
+                                        <a href="{{ route('application.login') }}" class="theme-btn theme-btn2">Apply Now <i class="fas fa-arrow-right-long"></i></a>
                                     </div>
                                 </div>
                             </div>
