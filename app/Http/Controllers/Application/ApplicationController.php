@@ -617,5 +617,5 @@ class ApplicationController extends Controller
         $user->save();
 
         return redirect()->route('application.login')->with('success', 'Password updated successfully! Please login.');
-    }
+    } 
 }
