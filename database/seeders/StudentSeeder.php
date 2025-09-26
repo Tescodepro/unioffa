@@ -54,6 +54,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ORIOKO COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ADETOLU',
@@ -76,6 +77,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OGUNTE NLA COMPOUND, IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'AJAYI',
@@ -98,6 +100,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLOMU COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ADISA',
@@ -120,6 +123,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'SERIKI COMPOUND, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLAWORE',
@@ -142,6 +146,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ALABI-AGBE NUD 3 PRY SCHL, IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ABDULKAREEM',
@@ -164,6 +169,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLOGBOJO COMPOUND, OJA OBA IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'SULAIMAN',
@@ -186,6 +192,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OKE AAGO COMPOUND, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ABDULAZEEZ',
@@ -208,6 +215,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'BALODE HOUSE, ALONG ISLAMIC HIGH SCHOOL, IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'RABIU',
@@ -230,6 +238,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OKE-ODO AMO ALONG BANNI ROAD IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLAWOYIN',
@@ -252,6 +261,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ASIPA AYELABOWO COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'KAREEM',
@@ -274,6 +284,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'SAAGBON COMPOUND IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLAWOYIN',
@@ -296,6 +307,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ASIPA AYELABOWO COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ABUBAKAR',
@@ -318,6 +330,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'SAAGBON COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLADELE',
@@ -340,6 +353,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'NO4 OLADELE VILLA, OKE GENERAL HOSPITAL AREA, IGBETI',
                 'MODE OF ENTRY' => 'IDELUTME',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ISHOLA',
@@ -362,6 +376,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ELERUGBA COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'AMINU',
@@ -384,6 +399,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLORO COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'SULAIMAN',
@@ -406,6 +422,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ASIPA AGORO, OKE AGO IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'BADMUS',
@@ -428,6 +445,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLOKO COMPOUND, IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ISHOLA',
@@ -450,6 +468,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ISOLABA COMPOUND, IGBETI',
                 'MODE OF ENTRY' => 'IDELUTME',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'IBRAHIM',
@@ -472,6 +491,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'APALA COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ASAMU',
@@ -494,6 +514,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => "ASAMU'S VILLA OLOSUN AREA, IGBETI",
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'AZEEZ',
@@ -516,6 +537,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLORO COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLABIWONNU',
@@ -538,6 +560,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLOGBOJO COMPOUND, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLAJIDE',
@@ -560,6 +583,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'SERIKI HOUSE, BEHIND ARIJE HOTE, OKE AYO IGBETI',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLATUNJI',
@@ -582,6 +606,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLOKO COMPOUND, IGBETI',
                 'MODE OF ENTRY' => 'IDELUTME',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'EMMANUEL',
@@ -604,6 +629,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'BANI KAIAMA LGE, KWARA STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLATUNJI',
@@ -626,6 +652,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => '3 BLOCK D LANE 7 ARUBIEWE ZONE 2 OLODO IBADAN',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'JOLAIYA',
@@ -648,6 +675,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'NO 2, IFESOWAPO STREET OLOSAN ALAKIA, IBADAN, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLUWADAMILOLA',
@@ -670,6 +698,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'NW7/448 LIASU LAYOUT, ISABEL ST. BENJAMIN AREA, ELEYELE IBADAN, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLUSAYO',
@@ -692,6 +721,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'NO 3, HARMONY ESTATE, IDI OSAN, OLODO, OFF IWO ROAD, IBADAN, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLUKOYA',
@@ -714,6 +744,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'NO 2, BOJOWA STREET, IBIPE, OGUN STATE',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLUWATOBI',
@@ -736,6 +767,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => '2, AGBEDO STREET OLODO AREA, IBADAN, OYO STATE',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'BABATUNDE',
@@ -758,6 +790,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => '3, ORI OKE AANUN ESTATE ISOKUN OJOO IBADAN, OYO STATE',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLADIPUPO',
@@ -780,6 +813,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'NO 1, ADEGBAYI OLODE OFF OGUNGBADE ROAD, IBADAN, OYO STAYE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'AYOADE',
@@ -802,6 +836,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => '54, IFETEDO OLODO AREA, IBADAN, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ADESOLA',
@@ -824,6 +859,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => '4, KENGBE STREET ISEBO, ALAKIA AREA, IBADAN, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OMOLOJA',
@@ -846,6 +882,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'NO 5, TUNJI ADERINTO STREET, ISOLO, LAGOS STATE',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OLATORERA',
@@ -868,6 +905,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'BLESSING VILLA KESO, ALONG ILORIN ROAD, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'TOPUP',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'MOORE',
@@ -890,6 +928,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'IYA KUNLE VILLA OPPOSITE GENERAL HOSPITAL IGBETI OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'JIMOH',
@@ -912,6 +951,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'FADEYI HOUSE, OKE GENERAL, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'RASAQ',
@@ -934,6 +974,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'PAKOYI COMPOUND, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ADEAGBO',
@@ -956,6 +997,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OGUNTE NLA COMPOUND, IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'SALAUDEEN',
@@ -978,6 +1020,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'BAALE BAABO SAKI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'LAWAL',
@@ -1000,6 +1043,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ASIPA RESIDENCE, OKE-OWODE, IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'RABIU',
@@ -1022,6 +1066,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OKUTA-PETE IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'YUNUS',
@@ -1044,6 +1089,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLOGBOJO COMPOUND, IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ADETOLA',
@@ -1066,6 +1112,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'SERIKI COMPOUND, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'AKINBORO',
@@ -1088,6 +1135,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OLORO COMPOUND IGBETI',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'BADMOS',
@@ -1110,6 +1158,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'JARAMOSE COMPOUND, AGBENI AREA, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OGUNSOLA',
@@ -1132,6 +1181,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OKE OWODE, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ADEBAYO',
@@ -1154,6 +1204,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'FEKETE COMPOUND, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'OYEKU',
@@ -1176,6 +1227,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ADENIYI COMPOUND, OKE AGO, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'ADELOWO',
@@ -1198,6 +1250,7 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'OKE IBUKUN AREA, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDEL',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
             ],
             [
                 'FIRST NAME' => 'RAHEEM',
@@ -1220,6 +1273,30 @@ class StudentSeeder extends Seeder
                 'ADDRESS' => 'ABOKE COMPOUND, OLOSU AREA, IGBETI, OYO STATE',
                 'MODE OF ENTRY' => 'IDELUTME',
                 'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Igbeti Campus',
+            ],
+            [
+                'FIRST NAME' => 'BILIKIS',
+                'LAST NAME' => 'SAAD',
+                'MIDDLENAME' => 'IYABO',
+                'EMAIL' => 'non@gmail.com',
+                'PHONE' => '090',
+                'PROGRAMME' => 'TOPUP',
+                'STREAM' => '1',
+                'SIGNATURE' => '',
+                'GENDER' => 'FEMALE',
+                'DEPARTMENT' => 'BUS',
+                'FACULTY' => 'HUMANITIES, MANAGEMENTS & SOCIAL SCIENCE',
+                'LEVEL' => '300',
+                'DOB' => '9-Aug-06',
+                'NATIONALITY' => 'NIGERIA',
+                'STATE' => null,
+                'LGA' => null,
+                'CITY' => 'IGBETI',
+                'ADDRESS' => 'ABOKE COMPOUND, OLOSU AREA, IGBETI, OYO STATE',
+                'MODE OF ENTRY' => 'TOPUP',
+                'ADMISSIONS' => '2024/2025',
+                'CENTER' => 'Ilorin Campus',
             ],
         ];
 
@@ -1237,6 +1314,19 @@ class StudentSeeder extends Seeder
 
             // 🔹 Generate matric number
             $matricNo = Student::generateMatricNo($department->department_code, $admissionYear, $studentData['PROGRAMME']);
+
+            if ($studentData['CENTER']) {
+                // 🔹 Find campus
+                $campus = Campus::where('name', $studentData['CENTER'])->first();
+
+                if (! $campus) {
+                    $this->command->warn(" Campus {$studentData['CENTER']} not found. Skipping...");
+
+                    continue;
+                }
+            } else {
+                $campus = Campus::first();
+            }
 
             // 🔹 Create user
             $user = User::create([

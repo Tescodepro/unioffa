@@ -21,7 +21,8 @@
                 <li>
                     <h6 class="submenu-hdr"><span>Academics</span></h6>
                     <ul>
-                        <li><a href="{{ route('students.course.registration') }}"><i class="ti ti-book"></i><span>Course Registration</span></a></li>
+                        {{-- <li><a href="{{ route('students.course.registration') }}"><i class="ti ti-book"></i><span>Course Registration</span></a></li> --}}
+                        <li><a href=""><i class="ti ti-book"></i><span>Course Registration</span></a></li>
                         <li><a href=""><i class="ti ti-file-text"></i><span>Check Results</span></a></li>
                     </ul>
                 </li>
@@ -29,6 +30,8 @@
                     <h6 class="submenu-hdr"><span>Financial Services</span></h6>
                     <ul>
                         <li><a href="{{ route('students.load_payment') }}"><i class="ti ti-wallet"></i><span>School Fees</span></a></li>
+                        <li><a href=""><i class="ti ti-wallet"></i><span>School Fees</span></a></li>
+                        {{-- <li><a href="{{ route('students.payment.history') }}"><i class="ti ti-history"></i><span>Payment History</span></a></li> --}}
                         <li><a href="{{ route('students.payment.history') }}"><i class="ti ti-history"></i><span>Payment History</span></a></li>
                     </ul>
                 </li>
