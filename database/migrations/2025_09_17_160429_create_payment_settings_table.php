@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary(); // UUID as primary key
             $table->foreignUuid('faculty_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignUuid('department_id')->nullable()->constrained()->onDelete('cascade');
-            $table->string('level')->nullable();
+            $table->json('level')->nullable();
             $table->enum('sex', ['male', 'female'])->nullable();
             $table->string('matric_number')->nullable()->unique();
             $table->string('payment_type'); // payment category

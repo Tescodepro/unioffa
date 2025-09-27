@@ -186,7 +186,7 @@
                         <li>Authentic JAMB Admission Letter</li>
                     @elseif($student->programme == 'TOPUP')
                         <li>Original certificate(s) of National Youth Service Corps (NYSC) discharge or exemption certificate</li>
-                        <li>Original certificate(s) of Higher National Diploma (HND) or Bachelor Degree(s) in the relevant field</li>
+                        <li>Original certificate(s) of HND , OND or Bachelor Degree(s) in the relevant field</li>
                         <li>Original certificate(s) of Olevel with at least five (5) credit passes including English Language and Mathematics</li>
                     @endif
                     <li>Original Birth Certificate or statutory declaration of age</li>
