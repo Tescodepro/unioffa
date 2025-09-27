@@ -180,11 +180,11 @@
         <ol>
             <li>On arrival, present the following:
                 <ul>
-                    @if ($student->admission_type != 'TOPUP')
+                    @if ($student->programme != 'TOPUP')
                         <li>The Originals of your certificates</li>
                         <li>Authentic JAMB Result slip</li>
                         <li>Authentic JAMB Admission Letter</li>
-                    @elseif($student->admission_type == 'TOPUP')
+                    @elseif($student->programme == 'TOPUP')
                         <li>Original certificate(s) of National Youth Service Corps (NYSC) discharge or exemption certificate</li>
                         <li>Original certificate(s) of Higher National Diploma (HND) or Bachelor Degree(s) in the relevant field</li>
                         <li>Original certificate(s) of Olevel with at least five (5) credit passes including English Language and Mathematics</li>
