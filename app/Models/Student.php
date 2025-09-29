@@ -74,7 +74,7 @@ class Student extends Model
     {
         return DB::transaction(function () use ($departmentCode, $admissionYear, $programme) {
             // Validate programme
-            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDEL', 'UTME', 'Transfer', 'DIPLOMA'];
+            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDEL', 'UTME', 'REGULAR', 'Transfer', 'DIPLOMA'];
             if (! in_array($programme, $validProgrammes)) {
                 throw new InvalidArgumentException('Invalid programme specified.');
             }
