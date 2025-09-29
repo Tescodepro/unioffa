@@ -39,55 +39,8 @@
                         <div class="row flex-fill">
 
                             <!-- Profile Card -->
-                            <div class="col-xl-12 d-flex">
-                                <div class="flex-fill">
-                                    <div class="card bg-dark position-relative">
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center row-gap-3 mb-3">
-                                                
-                                                <!-- Avatar -->
-                                                <div class="avatar avatar-xxl rounded flex-shrink-0 me-3">
-                                                    @php
-                                                        $passport = $user->profile_picture && file_exists(public_path($user->profile_picture))
-                                                            ? asset($user->profile_picture)
-                                                            : asset('portal_assets/img/users/placeholder.jpeg');
-                                                    @endphp
-                                                    <img src="{{ $passport }}" alt="Passport">
-                                                </div>
-
-                                                <!-- User Info -->
-                                                <div class="d-block">
-                                                    <span class="badge bg-transparent-primary text-primary mb-1">
-                                                        {{ $user->username }}
-                                                    </span>
-                                                    <h3 class="text-truncate text-white mb-1">
-                                                        {{ $user->full_name }}
-                                                    </h3>
-
-                                                    <div class="d-flex align-items-center flex-wrap row-gap-2 text-gray-2">
-                                                        <span class="border-end me-2 pe-2">
-                                                            Faculty: {{ $user->student->department->faculty->faculty_name ?? 'N/A' }}
-                                                        </span>
-                                                        <span class="border-end me-2 pe-2">
-                                                            Department: {{ $user->student->department->department_name ?? 'N/A' }}
-                                                        </span>
-                                                        <span class="border-end me-2 pe-2">
-                                                            Level: {{ $user->student->level ?? 'N/A' }}
-                                                        </span>
-                                                        <span class="border-end me-2 pe-2">
-                                                            Programme: {{ $user->student->programme ?? 'N/A' }}
-                                                        </span>
-                                                        <span class="me-2 pe-2">
-                                                            Gender: {{ $user->student->sex ?? 'N/A' }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            
+                            @include('student.partials.profile-card')
                             <!-- /Profile Card -->
 
                             <!-- Quick Actions -->    
@@ -108,7 +61,7 @@
                                             <div class="card-body">
                                                 <div class="d-flex align-items-center">
                                                     <span class="avatar avatar-md rounded bg-primary me-2"><i class="ti ti-report-money fs-16"></i></span>
-                                                    <h6>Pay Fees</h6>
+                                                    <h6>School Fees</h6>
                                                 </div>
                                             </div>
                                         </a>
@@ -123,16 +76,7 @@
                                             </div>
                                         </a>
                                     </div>                    
-                                    <div class="col-sm-12 col-xl-4 d-flex">
-                                        <a href="" class="card border-0 border-bottom border-info flex-fill animate-card">
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="avatar avatar-md rounded bg-info me-2"><i class="ti ti-calendar fs-16"></i></span>
-                                                    <h6>Academic Calendar</h6>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
+                                    
                                     <div class="col-sm-12 col-xl-4 d-flex">
                                         <a href="" class="card border-0 border-bottom border-primary flex-fill animate-card">
                                             <div class="card-body">
@@ -144,11 +88,21 @@
                                         </a>
                                     </div>
                                     <div class="col-sm-12 col-xl-4 d-flex">
-                                        <a href="" class="card border-0 border-bottom border-success flex-fill animate-card">
+                                        <a href="{{ route('students.payment.history') }}" class="card border-0 border-bottom border-success flex-fill animate-card">
                                             <div class="card-body">
                                                 <div class="d-flex align-items-center">
                                                     <span class="avatar avatar-md rounded bg-success me-2"><i class="ti ti-history fs-16"></i></span>
                                                     <h6>Payment History</h6>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div class="col-sm-12 col-xl-4 d-flex">
+                                        <a href="" class="card border-0 border-bottom border-success flex-fill animate-card">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center">
+                                                    <span class="avatar avatar-md rounded bg-success me-2"><i class="ti ti-building fs-16"></i></span>
+                                                    <h6 class="mb-0">Apply for Hostel</h6>
                                                 </div>
                                             </div>
                                         </a>
@@ -167,19 +121,19 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-sm-6 col-md-4">
-                                                <a href="" class="d-flex align-items-center mb-2">
+                                                <a href="{{ route('students.profile') }}" class="d-flex align-items-center mb-2">
                                                     <span class="avatar avatar-md rounded bg-primary me-2"><i class="ti ti-user fs-16"></i></span>
                                                     <h6 class="mb-0">View Profile</h6>
                                                 </a>
                                             </div>
                                             <div class="col-sm-6 col-md-4">
-                                                <a href="" class="d-flex align-items-center mb-2">
+                                                <a href="{{ route('students.profile') }}" class="d-flex align-items-center mb-2">
                                                     <span class="avatar avatar-md rounded bg-primary me-2"><i class="ti ti-edit fs-16"></i></span>
                                                     <h6 class="mb-0">Edit Profile</h6>
                                                 </a>
                                             </div>
                                             <div class="col-sm-6 col-md-4">
-                                                <a href="" class="d-flex align-items-center mb-2">
+                                                <a href="{{ route('students.profile') }}" class="d-flex align-items-center mb-2">
                                                     <span class="avatar avatar-md rounded bg-primary me-2"><i class="ti ti-lock fs-16"></i></span>
                                                     <h6 class="mb-0">Change Password</h6>
                                                 </a>
@@ -189,33 +143,6 @@
                                 </div>
                             </div>
                             <!-- /Profile Management -->
-
-                            <!-- Hostel Services -->
-                            <div class="col-xl-12 d-flex">
-                                <div class="card flex-fill">
-                                    <div class="card-header d-flex align-items-center justify-content-between">
-                                        <h4 class="card-title">Hostel Services</h4>
-                                        <a href="" class="fw-medium">View All</a>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-sm-6">
-                                                <a href="" class="d-flex align-items-center mb-2">
-                                                    <span class="avatar avatar-md rounded bg-success me-2"><i class="ti ti-building fs-16"></i></span>
-                                                    <h6 class="mb-0">Apply for Hostel</h6>
-                                                </a>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <a href="" class="d-flex align-items-center mb-2">
-                                                    <span class="avatar avatar-md rounded bg-success me-2"><i class="ti ti-info-circle fs-16"></i></span>
-                                                    <h6 class="mb-0">Hostel Status</h6>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- /Hostel Services -->
 
                             <!-- Logout -->
                             <div class="col-xl-12 d-flex">

@@ -27,6 +27,11 @@ return new class extends Migration
             $table->string('otp_expires_at')->nullable();
             $table->string('profile_picture')->nullable();
             $table->string('campus_id')->nullable();
+            $table->string('date_of_birth')->nullable();
+            $table->string('state_of_origin')->nullable();
+            $table->string('lga')->nullable();
+            $table->string('nationality')->nullable();
+            $table->string('religion')->nullable();
 
             // 🔹 Authentication
             $table->string('username')->unique()->commont('The matric number for student');

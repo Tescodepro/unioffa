@@ -3,11 +3,17 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\{PaymentSetting, ApplicationSetting};
+use App\Models\ApplicationSetting;
+use App\Models\Hostel;
+use App\Models\PaymentSetting;
 use App\Models\Transaction;
-use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use App\Services\PaymentService;
+use App\Services\HostelAssignmentService;
 
 class DashboardController extends Controller
 {
@@ -23,81 +29,141 @@ class DashboardController extends Controller
         $user = Auth::user()->load('student.department.faculty');
         $currentSession = activeSession()->name ?? null;
 
-        // Check if student profile and session exist
         if (! $user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
+
         if (! $currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
 
-        // Load required payments
+        $student = $user->student;
+
+        // Step 1: Fetch required payment settings
         $paymentSettings = PaymentSetting::query()
-            ->where(function ($q) use ($user) {
-                $q->whereNull('faculty_id')
-                    ->orWhere('faculty_id', $user->faculty_id);
-            })
-            ->where(function ($q) use ($user) {
-                $q->whereNull('department_id')
-                    ->orWhere('department_id', $user->student->department_id);
-            })
-            ->where(function ($q) use ($user) {
-                $q->whereNull('level')
-                    ->orWhere('level', $user->student->level);
-            })
-            ->where(function ($q) use ($user) {
-                $q->whereNull('sex')
-                    ->orWhere('sex', $user->student->sex);
-            })
-            ->where(function ($q) use ($user) {
-                $q->whereNull('matric_number')
-                    ->orWhere('matric_number', $user->username);
-            })
-            ->get()
-            ->map(function ($payment) use ($user, $currentSession) {
-                // Calculate amount paid for current session and completed status
-                $payment->amount_paid = Transaction::where('user_id', $user->id)
-                    ->where('payment_type', $payment->payment_type)
-                    ->where('payment_status', '1')
-                    ->where('session', $currentSession)
-                    ->sum('amount');
-                $payment->balance = $payment->amount - $payment->amount_paid;
-
-                // Count completed tuition installments for this payment
-                if ($payment->payment_type === 'tuition') {
-                    $payment->installment_count = Transaction::where('user_id', $user->id)
-                        ->where('payment_type', 'tuition')
-                        ->where('payment_status', '1')
-                        ->where('session', $currentSession)
-                        ->count();
-                } else {
-                    $payment->installment_count = 0;
-                }
-
-                return $payment;
-            });
-
-        // Load transactions for current session and completed status
-        $transactions = Transaction::where('user_id', $user->id)
-            ->where('payment_status', '1')
+            ->where('student_type', $student->programme)
+            ->whereJsonContains('level', (int) $student->level)
             ->where('session', $currentSession)
-            ->latest()
+            ->when($student->department?->faculty_id, function ($q) use ($student) {
+                $q->where(function ($sub) use ($student) {
+                    $sub->whereNull('faculty_id')
+                        ->orWhere('faculty_id', $student->department->faculty_id);
+                });
+            })
+            ->when($student->department_id, function ($q) use ($student) {
+                $q->where(function ($sub) use ($student) {
+                    $sub->whereNull('department_id')
+                        ->orWhere('department_id', $student->department_id);
+                });
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('sex')
+                    ->orWhere('sex', $student->sex);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('matric_number')
+                    ->orWhere('matric_number', $student->matric_number);
+            })
             ->get();
 
-        return view('student.payment', compact('paymentSettings', 'transactions', 'currentSession'));
+        if ($paymentSettings->isEmpty()) {
+            return redirect()->back()->with('error', 'No payment settings found for your profile.');
+        }
+
+        // Step 2: Fetch all transactions for this student + session once (avoid N+1)
+        $transactions = Transaction::query()
+            ->where('user_id', $user->id)
+            ->where('session', $currentSession)
+            ->where('payment_status', 1)
+            ->get()
+            ->groupBy('payment_type');
+
+        // Step 3: Attach transaction details + installment rules
+        $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions, $student) {
+            $txns = $transactions->get($payment->payment_type, collect());
+            $amountPaid = $txns->sum('amount');
+            $installmentCount = $txns->count();
+
+            $payment->amount_paid = $amountPaid;
+            $payment->balance = max($payment->amount - $amountPaid, 0);
+            $payment->installment_count = $installmentCount;
+            $payment->installment_scheme = [];
+            $payment->max_installments = 1;
+
+            // --- Tuition Installment Rules ---
+            if ($payment->payment_type === 'tuition') {
+                if ($student->programme === 'REGULAR') {
+                    $payment->max_installments = 2;
+
+                    if ($installmentCount === 0) {
+                        $payment->installment_scheme = [
+                            round($payment->amount * 0.6), // 60%
+                            round($payment->amount),       // 100%
+                        ];
+                    } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount * 0.6)) {
+                        $payment->installment_scheme = [
+                            round($payment->amount * 0.4), // 40%
+                        ];
+                    } elseif ($installmentCount === 1 && $amountPaid != round($payment->amount * 0.6)) {
+                        $payment->installment_scheme = [
+                            round($payment->amount - $amountPaid), // 40%
+                        ];
+                    }
+                } else {
+                    $payment->max_installments = 3;
+
+                    if ($installmentCount === 0) {
+                        $payment->installment_scheme = [
+                            round($payment->amount / 3),       // ~33%
+                            round($payment->amount * 2 / 3),   // ~66%
+                            round($payment->amount),           // full
+                        ];
+                    } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount / 3)) {
+                        $payment->installment_scheme = [
+                            round($payment->amount / 3),
+                            round($payment->amount * 2 / 3),
+                            round($payment->amount),
+                        ];
+                    } elseif ($installmentCount === 2 && $amountPaid >= round($payment->amount * 2 / 3)) {
+                        $payment->installment_scheme = [
+                            round($payment->amount / 3),
+                            round($payment->amount),
+                        ];
+                    }
+                }
+            }
+
+            // --- Administrative Installment Rules ---
+            if ($payment->payment_type === 'administrative') {
+                if ($student->programme === 'REGULAR') {
+                    $payment->max_installments = 1;
+                    $payment->installment_scheme = [round($payment->amount)];
+                } else {
+                    $payment->max_installments = 2; // Assume 50/50 split
+                    $payment->installment_scheme = [
+                        round($payment->amount * 0.5),
+                        round($payment->amount),
+                    ];
+                }
+            }
+
+            return $payment;
+        });
+
+        return view('student.payment', compact('paymentSettings', 'currentSession'));
     }
 
     public function paymentHistory()
     {
         $user = Auth::user()->load('student.department.faculty');
-
+        $currentSession = activeSession()->name ?? null;
         // Load all transactions for the user
         $transactions = Transaction::where('user_id', $user->id)
             ->where('payment_status', '1')
             ->latest()
             ->get();
 
-        return view('student.payment-history', compact('transactions'));
+        return view('student.payment-history', compact('transactions', 'currentSession'));
     }
 
     public function downloadAdmissionLetter()
@@ -111,10 +177,11 @@ class DashboardController extends Controller
         }
 
         $department = $student->department;
-        if($student->programme == 'IDEL'){
+        if ($student->programme == 'IDEL') {
             $student->programme = 'IDELDE';
         }
-        $applicationSetting = ApplicationSetting::where('application_code', $student->programme)->first();
+
+        $applicationSetting = ApplicationSetting::where('application_code', $student->entry_mode)->first();
 
         $data = [
             'student' => $student,
@@ -130,6 +197,7 @@ class DashboardController extends Controller
         return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
     }
 
+    // ==================== Profile ================================
     public function profile()
     {
         $user = Auth::user()->load('student.department.faculty');
@@ -137,22 +205,61 @@ class DashboardController extends Controller
         return view('student.profile', compact('user'));
     }
 
-    public function updateProfile(\Illuminate\Http\Request $request)
+    public function updateProfile(Request $request)
     {
         $user = Auth::user();
+        $student = $user->student;
 
+        // ✅ Validate request
         $request->validate([
+            // User table
             'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'phone' => 'required|string|max:20|unique:users,phone,'.$user->id,
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'date_of_birth' => 'nullable|date',
+            'state_of_origin' => 'nullable|string|max:255',
+            'lga' => 'nullable|string|max:255',
+            'nationality' => 'nullable|string|max:255',
+            'religion' => 'nullable|string|max:255',
+
+            // Student table
+            'sex' => 'required|in:male,female',
             'address' => 'nullable|string|max:500',
         ]);
 
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-        $user->phone = $request->phone;
-        $user->address = $request->address;
-        $user->save();
+        // ✅ Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            $file = $request->file('profile_picture');
+            $filename = uniqid().'.'.$file->getClientOriginalExtension();
+            $file->storeAs('profile_pictures', $filename, 'public');
+            $user->profile_picture = 'storage/profile_pictures/'.$filename;
+        }
+
+        // ✅ Update user details
+        $user->update([
+            'first_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'date_of_birth' => $request->date_of_birth,
+            'state_of_origin' => $request->state_of_origin,
+            'lga' => $request->lga,
+            'nationality' => $request->nationality,
+            'religion' => $request->religion,
+            'profile_picture' => $user->profile_picture,
+        ]);
+
+        // ✅ Update student details
+        if ($student) {
+            $student->update([
+                'sex' => $request->sex,
+                'address' => $request->address,
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Profile updated successfully.');
     }
@@ -183,5 +290,34 @@ class DashboardController extends Controller
         return redirect()->route('student.login')->with('success', 'Logged out successfully.');
     }
 
+    // ==================== Hostel ===============================
 
+    public function hostelIndex()
+    {
+        $student = Auth::user()->student;
+
+        if (! $student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        // Check if student already has an assigned hostel
+        $assignment = $student->hostelAssignment()->with('room.hostel')->first();
+
+        return view('student.hostel', [
+            'assignment' => $assignment,
+        ]);
+    }
+
+    public function hostelApply(HostelAssignmentService $hostelService)
+    {
+        $student = Auth::user()->student;
+
+        if (! $student) {
+            return back()->with('error', 'Student profile not found.');
+        }
+
+        $result = $hostelService->autoAssign($student);
+
+        return back()->with('success', $result['message'] ?? 'Hostel application processed.');
+    }
 }

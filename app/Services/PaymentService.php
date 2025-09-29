@@ -12,7 +12,7 @@ class PaymentService
 
     private array $config;
 
-    public function __construct(string $gateway = 'oneapp')
+    public function __construct(string $gateway = 'paystack')
     {
         $this->gateway = $gateway;
 

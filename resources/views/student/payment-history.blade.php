@@ -3,7 +3,6 @@
 @section('title', 'Payment History')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('portal_assets/css/bootstrap.min.css') }}"> <!-- Adjust path as needed -->
 <style>
     .table th, .table td {
         vertical-align: middle;
@@ -33,8 +32,17 @@
             <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                 <div class="my-auto mb-4">
                     <h3 class="page-title mb-1">Payment History</h3>
-                    <p class="mb-1 text-muted">View your completed transactions for the {{ $currentSession ?? 'N/A' }} session.</p>
-
+                    <p class="mb-1 text-muted">View your completed transactions for all of your payments.</p>
+                </div>
+                <div class="my-auto mt-3 mt-lg-0">
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <a href="{{ route('students.dashboard') }}" class="btn btn-light btn-sm">
+                                <i class="fas fa-home"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                    <br>
                     <div class="bg-light p-3 rounded shadow-sm">
                         <p class="mb-1"><strong>Current Session:</strong> {{ $currentSession ?? 'No active session' }}</p>
                         <p class="mb-0"><strong>Current Semester:</strong> {{ activeSemester()->name ?? 'No active semester' }}</p>
@@ -48,7 +56,7 @@
             <!-- Transactions -->
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
-                    <h4 class="mb-3">Payment History ({{ $currentSession ?? 'N/A' }})</h4>
+                    <h4 class="mb-3">Payment History</h4>
                 </div>
                 <div class="card-body p-0 py-3">
                     <div class="table-responsive">
@@ -62,6 +70,7 @@
                                     <th>Method</th>
                                     <th>Session</th>
                                     <th>Date</th>
+                                    <th>Print Receipt</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -76,6 +85,11 @@
                                         <td>{{ $transaction->payment_method }}</td>
                                         <td>{{ $transaction->session }}</td>
                                         <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
+                                        <td>
+                                            <a href="{{ route('view.receipt', $transaction->id) }}" class="btn btn-sm btn-primary" target="_blank">
+                                                <i class="fas fa-print"></i> Print Receipt
+                                            </a>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>

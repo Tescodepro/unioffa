@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Exception;
+use Illuminate\Support\Str;
 
 class Student extends Model
 {
@@ -24,10 +24,9 @@ class Student extends Model
         'entry_mode',
         'stream',
         'jamb_registration_number',
-        'profile_picture',
+        'sex',
         'department_id',
         'level',
-        'sex',
         'admission_session',
         'address',
         'admission_date',
@@ -61,20 +60,30 @@ class Student extends Model
         return $this->belongsTo(Department::class);
     }
 
+    public function hostelAssignment()
+    {
+        return $this->hasOne(StudentHostelAssignment::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public static function generateMatricNo(string $departmentCode, int $admissionYear, string $programme): string
     {
         return DB::transaction(function () use ($departmentCode, $admissionYear, $programme) {
             // Validate programme
             $validProgrammes = ['TOPUP', 'IDELUTME', 'IDEL', 'UTME', 'Transfer', 'DIPLOMA'];
-            if (!in_array($programme, $validProgrammes)) {
+            if (! in_array($programme, $validProgrammes)) {
                 throw new InvalidArgumentException('Invalid programme specified.');
             }
 
             // Modify department code based on programme
             $modifiedCode = match ($programme) {
-                'TOPUP' => 'T' . $departmentCode,        // e.g., CSC -> TCSC
-                'IDELUTME', 'IDEL' => 'D' . $departmentCode, // e.g., CSC -> DCSC
-                'DIPLOMA' => 'DP' . $departmentCode,     // e.g., CSC -> DPCSC
+                'TOPUP' => 'T'.$departmentCode,        // e.g., CSC -> TCSC
+                'IDELUTME', 'IDEL' => 'D'.$departmentCode, // e.g., CSC -> DCSC
+                'DIPLOMA' => 'DP'.$departmentCode,     // e.g., CSC -> DPCSC
                 default => $departmentCode,              // UTME, Transfer: no change
             };
 
@@ -103,7 +112,7 @@ class Student extends Model
                 $existsInUsers = User::where('username', $matricNo)->exists();
                 $existsInStudents = self::where('matric_no', $matricNo)->exists();
 
-                if (!$existsInUsers && !$existsInStudents) {
+                if (! $existsInUsers && ! $existsInStudents) {
                     return $matricNo; // Matric number is unique
                 }
 

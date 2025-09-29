@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('matric_number')->nullable()->unique();
             $table->string('payment_type'); // payment category
             $table->decimal('amount', 10, 2);
+            $table->string('session'); // e.g., 2023/2024
+            $table->string('student_type')->nullable(); // e.g., First, Second, Full Year
             $table->text('description')->nullable();
             $table->timestamps();
         });

@@ -24,7 +24,6 @@ return new class extends Migration
             $table->string('entry_mode'); // e.g. UTME, Direct Entry
             $table->string('stream')->nullable();
             $table->string('jamb_registration_number')->nullable();
-            $table->string('profile_picture')->nullable();
             $table->enum('sex', ['male', 'female'])->nullable();
             $table->foreignUuid('department_id')->nullable()->constrained('departments')->cascadeOnDelete();
             $table->string('level')->nullable();

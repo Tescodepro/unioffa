@@ -23,6 +23,11 @@ class Transaction extends Model
         'session',
     ];
 
+        public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     protected static function boot()
     {
         parent::boot();

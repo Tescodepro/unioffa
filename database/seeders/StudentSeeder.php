@@ -1340,6 +1340,7 @@ class StudentSeeder extends Seeder
                 'registration_no' => null,
                 'password' => Hash::make($studentData['LAST NAME']),
                 'user_type_id' => $studentType->id,
+                'date_of_birth' => $studentData['DOB'],
 
             ]);
 
@@ -1358,6 +1359,7 @@ class StudentSeeder extends Seeder
                 'admission_date' => now(),
                 'status' => 1,
                 'sex' => $studentData['GENDER'],
+                
             ]);
         }
 

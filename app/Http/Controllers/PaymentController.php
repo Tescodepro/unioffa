@@ -13,15 +13,21 @@ use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\HostelAssignmentService;
+
 
 class PaymentController extends Controller
 {
     /**
      * Initiate a payment
      */
+
+
+    
     public function initiatePayment(Request $request)
     {
-        $gateway = $request->input('gateway', 'oneapp'); // default to oneapp
+        $gateway = env('DEFULT_PAYMENT_GATEWAY');
         $paymentService = new PaymentService($gateway);
 
         $user = $request->user();
@@ -76,7 +82,7 @@ class PaymentController extends Controller
      */
     public function handleCallback(Request $request)
     {
-        $gateway = $request->input('gateway', 'oneapp'); // default
+        $gateway = env('DEFULT_PAYMENT_GATEWAY'); // default
         $paymentService = new PaymentService($gateway);
 
         if ($request->has('reference')) {
@@ -101,8 +107,15 @@ class PaymentController extends Controller
             }
             $backRoute = route('application.dashboard');
         } else {
-            $backRoute = route('students.load_payment');
+            if(in_array($paymentType, ['accommodation', 'hostel', 'maintenance'])){
+                $backRoute = route('students.hostel.index');
+            }else{
+                $backRoute = route('students.load_payment');
+            }
+            
         }
+
+        
 
         if ($response['success']) {
 
@@ -130,7 +143,7 @@ class PaymentController extends Controller
 
     private function generateReference($payment_type): string
     {
-        $reference = $payment_type.'-'.date('YmdHis').'-'.Str::uuid()->toString();
+        $reference = $payment_type . '-' . uniqid() . substr(md5(rand()), 0, 8);
 
         return $reference;
     }
@@ -218,5 +231,65 @@ class PaymentController extends Controller
         $migrate_student->save();
 
         return $migrate_student;
+    }
+    // payment receipt
+    public function downloadReceipt($transaction_id)
+    {
+        $user = Auth::user();
+
+        $transaction = Transaction::where('id', $transaction_id)
+            ->where('user_id', $user->id)
+            ->where('payment_status', 1) // only successful payments
+            ->first();
+
+        if (! $transaction) {
+            return redirect()->back()->with('error', 'Transaction not found or not successful.');
+        }
+
+        $data = [
+            'user' => $user,
+            'transaction' => $transaction,
+            'date' => now()->format('F d, Y'),
+        ];
+
+        $pdf = Pdf::loadView('general-payment-receipt', $data)
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->download('Payment_Receipt_'.$transaction->refernce_number.'.pdf');
+    }
+
+    public function verifyReceipt($ref)
+    {
+        $transaction = Transaction::where('refernce_number', $ref)
+            ->where('payment_status', 1) // only successful
+            ->with('user.student.department')
+            ->first();
+
+        if (! $transaction) {
+            return view('verify-receipt', [
+                'transaction' => null,
+                'ref' => $ref,
+            ]);
+        }
+
+        return view('verify-receipt', [
+            'transaction' => $transaction,
+            'ref' => $ref,
+        ]);
+    }
+
+    private function hostelApply()
+    {
+        $student = Auth::user()->student;
+
+        if (! $student) {
+            return back()->with('error', 'Student profile not found.');
+        }
+
+        $hostelService = new HostelAssignmentService();
+
+        $result = $hostelService->autoAssign($student);
+
+        return back()->with($result['status'] ? 'success' : 'error', $result['message']);
     }
 }

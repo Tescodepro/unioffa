@@ -10,6 +10,7 @@ use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
 use Faker\Provider\ar_EG\Payment;
 use Illuminate\Support\Facades\Route;
+use App\Services\HostelAssignmentService;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +66,8 @@ Route::prefix('payments')->group(function () {
         Route::post('initiate', 'initiatePayment')->name('application.payment.process');
         Route::get('callback', 'handleCallback')->name('payment.callback');
         Route::get('payment-status-page', 'paymentStatusPage')->name('payment.status.page');
+        Route::get('/verify-receipt/{ref}', 'verifyReceipt')->name('verify.receipt');
+        Route::get('/receipt/{reference}', 'downloadReceipt')->name('view.receipt');
     });
 });
 
@@ -84,6 +87,8 @@ Route::prefix('students')->group(function () {
             Route::post('/profile', 'updateProfile')->name('students.profile.update');
             Route::post('/change-password', 'changePassword')->name('students.change.password');
             Route::get('/admission-letter', 'downloadAdmissionLetter')->name('students.admission.letter');
+            Route::get('/hostel',  'hostelIndex')->name('students.hostel.index');
+            Route::post('/hostel',  'hostelApply');
         });
 
         Route::controller(CourseRegistrationController::class)->group(function () {

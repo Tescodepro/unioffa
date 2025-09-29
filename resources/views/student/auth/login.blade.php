@@ -73,6 +73,7 @@
 												class="img-fluid"
 												alt="Logo"
 												style="height:70px;">
+											<h1>Student Portal</h1>
 											<h2> Login to your application portals </h2>
 										</div>
 

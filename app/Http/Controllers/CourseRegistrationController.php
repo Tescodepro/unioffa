@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\CourseRegistration;
+use App\Models\Student;
+use App\Services\PaymentStatusService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +14,8 @@ class CourseRegistrationController extends Controller
 {
     public function index(Request $request)
     {
-        $student = Auth::user();
+        $user = Auth::user()->load('student.department.faculty');
+        $student = $user->student;
         $departmentId = $student->department_id;
         $level = $student->level;
 
@@ -23,7 +26,7 @@ class CourseRegistrationController extends Controller
         $courses = Course::get();
 
         // Search filter for registered courses
-        $query = CourseRegistration::where('student_id', $student->id);
+        $query = CourseRegistration::where('student_id', $user->id);
         if ($request->has('search')) {
             $query->where('course_title', 'like', '%'.$request->search.'%')
                 ->orWhere('course_code', 'like', '%'.$request->search.'%');
@@ -32,12 +35,20 @@ class CourseRegistrationController extends Controller
         $registrations = $query->with('course', 'session', 'semester')->get();
 
         $registeredCourses = CourseRegistration::with('course')
-            ->where('student_id', $student->id)
+            ->where('student_id', $user->id)
             ->where('session_id', activeSession()->id ?? null)
             ->where('semester_id', activeSemester()->id ?? null)
             ->get();
 
-        return view('student.course-registration', compact('courses', 'registrations', 'registeredCourses'));
+        // Check payment status and update course registrations accordingly
+        $paymentStatusService = new PaymentStatusService;
+        $payment_status = [
+            'status' => $paymentStatusService->getStatus($student, activeSession()->name),
+            'allCleared' => $paymentStatusService->hasClearedAll($student, activeSession()->name),
+            'outstanding' => $paymentStatusService->getTotalOutstanding($student, activeSession()->name)
+        ];
+
+        return view('student.course-registration', compact('courses', 'registrations', 'registeredCourses', 'payment_status'));
     }
 
     public function store(Request $request)
@@ -93,16 +104,18 @@ class CourseRegistrationController extends Controller
 
     public function downloadCourseForm()
     {
-        $student = Auth::user();
+        $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->with('department')->first();
 
         $registeredCourses = CourseRegistration::with('course')
-            ->where('student_id', $student->id)
+            ->where('student_id', $user->id)
             ->where('session_id', activeSession()->id ?? null)
             ->where('semester_id', activeSemester()->id ?? null)
             ->get();
 
         $pdf = Pdf::loadView('student.course-registration-printable', [
             'student' => $student,
+            'user' => $user,
             'registeredCourses' => $registeredCourses,
             'session' => activeSession(),
             'semester' => activeSemester(),
