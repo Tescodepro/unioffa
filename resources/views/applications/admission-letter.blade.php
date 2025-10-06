@@ -205,7 +205,8 @@
 
         <!-- Signature Block -->
         <div class="signature-block">
-            <img src="{{ public_path('portal_assets/img/users/signature.png') }}" alt="Registrar's Signature" style="height: 20px;">
+            {{-- <img src="{{ public_path('portal_assets/img/users/signature.png') }}" alt="Registrar's Signature" style="height: 20px;"> --}}
+            <p>_____________________________</p>
             <p class="signature-name">Mr. Salaudeen OYEWALE</p>
             <p class="signature-title">Ag. Registrar</p>
         </div>
