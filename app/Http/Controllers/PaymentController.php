@@ -15,22 +15,19 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\HostelAssignmentService;
-
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
     /**
      * Initiate a payment
      */
-
-
-    
     public function initiatePayment(Request $request)
     {
         $gateway = env('DEFULT_PAYMENT_GATEWAY');
         $paymentService = new PaymentService($gateway);
 
-        $user = $request->user();
+        $user = $request->user();        
 
         // Generate unique reference number
         $reference = $this->generateReference($request->fee_type);
@@ -52,6 +49,14 @@ class PaymentController extends Controller
             ]),
         ]);
 
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            throw new \Exception("Student record not found for this user.");
+        }
+
+        $split_code = $this->splitGet($request->fee_type, $student->programme, $student->campus_id);
+
         // Prepare gateway data
         $data = [
             'amount' => $request->amount,
@@ -65,6 +70,10 @@ class PaymentController extends Controller
                 'transaction_id' => $transaction->id,
             ],
         ];
+        
+        if ($split_code !== null) {
+            $data['split_code'] = $split_code;
+        }
 
         // Generate payment link
         $response = $paymentService->generatePaymentLink($data);
@@ -292,4 +301,14 @@ class PaymentController extends Controller
 
         return back()->with($result['status'] ? 'success' : 'error', $result['message']);
     }
+
+    private function splitGet($payment_type, $student_type, $center_id)
+    {
+        return DB::table('payment_splits')
+            ->whereJsonContains('payment_type', $payment_type)
+            ->whereJsonContains('student_type', $student_type)
+            ->where('center_id', $center_id)
+            ->value('split_code');
+    }
+
 }
