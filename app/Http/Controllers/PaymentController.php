@@ -49,14 +49,36 @@ class PaymentController extends Controller
             ]),
         ]);
 
-        $student = Student::where('user_id', $user->id)->first();
+        if (in_array($request->fee_type, ['application', 'acceptance'])) {
+    $getuserstype = UserApplications::where('user_id', Auth::id())
+        ->join('application_settings', 'user_applications.application_setting_id', '=', 'application_settings.id')
+        ->select('application_settings.application_code AS programme')
+        ->first();
 
-        if (!$student) {
-            throw new \Exception("Student record not found for this user.");
-        }
+    if (!$getuserstype) {
+        return back()->with('error', 'Application record not found for this user.');
+    }
 
-        $split_code = $this->splitGet($request->fee_type, $student->programme, $student->campus_id);
+    // Normalize programme
+    if ($getuserstype->programme === 'TRANSFER') {
+        $programme = 'REGULAR';
+    } else {
+        $programme = $getuserstype->programme;
+    }
 
+    $split_code = $this->splitGet($request->fee_type, $programme, $user->campus_id);
+
+} else {
+    $student = Student::where('user_id', $user->id)->first();
+
+    if (!$student) {
+        return back()->with('error', 'Student record not found for this user.');
+    }
+
+    $split_code = $this->splitGet($request->fee_type, $student->programme, $student->campus_id);
+}
+
+        
         // Prepare gateway data
         $data = [
             'amount' => $request->amount,
@@ -70,7 +92,7 @@ class PaymentController extends Controller
                 'transaction_id' => $transaction->id,
             ],
         ];
-        
+
         if ($split_code !== null) {
             $data['split_code'] = $split_code;
         }
