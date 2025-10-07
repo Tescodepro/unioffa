@@ -413,7 +413,7 @@
                 <div class="row">
                     @forelse($events as $event)
                         <div class="col-lg-4">
-                            <div class="event-item wow fadeInUp" data-wow-delay=".25s">
+                            <div class="event-item wow fadeInUp" data-wow-delay=".25s"> 
                                 <div class="event-location">
                                     <span><i class="far fa-map-marker-alt"></i> {{ $event->location }}</span>
                                 </div>
