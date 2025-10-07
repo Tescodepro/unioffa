@@ -329,7 +329,7 @@ class PaymentController extends Controller
         return DB::table('payment_splits')
             ->whereJsonContains('payment_type', $payment_type)
             ->whereJsonContains('student_type', $student_type)
-            ->where('center_id', $center_id)
+            ->where('center', $center_id)
             ->value('split_code');
     }
 
