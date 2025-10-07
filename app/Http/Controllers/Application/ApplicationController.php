@@ -41,9 +41,9 @@ class ApplicationController extends Controller
         // get center
         $campuses = Campus::all();
 
-        return view('website.home', compact('title'));
+        // return view('website.home', compact('title'));
 
-        // return view('applications.register', compact('title', 'campuses'));
+        return view('applications.register', compact('title', 'campuses'));
     }
 
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
