@@ -72,7 +72,6 @@ class PaymentService
      */
     private function paystackPayment(array $data, string $reference): array
     {
-        dd($data);
         $payload = [
             'amount' => $data['amount'] * 100, // kobo
             'email' => $data['email'],
