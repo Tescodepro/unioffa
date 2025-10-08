@@ -27,7 +27,7 @@ class PaymentController extends Controller
         $gateway = env('DEFULT_PAYMENT_GATEWAY');
         $paymentService = new PaymentService($gateway);
 
-        $user = $request->user();        
+        $user = $request->user();
 
         // Generate unique reference number
         $reference = $this->generateReference($request->fee_type);
@@ -50,35 +50,38 @@ class PaymentController extends Controller
         ]);
 
         if (in_array($request->fee_type, ['application', 'acceptance'])) {
-    $getuserstype = UserApplications::where('user_id', Auth::id())
-        ->join('application_settings', 'user_applications.application_setting_id', '=', 'application_settings.id')
-        ->select('application_settings.application_code AS programme')
-        ->first();
+            $getuserstype = UserApplications::where('user_id', Auth::id())
+                ->join('application_settings', 'user_applications.application_setting_id', '=', 'application_settings.id')
+                ->select('application_settings.application_code AS programme')
+                ->first();
 
-    if (!$getuserstype) {
-        return back()->with('error', 'Application record not found for this user.');
-    }
+            if (!$getuserstype) {
+                return back()->with('error', 'Application record not found for this user.');
+            }
 
-    // Normalize programme
-    if ($getuserstype->programme === 'TRANSFER') {
-        $programme = 'REGULAR';
-    } else {
-        $programme = $getuserstype->programme;
-    }
+            // Normalize programme
+            if ($getuserstype->programme === 'TRANSFER') {
+                $programme = 'REGULAR';
+            } else if ($getuserstype->programme === 'DIPLOMA') {
+                $programme = 'REGULAR';
+            } else if ($getuserstype->programme === 'DE') {
+                $programme = 'REGULAR';
+            } else {
+                $programme = $getuserstype->programme;
+            }
 
-    $split_code = $this->splitGet($request->fee_type, $programme, $user->campus_id);
+            $split_code = $this->splitGet($request->fee_type, $programme, $user->campus_id);
+        } else {
+            $student = Student::where('user_id', $user->id)->first();
 
-} else {
-    $student = Student::where('user_id', $user->id)->first();
+            if (!$student) {
+                return back()->with('error', 'Student record not found for this user.');
+            }
 
-    if (!$student) {
-        return back()->with('error', 'Student record not found for this user.');
-    }
+            $split_code = $this->splitGet($request->fee_type, $student->programme, $student->campus_id);
+        }
 
-    $split_code = $this->splitGet($request->fee_type, $student->programme, $student->campus_id);
-}
 
-        
         // Prepare gateway data
         $data = [
             'amount' => $request->amount,
@@ -138,15 +141,14 @@ class PaymentController extends Controller
             }
             $backRoute = route('application.dashboard');
         } else {
-            if(in_array($paymentType, ['accommodation', 'hostel', 'maintenance'])){
+            if (in_array($paymentType, ['accommodation', 'hostel', 'maintenance'])) {
                 $backRoute = route('students.hostel.index');
-            }else{
+            } else {
                 $backRoute = route('students.load_payment');
             }
-            
         }
 
-        
+
 
         if ($response['success']) {
 
@@ -286,7 +288,7 @@ class PaymentController extends Controller
         $pdf = Pdf::loadView('general-payment-receipt', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Payment_Receipt_'.$transaction->refernce_number.'.pdf');
+        return $pdf->download('Payment_Receipt_' . $transaction->refernce_number . '.pdf');
     }
 
     public function verifyReceipt($ref)
@@ -332,5 +334,4 @@ class PaymentController extends Controller
             ->where('center', $center_id)
             ->value('split_code');
     }
-
 }

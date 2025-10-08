@@ -5,22 +5,33 @@ namespace App\Http\Controllers\Application;
 use App\Http\Controllers\Controller;
 use App\Mail\ApplicantRegisteredMail;
 use App\Mail\GeneralMail;
-use App\Models\AdmissionList;
-use App\Models\Alevel;
-use App\Models\ApplicationSetting;
-use App\Models\Campus;
-use App\Models\CourseOfStudy;
-use App\Models\Department;
-use App\Models\Document;
-use App\Models\EducationHistory;
-use App\Models\Faculty;
-use App\Models\JambDetail;
-use App\Models\Olevel;
-use App\Models\Profile;
-use App\Models\Transaction;
+// Authentication & User Models
 use App\Models\User;
-use App\Models\UserApplications;
 use App\Models\UserType;
+
+// Application Models
+use App\Models\ApplicationSetting;
+use App\Models\UserApplications;
+use App\Models\AdmissionList;
+
+// Academic Models
+use App\Models\Campus;
+use App\Models\Department;
+use App\Models\Faculty;
+
+// Educational Background Models
+use App\Models\Alevel;
+use App\Models\Olevel;
+use App\Models\JambDetail;
+use App\Models\EducationHistory;
+
+// Profile & Document Models
+use App\Models\Profile;
+use App\Models\Document;
+use App\Models\CourseOfStudy;
+
+// Transaction Models
+use App\Models\Transaction;
 use App\Services\UniqueIdService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -88,7 +99,7 @@ class ApplicationController extends Controller
             $campuses = Campus::all();
 
             return redirect()->route('application.login', compact('campuses'))
-                ->with('success', 'Registration successful. Please login to continue.');
+                ->with('success', 'Your registration was successful. An email has been sent with your registration number');
 
         } catch (Exception $e) {
             DB::rollBack();
@@ -207,7 +218,7 @@ class ApplicationController extends Controller
             return redirect()->route('application.form', [
                 'user_application_id' => $recordApplicationInitialization->id,
             ])->with('success', 'Application initialized successfully');
-        } catch (\Exception $th) {
+        } catch (Exception $th) {
             return redirect()->back()->with('error', 'An error occurred while initializing the application');
         }
     }

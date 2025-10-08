@@ -75,6 +75,12 @@ Route::prefix('students')->group(function () {
     Route::controller(AuthController::class)->group(function () {
         Route::get('/', 'login')->name('student.login');
         Route::post('/', 'loginAction');
+
+        Route::get('/forget-password', 'forgetPasswordIndex')->name('students.auth.forget-password');
+        Route::post('/forget-password', 'forgetPasswordAction');
+        Route::get('/auth/change-password', 'verifyOtpIndex')->name('students.auth.change-password');
+        Route::post('/auth/change-password', 'verifyOtpAction');
+        
     });
 
     Route::middleware('user.type:student')->group(function () {

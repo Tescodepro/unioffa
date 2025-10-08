@@ -72,14 +72,21 @@ class PaymentService
      */
     private function paystackPayment(array $data, string $reference): array
     {
+        dd($data);
+        $payload = [
+            'amount' => $data['amount'] * 100, // kobo
+            'email' => $data['email'],
+            'reference' => $reference,
+            'callback_url' => $data['callback_url'],
+            'metadata' => $data['metadata'] ?? [],
+        ];
+
+        if (isset($data['split_code'])) {
+            $payload['split_code'] = $data['split_code'];
+        }
+
         $response = Http::withToken($this->config['secret'])
-            ->post("{$this->config['base_url']}/transaction/initialize", [
-                'amount' => $data['amount'] * 100, // kobo
-                'email' => $data['email'],
-                'reference' => $reference,
-                'callback_url' => $data['callback_url'],
-                'metadata' => $data['metadata'] ?? [],
-            ])
+            ->post("{$this->config['base_url']}/transaction/initialize", $payload)
             ->json();
 
         return [

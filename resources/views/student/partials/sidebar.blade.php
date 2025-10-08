@@ -110,13 +110,10 @@
                     <h6 class="submenu-hdr"><span>Account</span></h6>
                     <ul>
                         <li>
-                            <a href="{{ route('students.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <a href="{{ route('students.logout') }}">
                                 <i class="ti ti-logout"></i>
                                 <span>Logout</span>
                             </a>
-                            <form id="logout-form" action="" method="POST" class="d-none">
-                                @csrf
-                            </form>
                         </li>
                     </ul>
                 </li>

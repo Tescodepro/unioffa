@@ -153,7 +153,7 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-sm-12">
-                                                <a href="" class="d-flex align-items-center mb-2">
+                                                <a href="{{ route('students.logout') }}" class="d-flex align-items-center mb-2">
                                                     <span class="avatar avatar-md rounded bg-danger me-2"><i class="ti ti-logout fs-16"></i></span>
                                                     <h6 class="mb-0">Logout</h6>
                                                 </a>
