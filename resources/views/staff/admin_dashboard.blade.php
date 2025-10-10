@@ -176,7 +176,7 @@
                                                     {{ $student->admissionListDepartmet->department_name ?? 'N/A' }}
                                                 </td>
 
-                                                    
+
                                                 <td>
                                                     <span
                                                         class="badge bg-{{ $student->application_status === 'submitted' ? 'success' : 'secondary' }}">
@@ -261,7 +261,8 @@
                                                                                 {{ $student->second_choice ?? 'N/A' }}
                                                                             </div>
 
-                                                                            <div class="mb-3"> <strong>Recommended Department
+                                                                            <div class="mb-3"> <strong>Recommended
+                                                                                    Department
                                                                                     Choice:</strong>
                                                                                 {{ $student->admissionListDepartmet->department_name ?? 'N/A' }}
                                                                             </div>
@@ -332,7 +333,11 @@
                                                                         id="admitForm{{ $student->id }}"> <!-- Body -->
                                                                         <div class="modal-body">
                                                                             <center>
-                                                                                <h4 class="text-danger fw-bold align-items-center"> ⚠️ You are about to recommend this applicant to the university for admission</h4>
+                                                                                <h4
+                                                                                    class="text-danger fw-bold align-items-center">
+                                                                                    ⚠️ You are about to recommend this
+                                                                                    applicant to the university for
+                                                                                    admission</h4>
                                                                                 <hr>
                                                                             </center>
                                                                             <div class="mb-1"> <strong>Name:</strong>
@@ -348,36 +353,57 @@
                                                                                     Choice:</strong>
                                                                                 {{ $student->second_choice ?? 'N/A' }}
                                                                             </div>
-                                                                            
-                                                                            <div class="mb-3"> <strong>Recommended Department
+
+                                                                            <div class="mb-3"> <strong>Recommended
+                                                                                    Department
                                                                                     Choice:</strong>
                                                                                 {{ $student->admissionListDepartmet->department_name ?? 'N/A' }}
                                                                             </div>
 
-                                                                            <div class="mb-3"> <label class="form-label">Final Course of Study *</label> 
-                                                                                <select class="form-select"  name="final_course" orm="admitForm{{ $student->id }}" required>
-                                                                                    <option value="">-- Select Final Course --</option>
+                                                                            <div class="mb-3"> <label
+                                                                                    class="form-label">Final Course of
+                                                                                    Study *</label>
+                                                                                <select class="form-select"
+                                                                                    name="final_course"
+                                                                                    orm="admitForm{{ $student->id }}"
+                                                                                    required>
+                                                                                    <option value="">-- Select Final
+                                                                                        Course --</option>
                                                                                     @foreach ($faculties as $faculty)
-                                                                                        <optgroup label="{{ $faculty->faculty_name }}">
+                                                                                        <optgroup
+                                                                                            label="{{ $faculty->faculty_name }}">
                                                                                             @foreach ($departments->where('faculty_id', $faculty->id) as $dept)
-                                                                                                <option value="{{ $dept->id }}"> {{ $dept->department_name }} </option>
+                                                                                                <option
+                                                                                                    value="{{ $dept->id }}">
+                                                                                                    {{ $dept->department_name }}
+                                                                                                </option>
                                                                                             @endforeach
                                                                                         </optgroup>
                                                                                     @endforeach
-                                                                                </select> 
+                                                                                </select>
                                                                             </div>
-                                                                            <div class="mb-3"> <label class="form-label">Admission Status *</label> 
-                                                                                <select class="form-select" name="status" required>
-                                                                                    <option value="">-- Select Final Course --</option>
-                                                                                    <option value="recommended" selected>Recommend </option>
-                                                                                </select> 
+                                                                            <div class="mb-3"> <label
+                                                                                    class="form-label">Admission Status
+                                                                                    *</label>
+                                                                                <select class="form-select" name="status"
+                                                                                    required>
+                                                                                    <option value="">-- Select Final
+                                                                                        Course --</option>
+                                                                                    <option value="recommended" selected>
+                                                                                        Recommend </option>
+                                                                                </select>
                                                                             </div>
-                                                                        </div> 
-                                                                        <div class="modal-footer" style="display: flex; justify-content: space-between;"> 
-                                                                            @csrf 
-                                                                            <input type="hidden" name="application_id" value="{{ $student->application_id }}">
-                                                                            <button type="submit" class="btn btn-success">Recommend</button> 
-                                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                        </div>
+                                                                        <div class="modal-footer"
+                                                                            style="display: flex; justify-content: space-between;">
+                                                                            @csrf
+                                                                            <input type="hidden" name="application_id"
+                                                                                value="{{ $student->application_id }}">
+                                                                            <button type="submit"
+                                                                                class="btn btn-success">Recommend</button>
+                                                                            <button type="button"
+                                                                                class="btn btn-secondary"
+                                                                                data-bs-dismiss="modal">Cancel</button>
                                                                         </div>
                                                                     </form>
                                                                 </div>
