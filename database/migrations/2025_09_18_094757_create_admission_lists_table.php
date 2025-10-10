@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('user_id');
             $table->uuid('approved_department_id')->nullable();
             $table->string('session_admitted'); // e.g. "2025/2026"
-            $table->enum('admission_status', ['pending', 'admitted', 'rejected'])->default('pending');
+            $table->enum('admission_status', ['pending', 'admitted', 'rejected', 'recommended'])->default('pending');
             $table->timestamps();
 
             // If related tables also use UUIDs

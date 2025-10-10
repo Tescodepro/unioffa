@@ -58,6 +58,18 @@ class User extends Authenticatable
         return $this->belongsTo(UserType::class, 'user_type_id');
     }
 
+    public function hasUserType(array|string $types): bool
+    {
+        $typeName = $this->userType?->name;
+
+        if (is_array($types)) {
+            return in_array($typeName, $types);
+        }
+
+        return $typeName === $types;
+    }
+
+
     public function admissionList()
     {
         return $this->hasOne(AdmissionList::class);

@@ -51,6 +51,10 @@ class AuthController extends Controller
             switch ($user->userType->name) {
                 case 'administrator':
                     return redirect()->route('admin.dashboard')->with('success', "Welcome $name");
+                case 'vice-chancellor':
+                    return redirect()->route('admin.dashboard')->with('success', "Welcome $name");
+                case 'registrar':
+                    return redirect()->route('admin.dashboard')->with('success', "Welcome $name");
 
                 default:
                     Auth::logout();

@@ -33,6 +33,9 @@ class UserTypeMiddleware
         if ($userType === 'student' && in_array($type, ['student', 'applicant'])) {
             return $next($request);
         }
+        if (in_array($type, ['administrator', 'registrar', 'vice-chancellor'])) {
+            return $next($request);
+        }
 
         // Normal strict check
         if ($userType !== $type) {

@@ -33,8 +33,8 @@ class GeneralController extends Controller
         // Applicants per campus (with count)
         $campusApplicants = Campus::withCount([
             'users as applicant_count' => function ($q) {
-                $q->whereHas('userType', fn ($q2) => $q2->where('name', 'applicant'))
-                    ->whereHas('applications', fn ($q3) => $q3->whereNotNull('submitted_by'));
+                $q->whereHas('userType', fn($q2) => $q2->where('name', 'applicant'))
+                    ->whereHas('applications', fn($q3) => $q3->whereNotNull('submitted_by'));
             },
         ])->get();
 
@@ -51,24 +51,25 @@ class GeneralController extends Controller
             ->count();
 
         // Query students with filters
-        $students = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
+        $students = User::whereHas('userType', fn($q) => $q->where('name', 'applicant'))
             ->with([
                 'applications.applicationSetting',
                 'transactions',
                 'admissionList',
+                'department',
                 'courseOfStudy.firstDepartment',   // <-- Add this
                 'courseOfStudy.secondDepartment',  // <-- And this
             ])
-            ->when($selectedCampusId, fn ($q) => $q->where('campus_id', $selectedCampusId))
+            ->when($selectedCampusId, fn($q) => $q->where('campus_id', $selectedCampusId))
             ->when($selectedApplicationId, function ($q) use ($selectedApplicationId) {
-                $q->whereHas('applications', fn ($qa) => $qa->where('application_setting_id', $selectedApplicationId));
+                $q->whereHas('applications', fn($qa) => $qa->where('application_setting_id', $selectedApplicationId));
             })
             ->get()
             ->map(function ($user) {
                 return (object) [
                     'id' => $user->id,
                     'registration_no' => $user->registration_no,
-                    'full_name' => $user->first_name.' '.$user->last_name,
+                    'full_name' => $user->first_name . ' ' . $user->last_name,
                     'email' => $user->email,
                     'application_type' => optional($user->applications->first()?->applicationSetting)->name,
                     'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
@@ -77,6 +78,7 @@ class GeneralController extends Controller
                     'payment_status' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->payment_status ?? 'unpaid',
                     'payment_ref' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->refernce_number ?? null,
                     'admissionList' => $user->admissionList,
+                    'admissionListDepartmet' => $user->admissionList->department,
                     'first_choice' => $user->courseOfStudy?->firstDepartment?->department_name,
                     'second_choice' => $user->courseOfStudy?->secondDepartment?->department_name,
                 ];
@@ -84,7 +86,6 @@ class GeneralController extends Controller
 
         $departments = Department::all();
         $faculties = Faculty::all();
-
         return view('staff.admin_dashboard', compact(
             'sessions',
             'selectedSession',
@@ -125,14 +126,29 @@ class GeneralController extends Controller
         $subject = 'Offer of Admission - Offa University';
 
         $content = [
-            'title' => 'Dear '.$user->full_name.',',
-            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study '.($department->department_name ?? 'your chosen course').'. for the '.$user_application->academic_session.' academic session admission. This achievement is a testament to your hard work, dedication, and academic excellence.',
+            'title' => 'Dear ' . $user->full_name . ',',
+            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study ' . ($department->department_name ?? 'your chosen course') . '. for the ' . $user_application->academic_session . ' academic session admission. This achievement is a testament to your hard work, dedication, and academic excellence.',
             'footer' => 'Offa University Security Team',
         ];
 
         Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
         return back()->with('success', 'Student admitted successfully.');
+    }
+
+    public function recommendStudent($userId, Request $request)
+    {
+        $user_application_id = $request->application_id;
+        $user_application = UserApplications::findOrFail($user_application_id);
+        $user_application->is_approved = 2;
+        $user_application->save();
+        // Get or create admission record
+        $admission = AdmissionList::firstOrNew(['user_id' => $userId]);
+        $admission->admission_status = 'recommended';
+        $admission->approved_department_id = $request->final_course; // optional, if you want to track
+        $admission->save();
+
+        return back()->with('success', 'Student recommendation successfully.');
     }
 
     public function showApplicantDetails($userId, $applicationId)

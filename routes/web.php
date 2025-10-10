@@ -117,9 +117,9 @@ Route::prefix('staff')->group(function () {
         Route::controller(AdminGeneralController::class)->group(function () {
             Route::get('/dashboard', 'index_admin')->name('admin.dashboard');
             Route::post('admit/{userId}', 'admitStudent')->name('admin.admit');
+            Route::post('recommend/{userId}', 'recommendStudent')->name('admin.recommend');
             Route::get('/export-applicants', 'exportApplicants')->name('admin.exportApplicants');
             Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admin.applicants.details');
-
         });
     });
 });

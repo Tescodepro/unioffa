@@ -10,8 +10,8 @@
 @section('content')
 <div class="main-wrapper">
 
-    @include('layouts.header')
-    @include('layouts.sidebar')
+    @include('staff.layouts.header')
+    @include('staff.layouts.sidebar')
 
     <div class="page-wrapper">
         <div class="container-fluid">

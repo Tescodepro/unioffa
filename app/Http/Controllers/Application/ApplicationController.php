@@ -540,28 +540,28 @@ class ApplicationController extends Controller
 
     public function postForgotPassword(Request $request)
     {
-        // ✅ Validate request
+        //  Validate request
         $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
 
         try {
-            // ✅ Generate OTP
+            //  Generate OTP
             $otp = rand(100000, 999999);
 
-            // ✅ Find the user
+            //  Find the user
             $user = User::where('email', $request->email)->first();
 
             if (! $user) {
                 return back()->withErrors(['email' => 'No account found with that email address.']);
             }
 
-            // ✅ Save OTP (you may want to add `otp_expires_at`)
+            //  Save OTP (you may want to add `otp_expires_at`)
             $user->otp = $otp;
             $user->otp_expires_at = now()->addMinutes(10); // OTP valid for 10 mins
             $user->save();
 
-            // ✅ Prepare email
+            //  Prepare email
             $subject = 'Password Reset Request - Offa University';
 
             $content = [
@@ -581,7 +581,7 @@ class ApplicationController extends Controller
                             Offa University Security Team',
             ];
 
-            // ✅ Send email
+            //  Send email
             Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
 
             return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address.');

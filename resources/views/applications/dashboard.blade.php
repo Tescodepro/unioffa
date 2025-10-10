@@ -33,10 +33,12 @@
                                                     <small class="text-muted">Admission Status:</small>
                                                     @if($application->is_approved == 1)
                                                         <span class="badge bg-success"><i class="fas fa-check"></i> Admitted</span>
+                                                    @elseif($application->is_approved == 0 AND $application->submitted_by)
+                                                        <span class="badge bg-warning"><i class="fas fa-clock"></i> Pending </span>
                                                     @elseif($application->is_approved == 0)
                                                         <span class="badge bg-warning"><i class="fas fa-clock"></i> Application Not Submitted </span>
                                                     @elseif($application->is_approved == 2)
-                                                        <span class="badge bg-warning"><i class="fas fa-clock"></i> Pending </span>
+                                                        <span class="badge bg-warning"><i class="fas fa-clock"></i> Admission in progress ... </span>
                                                     @endif
                                                 </div> 
                                             </div>
