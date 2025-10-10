@@ -78,7 +78,7 @@ class GeneralController extends Controller
                     'payment_status' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->payment_status ?? 'unpaid',
                     'payment_ref' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->refernce_number ?? null,
                     'admissionList' => $user->admissionList,
-                    'admissionListDepartmet' => $user->admissionList->department,
+                    'admissionListDepartmet' => $user->admissionList?->department,
                     'first_choice' => $user->courseOfStudy?->firstDepartment?->department_name,
                     'second_choice' => $user->courseOfStudy?->secondDepartment?->department_name,
                 ];
