@@ -12,32 +12,65 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get the "administrator" user type
-        $adminType = UserType::where('name', 'administrator')->first();
+        // Create default accounts
+        // $this->createAccount('administrator', [
+        //     'first_name' => 'Admin',
+        //     'last_name' => 'Officer',
+        //     'email' => 'admin@unioffa.edu.ng',
+        //     'phone' => '+234900988888',
+        //     'username' => 'ADMIN001',
+        //     'password' => 'Admin@Unioffa123',
+        // ]);
 
-        if (! $adminType) {
-            $this->command->warn('⚠️ UserType "administrator" not found. Please run UserTypeSeeder first.');
+        // $this->createAccount('registrar', [
+        //     'first_name' => 'Registrar',
+        //     'last_name' => 'Officer',
+        //     'email' => 'registrar@unioffa.edu.ng',
+        //     'phone' => '+234901000111',
+        //     'username' => 'REG001',
+        //     'password' => 'Registrar@UniOffa123',
+        // ]);
 
+        $this->createAccount('vice-chancellor', [
+            'first_name' => 'Vice',
+            'last_name' => 'Chancellor',
+            'email' => 'vc@unioffa.edu.ng',
+            'phone' => '+234902222333',
+            'username' => 'VC001',
+            'password' => 'Vc@Unioffa123',
+        ]);
+    }
+
+    private function createAccount(string $userTypeName, array $data): void
+    {
+        $userTypeId = $this->getUserTypeId($userTypeName);
+
+        if (! $userTypeId) {
+            $this->command->warn("⚠️ UserType '{$userTypeName}' not found. Please run UserTypeSeeder first.");
             return;
         }
 
-        // Seed a single demo administrator
         User::updateOrCreate(
-            ['email' => 'admin@example.com'], // unique check
+            ['email' => $data['email']],
             [
                 'id' => (string) Str::uuid(),
-                'first_name' => 'Kamaldeeen',
-                'middle_name' => null,
-                'last_name' => 'Gbolagade',
-                'email' => 'admin@unioffa.edu.ng',
-                'phone' => '+2349036154339',
-                'username' => 'ADMIN001',
-                'registration_no' => null, // admins usually don’t have matric no
-                'password' => Hash::make('Admin@123'), // default password
-                'user_type_id' => $adminType->id,
+                'first_name' => $data['first_name'],
+                'middle_name' => $data['middle_name'] ?? null,
+                'last_name' => $data['last_name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'username' => $data['username'],
+                'registration_no' => null,
+                'password' => Hash::make($data['password']),
+                'user_type_id' => $userTypeId,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
         );
+    }
+
+    private function getUserTypeId(string $name): ?string
+    {
+        return UserType::where('name', $name)->value('id');
     }
 }

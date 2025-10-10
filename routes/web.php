@@ -4,7 +4,7 @@ use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\CourseRegistrationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Staff\AuthController as StaffAuthController;
-use App\Http\Controllers\staff\GeneralController as AdminGeneralController;
+use App\Http\Controllers\Staff\GeneralController as AdminGeneralController;
 use App\Http\Controllers\Student\AuthController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
