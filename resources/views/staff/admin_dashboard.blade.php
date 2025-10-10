@@ -193,10 +193,15 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <a href="{{ route('admin.applicants.details', [$student->id, $student->application_id]) }}"
-                                                        class="btn btn-sm btn-success">
-                                                        View Details
-                                                    </a>
+                                                    @if ($student->application_id)
+    <a href="{{ route('admin.applicants.details', [$student->id, $student->application_id]) }}"
+       class="btn btn-sm btn-success">
+        View Details
+    </a>
+@else
+    <span class="badge bg-secondary">No Application</span>
+@endif
+
                                                 </td>
 
                                                 <td>
