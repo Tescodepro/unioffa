@@ -138,7 +138,7 @@
                                             <th>Applicant No</th>
                                             <th>Name</th>
                                             <th>Email</th>
-                                            <th>Phone</th>
+                                            {{-- <th>Phone</th> --}}
                                             <th>Application Type</th>
                                             <th>Admittion Status</th>
                                             <th>Department Aproved/Recommended</th>
@@ -160,7 +160,7 @@
                                                 <td>{{ $student->registration_no }}</td>
                                                 <td>{{ $student->full_name }}</td>
                                                 <td>{{ $student->email }}</td>
-                                                <td>{{ $student->phone }}</td>
+                                                {{-- <td>{{ $student->phone }}</td> --}}
                                                 <td>{{ $student->application_type ?? 'N/A' }}</td>
                                                 <td>
                                                     @if (optional($student->admissionList)->admission_status === 'admitted')
