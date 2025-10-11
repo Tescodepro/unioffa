@@ -230,7 +230,7 @@ class ApplicationController extends Controller
             ->where('id', $user_application_id)
             ->firstOrFail();
 
-        $modules = json_encode($application->applicationSetting->modules_enable, true);
+        $modules = json_decode($application->applicationSetting->modules_enable, true);
 
         // Load each module's data
         $profile = Profile::where('user_application_id', $user_application_id)->first();
@@ -387,7 +387,7 @@ class ApplicationController extends Controller
     public function saveDocuments(Request $request, $user_application_id)
     {
         $application = UserApplications::findOrFail($user_application_id);
-        $modules = json_encode($application->applicationSetting->modules_enable, true);
+        $modules = json_decode($application->applicationSetting->modules_enable, true);
         $requiredDocs = $modules['documents'] ?? [];
 
         $rules = [];

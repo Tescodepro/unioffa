@@ -193,7 +193,7 @@ class GeneralController extends Controller
             $application->jambDetail->subject_scores = array_combine($subjects, $scores) ?: [];
         }
 
-        $modules = $application->applicationSetting->modules_enable;
+        $modules = json_decode($application->applicationSetting->modules_enable, true);
 
         return view('staff.applicant_details', compact('application', 'modules'));
     }
