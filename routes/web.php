@@ -52,10 +52,10 @@ Route::prefix('admission')->group(function () {
         Route::post('/form/save-documents/{user_application_id}', 'saveDocuments')->middleware('user.type:applicant')->name('application.documents.submit');
         Route::post('/form/handle-form-submission/{user_application_id}', 'handleFormSubmission')->middleware('user.type:applicant')->name('application.handle_form_submission');
         Route::get('/admission-letter/{applicationId}', 'downloadAdmissionLetter')->name('student.admission.letter')->middleware('auth');
-        Route::get('/forgot-password', 'showForgotPasswordForm')->name('application.forgot.password')->middleware('guest');
-        Route::post('/forgot-password', 'postForgotPassword')->name('password.email')->middleware('guest');
-        Route::get('/password/update-otp', 'showUpdateWithOtp')->name('password.otp.update')->middleware('guest');
-        Route::post('/password/update-otp', 'updateWithOtp')->middleware('guest');
+        Route::get('/forgot-password', 'showForgotPasswordForm')->name('application.forgot.password');
+        Route::post('/forgot-password', 'postForgotPassword')->name('password.email');
+        Route::get('/password/update-otp', 'showUpdateWithOtp')->name('password.otp.update');
+        Route::post('/password/update-otp', 'updateWithOtp');
 
     });
 });

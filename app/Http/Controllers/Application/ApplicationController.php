@@ -530,7 +530,6 @@ class ApplicationController extends Controller
     public function showForgotPasswordForm()
     {
         $title = 'Forgot Password';
-
         return view('applications.forget_password', compact('title'));
     }
 
