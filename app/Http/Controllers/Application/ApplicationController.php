@@ -49,10 +49,8 @@ class ApplicationController extends Controller
     public function index()
     {
         $title = 'Application Registration Form';
-        // get center
-        $campuses = Campus::all();
-
-        // return view('website.home', compact('title'));
+        // get  active center
+        $campuses = Campus::active()->get();
 
         return view('applications.register', compact('title', 'campuses'));
     }

@@ -24,6 +24,11 @@ class Campus extends Model
         'direction',
     ];
 
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
     public function users()
     {
         return $this->hasMany(User::class, 'campus_id', 'id');
