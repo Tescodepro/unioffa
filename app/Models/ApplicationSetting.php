@@ -24,7 +24,7 @@ class ApplicationSetting extends Model
     ];
 
     protected $casts = [
-        'modules_enable' => 'array', // 🔹 JSON → array
+        'modules_enable' => 'array',
     ];
 
     public function users()
