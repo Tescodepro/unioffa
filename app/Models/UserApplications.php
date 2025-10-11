@@ -22,6 +22,11 @@ class UserApplications extends Model
         'is_approved',
     ];
 
+    protected $casts = [
+        'modules_enable' => 'array',
+    ];
+
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

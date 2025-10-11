@@ -100,12 +100,11 @@ class ApplicationController extends Controller
 
             return redirect()->route('application.login', compact('campuses'))
                 ->with('success', 'Your registration was successful. An email has been sent with your registration number');
-
         } catch (Exception $e) {
             DB::rollBack();
 
             // Log failure with details
-            Log::error("❌ Failed to send mail to {$request->email}. Error: ".$e->getMessage());
+            Log::error("❌ Failed to send mail to {$request->email}. Error: " . $e->getMessage());
 
             return back()->withErrors(['email' => 'Registration failed because email could not be sent. Try again.']);
         }
@@ -142,12 +141,12 @@ class ApplicationController extends Controller
             $subject = 'Login Notification';
 
             $content = [
-                'title' => Auth::user()->full_name.',',
+                'title' => Auth::user()->full_name . ',',
                 'body' => 'We noticed a login to your Offa University account.<br><br>
 
             Details:<br>  
-            - Date: '.now()->format('Y-m-d H:i:s').'<br>  
-            - IP Address: '.request()->ip().' <br><br>
+            - Date: ' . now()->format('Y-m-d H:i:s') . '<br>  
+            - IP Address: ' . request()->ip() . ' <br><br>
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
@@ -226,14 +225,14 @@ class ApplicationController extends Controller
     public function applicationForm($user_application_id)
     {
         $users = Auth::user();
-        $title = Auth::user()->full_name.' Application Form';
+        $title = Auth::user()->full_name . ' Application Form';
 
         $application = UserApplications::with('applicationSetting')
             ->where('user_id', Auth::id())
             ->where('id', $user_application_id)
             ->firstOrFail();
 
-        $modules = json_decode($application->applicationSetting->modules_enable, true);
+        $modules = $application->applicationSetting->modules_enable;
 
         // Load each module's data
         $profile = Profile::where('user_application_id', $user_application_id)->first();
@@ -316,7 +315,7 @@ class ApplicationController extends Controller
     {
         $request->validate([
             'olevel_exam_type' => 'required|in:waec,neco,nabteb',
-            'olevel_year' => 'required|integer|min:2010|max:'.date('Y'),
+            'olevel_year' => 'required|integer|min:2010|max:' . date('Y'),
             'olevel_subjects' => 'required|array|min:5|max:8',
             'olevel_subjects.*' => 'required|string',
             'olevel_grades' => 'required|array|min:5|max:8',
@@ -390,7 +389,7 @@ class ApplicationController extends Controller
     public function saveDocuments(Request $request, $user_application_id)
     {
         $application = UserApplications::findOrFail($user_application_id);
-        $modules = json_decode($application->applicationSetting->modules_enable, true);
+        $modules = $application->applicationSetting->modules_enable;
         $requiredDocs = $modules['documents'] ?? [];
 
         $rules = [];
@@ -400,7 +399,7 @@ class ApplicationController extends Controller
                 ->where('type', $doc)
                 ->first();
 
-            $rules["documents.{$doc}"] = $existingDoc ? 'nullable|file|mimes:pdf|max:2048' : 'required|file|mimes:pdf|max:2048';
+            $rules["documents.{$doc}"] = $existingDoc ? 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048' : 'required|file|mimes:pdf,jpeg,png,jpg|max:2048';
         }
 
         $request->validate($rules);
@@ -419,8 +418,8 @@ class ApplicationController extends Controller
                 }
 
                 // Store new file
-                $filename = time().'_'.$doc.'_'.$file->getClientOriginalName();
-                $filePath = $file->storeAs('documents/'.Auth::id(), $filename, 'public');
+                $filename = time() . '_' . $doc . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('documents/' . Auth::id(), $filename, 'public');
 
                 Document::updateOrCreate(
                     [
@@ -444,7 +443,7 @@ class ApplicationController extends Controller
     {
         $rules = [
             'registration_number' => 'required|string|max:255',
-            'exam_year' => 'required|integer|min:2000|max:'.date('Y'),
+            'exam_year' => 'required|integer|min:2000|max:' . date('Y'),
             'jamb_type' => 'required|in:utme,direct_entry',
         ];
 
@@ -453,7 +452,6 @@ class ApplicationController extends Controller
             $rules['jamb_subjects.*'] = 'required|string';
             $rules['jamb_subject_scores'] = 'required|array|min:1|max:4';
             $rules['jamb_subject_scores.*'] = 'required|integer|min:0|max:100';
-
         } else {
             $rules['score'] = 'required';
         }
@@ -528,7 +526,7 @@ class ApplicationController extends Controller
         $pdf = Pdf::loadView('applications.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
+        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
     }
 
     public function showForgotPasswordForm()
@@ -565,15 +563,15 @@ class ApplicationController extends Controller
             $subject = 'Password Reset Request - Offa University';
 
             $content = [
-                'title' => $user->full_name.',',
+                'title' => $user->full_name . ',',
                 'body' => "
                     We received a request to reset your password.  
                     Please use the following One-Time Password (OTP):  
                     <h2>{$otp}</h2>  
 
                     Details:<br>  
-                    - Date: ".now()->format('Y-m-d H:i:s').'<br>  
-                    - IP Address: '.$request->ip().' <br><br>
+                    - Date: " . now()->format('Y-m-d H:i:s') . '<br>  
+                    - IP Address: ' . $request->ip() . ' <br><br>
 
                     If this was you, proceed with resetting your password.  
                     If not, please secure your account immediately.',
@@ -585,9 +583,8 @@ class ApplicationController extends Controller
             Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
 
             return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address.');
-
         } catch (Exception $e) {
-            Log::error('Forgot Password Error: '.$e->getMessage());
+            Log::error('Forgot Password Error: ' . $e->getMessage());
 
             return back()->withErrors(['email' => 'Something went wrong. Please try again later.']);
         }
@@ -628,5 +625,5 @@ class ApplicationController extends Controller
         $user->save();
 
         return redirect()->route('application.login')->with('success', 'Password updated successfully! Please login.');
-    } 
+    }
 }
