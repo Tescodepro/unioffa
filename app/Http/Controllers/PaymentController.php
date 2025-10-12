@@ -66,6 +66,8 @@ class PaymentController extends Controller
                 $programme = 'REGULAR';
             } else if ($getuserstype->programme === 'DE') {
                 $programme = 'REGULAR';
+            } else if ($getuserstype->programme === 'UTME') {
+                $programme = 'REGULAR';
             } else {
                 $programme = $getuserstype->programme;
             }

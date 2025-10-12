@@ -115,7 +115,7 @@
 												<!-- Forgot Password -->
 												<div class="form-wrap form-wrap-checkbox mb-3">
 													<div class="text-end">
-														<a href="forgot-password.html" class="link-danger">Forgot Password?</a>
+														{{-- <a href="forgot-password.html" class="link-danger">Forgot Password?</a> --}}
 													</div>
 												</div>
 
