@@ -24,22 +24,171 @@ class DashboardController extends Controller
         return view('student.dashboard', compact('user'));
     }
 
+    // public function loadPayment()
+    // {
+    //     $user = Auth::user()->load('student.department.faculty');
+    //     $currentSession = activeSession()->name ?? null;
+
+    //     if (! $user->student) {
+    //         return redirect()->back()->with('error', 'Student profile not found.');
+    //     }
+
+    //     if (! $currentSession) {
+    //         return redirect()->back()->with('error', 'No active session found.');
+    //     }
+
+    //     $student = $user->student;
+
+    //     // Step 1: Fetch required payment settings
+    //     $paymentSettings = PaymentSetting::query()
+    //         ->where('student_type', $student->programme)
+    //         ->whereJsonContains('level', (int) $student->level)
+    //         ->where('session', $currentSession)
+    //         ->when($student->department?->faculty_id, function ($q) use ($student) {
+    //             $q->where(function ($sub) use ($student) {
+    //                 $sub->whereNull('faculty_id')
+    //                     ->orWhere('faculty_id', $student->department->faculty_id);
+    //             });
+    //         })
+    //         ->when($student->department_id, function ($q) use ($student) {
+    //             $q->where(function ($sub) use ($student) {
+    //                 $sub->whereNull('department_id')
+    //                     ->orWhere('department_id', $student->department_id);
+    //             });
+    //         })
+    //         ->where(function ($q) use ($student) {
+    //             $q->whereNull('sex')
+    //                 ->orWhere('sex', $student->sex);
+    //         })
+    //         ->where(function ($q) use ($student) {
+    //             $q->whereNull('matric_number')
+    //                 ->orWhere('matric_number', $student->matric_number);
+    //         })
+    //         ->get();
+
+    //     if ($paymentSettings->isEmpty()) {
+    //         return redirect()->back()->with('error', 'No payment settings found for your profile.');
+    //     }
+
+    //     // Step 2: Fetch all transactions for this student + session once (avoid N+1)
+    //     $transactions = Transaction::query()
+    //         ->where('user_id', $user->id)
+    //         ->where('session', $currentSession)
+    //         ->where('payment_status', 1)
+    //         ->get()
+    //         ->groupBy('payment_type');
+
+    //     // Step 3: Attach transaction details + installment rules
+    //     $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions, $student) {
+    //         $txns = $transactions->get($payment->payment_type, collect());
+    //         $amountPaid = $txns->sum('amount');
+    //         $installmentCount = $txns->count();
+
+    //         $payment->amount_paid = $amountPaid;
+    //         $payment->balance = max($payment->amount - $amountPaid, 0);
+    //         $payment->installment_count = $installmentCount;
+    //         $payment->installment_scheme = [];
+    //         $payment->max_installments = 1;
+
+    //         // --- Tuition Installment Rules ---
+    //         if ($payment->payment_type === 'tuition') {
+    //             if ($student->programme === 'REGULAR') {
+    //                 $payment->max_installments = 2;
+    //                 if ($installmentCount === 0) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount * 0.6), // 60%
+    //                         round($payment->amount),       // 100%
+    //                     ];
+    //                 } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount * 0.6)) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount * 0.4), // 40%
+    //                     ];
+    //                 } elseif ($installmentCount === 1 && $amountPaid != round($payment->amount * 0.6)) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount - $amountPaid), // 40%
+    //                     ];
+    //                 }
+    //             } else {
+    //                 $payment->max_installments = 3;
+
+    //                 if ($installmentCount === 0) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount / 3),       // ~33%
+    //                         round($payment->amount * 2 / 3),   // ~66%
+    //                         round($payment->amount),           // full
+    //                     ];
+    //                 } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount / 3)) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount / 3),
+    //                         round($payment->amount * 2 / 3),
+    //                         round($payment->amount),
+    //                     ];
+    //                 } elseif ($installmentCount === 2 && $amountPaid >= round($payment->amount * 2 / 3)) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount / 3),
+    //                         round($payment->amount),
+    //                     ];
+    //                 }
+    //             }
+    //         }
+
+    //         // --- Administrative Installment Rules ---
+    //         if ($payment->payment_type === 'administrative') {
+    //             if ($student->programme === 'REGULAR') {
+    //                 $payment->max_installments = 3;
+    //                 $payment->installment_scheme = [round($payment->amount)];
+    //             } else {
+    //                 $payment->max_installments = 2; // Assume 50/50 split
+    //                 $payment->installment_scheme = [
+    //                     round($payment->amount * 0.5),
+    //                     round($payment->amount),
+    //                 ];
+    //             }
+    //         }
+
+    //         if ($payment->payment_type === 'technical') {
+    //             if ($student->programme !== 'REGULAR') {
+    //                 if ($installmentCount === 0) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount / 3),       // ~33%
+    //                         round($payment->amount * 2 / 3),   // ~66%
+    //                         round($payment->amount),           // full
+    //                     ];
+    //                 } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount / 3)) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount / 3),
+    //                         round($payment->amount * 2 / 3),
+    //                         round($payment->amount),
+    //                     ];
+    //                 } elseif ($installmentCount === 2 && $amountPaid >= round($payment->amount * 2 / 3)) {
+    //                     $payment->installment_scheme = [
+    //                         round($payment->amount / 3),
+    //                         round($payment->amount),
+    //                     ];
+    //                 }
+    //             }
+    //         }
+
+
+    //         return $payment;
+    //     });
+
+    //     return view('student.payment', compact('paymentSettings', 'currentSession'));
+    // }
+
+
     public function loadPayment()
     {
         $user = Auth::user()->load('student.department.faculty');
         $currentSession = activeSession()->name ?? null;
-
         if (! $user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
-
         if (! $currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
-
         $student = $user->student;
-
-        // Step 1: Fetch required payment settings
+        // ✅ 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
             ->where('student_type', $student->programme)
             ->whereJsonContains('level', (int) $student->level)
@@ -70,7 +219,7 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'No payment settings found for your profile.');
         }
 
-        // Step 2: Fetch all transactions for this student + session once (avoid N+1)
+        // ✅ 2. Fetch student transactions
         $transactions = Transaction::query()
             ->where('user_id', $user->id)
             ->where('session', $currentSession)
@@ -78,8 +227,8 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('payment_type');
 
-        // Step 3: Attach transaction details + installment rules
-        $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions, $student) {
+        // ✅ 3. Dynamic computation using DB installment fields
+        $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions) {
             $txns = $transactions->get($payment->payment_type, collect());
             $amountPaid = $txns->sum('amount');
             $installmentCount = $txns->count();
@@ -90,85 +239,19 @@ class DashboardController extends Controller
             $payment->installment_scheme = [];
             $payment->max_installments = 1;
 
-            // --- Tuition Installment Rules ---
-            if ($payment->payment_type === 'tuition') {
-                if ($student->programme === 'REGULAR') {
-                    $payment->max_installments = 2;
-                    if ($installmentCount === 0) {
-                        $payment->installment_scheme = [
-                            round($payment->amount * 0.6), // 60%
-                            round($payment->amount),       // 100%
-                        ];
-                    } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount * 0.6)) {
-                        $payment->installment_scheme = [
-                            round($payment->amount * 0.4), // 40%
-                        ];
-                    } elseif ($installmentCount === 1 && $amountPaid != round($payment->amount * 0.6)) {
-                        $payment->installment_scheme = [
-                            round($payment->amount - $amountPaid), // 40%
-                        ];
-                    }
-                } else {
-                    $payment->max_installments = 3;
+            // ✅ Use DB installment settings if enabled
+            if ($payment->installmental_allow_status) {
+                $percentages = json_decode($payment->list_instalment_percentage, true) ?? [];
+                $payment->max_installments = $payment->number_of_instalment ?? count($percentages);
 
-                    if ($installmentCount === 0) {
-                        $payment->installment_scheme = [
-                            round($payment->amount / 3),       // ~33%
-                            round($payment->amount * 2 / 3),   // ~66%
-                            round($payment->amount),           // full
-                        ];
-                    } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount / 3)) {
-                        $payment->installment_scheme = [
-                            round($payment->amount / 3),
-                            round($payment->amount * 2 / 3),
-                            round($payment->amount),
-                        ];
-                    } elseif ($installmentCount === 2 && $amountPaid >= round($payment->amount * 2 / 3)) {
-                        $payment->installment_scheme = [
-                            round($payment->amount / 3),
-                            round($payment->amount),
-                        ];
-                    }
-                }
+                // Convert cumulative percentages (e.g. [60,100], [33,66,100]) into actual amounts
+                $installmentAmounts = collect($percentages)->map(fn($percent) => round($payment->amount * ($percent / 100)));
+
+                // Find remaining payments (any stage above what’s already paid)
+                $remaining = $installmentAmounts->filter(fn($amt) => $amt > $amountPaid)->values();
+
+                $payment->installment_scheme = $remaining->toArray();
             }
-
-            // --- Administrative Installment Rules ---
-            if ($payment->payment_type === 'administrative') {
-                if ($student->programme === 'REGULAR') {
-                    $payment->max_installments = 3;
-                    $payment->installment_scheme = [round($payment->amount)];
-                } else {
-                    $payment->max_installments = 2; // Assume 50/50 split
-                    $payment->installment_scheme = [
-                        round($payment->amount * 0.5),
-                        round($payment->amount),
-                    ];
-                }
-            }
-
-            if ($payment->payment_type === 'technical') {
-                if ($student->programme !== 'REGULAR') {
-                    if ($installmentCount === 0) {
-                        $payment->installment_scheme = [
-                            round($payment->amount / 3),       // ~33%
-                            round($payment->amount * 2 / 3),   // ~66%
-                            round($payment->amount),           // full
-                        ];
-                    } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount / 3)) {
-                        $payment->installment_scheme = [
-                            round($payment->amount / 3),
-                            round($payment->amount * 2 / 3),
-                            round($payment->amount),
-                        ];
-                    } elseif ($installmentCount === 2 && $amountPaid >= round($payment->amount * 2 / 3)) {
-                        $payment->installment_scheme = [
-                            round($payment->amount / 3),
-                            round($payment->amount),
-                        ];
-                    }
-                }
-            }
-
 
             return $payment;
         });
@@ -217,7 +300,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
+        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
     }
 
     // ==================== Profile ================================
@@ -239,8 +322,8 @@ class DashboardController extends Controller
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$user->id,
-            'phone' => 'required|string|max:20|unique:users,phone,'.$user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
             'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'date_of_birth' => 'nullable|date',
             'state_of_origin' => 'nullable|string|max:255',
@@ -256,9 +339,9 @@ class DashboardController extends Controller
         // ✅ Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
             $file = $request->file('profile_picture');
-            $filename = uniqid().'.'.$file->getClientOriginalExtension();
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $file->storeAs('profile_pictures', $filename, 'public');
-            $user->profile_picture = 'storage/profile_pictures/'.$filename;
+            $user->profile_picture = 'storage/profile_pictures/' . $filename;
         }
 
         // ✅ Update user details

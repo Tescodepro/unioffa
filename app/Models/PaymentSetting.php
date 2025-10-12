@@ -25,6 +25,9 @@ class PaymentSetting extends Model
         'description',
         'student_type',
         'session',
+        'installmental_allow_status',
+        'number_of_instalment',
+        'list_instalment_percentage',
     ];
 
     protected $casts = [
