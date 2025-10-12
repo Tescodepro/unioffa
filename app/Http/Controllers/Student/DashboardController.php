@@ -94,7 +94,6 @@ class DashboardController extends Controller
             if ($payment->payment_type === 'tuition') {
                 if ($student->programme === 'REGULAR') {
                     $payment->max_installments = 2;
-
                     if ($installmentCount === 0) {
                         $payment->installment_scheme = [
                             round($payment->amount * 0.6), // 60%
@@ -136,7 +135,7 @@ class DashboardController extends Controller
             // --- Administrative Installment Rules ---
             if ($payment->payment_type === 'administrative') {
                 if ($student->programme === 'REGULAR') {
-                    $payment->max_installments = 1;
+                    $payment->max_installments = 3;
                     $payment->installment_scheme = [round($payment->amount)];
                 } else {
                     $payment->max_installments = 2; // Assume 50/50 split
@@ -146,6 +145,30 @@ class DashboardController extends Controller
                     ];
                 }
             }
+
+            if ($payment->payment_type === 'technical') {
+                if ($student->programme !== 'REGULAR') {
+                    if ($installmentCount === 0) {
+                        $payment->installment_scheme = [
+                            round($payment->amount / 3),       // ~33%
+                            round($payment->amount * 2 / 3),   // ~66%
+                            round($payment->amount),           // full
+                        ];
+                    } elseif ($installmentCount === 1 && $amountPaid == round($payment->amount / 3)) {
+                        $payment->installment_scheme = [
+                            round($payment->amount / 3),
+                            round($payment->amount * 2 / 3),
+                            round($payment->amount),
+                        ];
+                    } elseif ($installmentCount === 2 && $amountPaid >= round($payment->amount * 2 / 3)) {
+                        $payment->installment_scheme = [
+                            round($payment->amount / 3),
+                            round($payment->amount),
+                        ];
+                    }
+                }
+            }
+
 
             return $payment;
         });

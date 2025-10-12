@@ -54,11 +54,10 @@ class PaymentController extends Controller
                 ->join('application_settings', 'user_applications.application_setting_id', '=', 'application_settings.id')
                 ->select('application_settings.application_code AS programme')
                 ->first();
-
             if (!$getuserstype) {
                 return back()->with('error', 'Application record not found for this user.');
             }
-
+            
             // Normalize programme
             if ($getuserstype->programme === 'TRANSFER') {
                 $programme = 'REGULAR';
