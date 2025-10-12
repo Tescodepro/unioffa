@@ -32,7 +32,7 @@ use App\Models\CourseOfStudy;
 
 // Transaction Models
 use App\Models\Transaction;
-use App\Services\UniqueIdService;
+use App\Services\{UniqueIdService, PaymentVerificationService};
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
@@ -174,6 +174,21 @@ class ApplicationController extends Controller
         $applications = UserApplications::with(['applicationSetting', 'transactions'])
             ->where('user_id', Auth::id())
             ->paginate(10);
+
+        // Fetch last 5 transactions and auto-verify if not confirmed
+        $recentTransactions = Transaction::where('user_id', Auth::id())
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $verifier = new PaymentVerificationService();
+        foreach ($recentTransactions as $txn) {
+            if ($txn->payment_status != 1) {
+                $verifyResponse = $verifier->verify($txn->refernce_number);
+                $txn->refresh(); // update with latest status
+            }
+        }
+
 
         return view('applications.dashboard', compact('title', 'applicationSettings', 'applications'));
     }

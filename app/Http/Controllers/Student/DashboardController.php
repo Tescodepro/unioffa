@@ -12,7 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use App\Services\PaymentService;
+use App\Services\PaymentVerificationService;
 use App\Services\HostelAssignmentService;
 
 class DashboardController extends Controller
@@ -20,7 +20,18 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user()->load('student.department.faculty');
+        $recentTransactions = Transaction::where('user_id', Auth::id())
+            ->latest()
+            ->take(5)
+            ->get();
 
+        $verifier = new PaymentVerificationService();
+        foreach ($recentTransactions as $txn) {
+            if ($txn->payment_status != 1) {
+                $verifyResponse = $verifier->verify($txn->refernce_number);
+                $txn->refresh(); // update with latest status
+            }
+        }
         return view('student.dashboard', compact('user'));
     }
 

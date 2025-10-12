@@ -146,9 +146,7 @@ class PaymentController extends Controller
                 $backRoute = route('students.load_payment');
             }
         }
-
-
-
+        
         if ($response['success']) {
 
             if ($transaction) {
