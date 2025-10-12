@@ -75,11 +75,9 @@ class PaymentController extends Controller
             $split_code = $this->splitGet($request->fee_type, $programme, $user->campus_id);
         } else {
             $student = Student::where('user_id', $user->id)->first();
-
             if (!$student) {
                 return back()->with('error', 'Student record not found for this user.');
             }
-
             $split_code = $this->splitGet($request->fee_type, $student->programme, $student->campus_id);
         }
 
