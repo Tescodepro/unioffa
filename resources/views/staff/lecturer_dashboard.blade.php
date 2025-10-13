@@ -11,11 +11,11 @@
 <div class="main-wrapper">
 
     <!-- Header -->
-    @include('layouts.header')
+    @include('staff.layouts.header')
     <!-- /Header -->
 
     <!-- Sidebar -->
-    @include('layouts.sidebar')
+    @include('staff.layouts.sidebar')
     <!-- /Sidebar -->
 
     <!-- Page Wrapper -->
@@ -25,7 +25,7 @@
             <!-- Page Header -->
             <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                 <div class="my-auto mb-2">
-                    <h3 class="page-title mb-1">Administrator Dashboard</h3>
+                    <h3 class="page-title mb-1">Lecturer Dashboard</h3>
                 </div>
             </div>
             <!-- /Page Header -->

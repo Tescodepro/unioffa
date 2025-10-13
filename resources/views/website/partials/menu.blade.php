@@ -156,7 +156,7 @@
                                 <a class="nav-link dropdown-toggle" href="" data-bs-toggle="dropdown">Admissions</a>
                                 <ul class="dropdown-menu fade-down">
                                     <li><a class="dropdown-item" href="">How To Apply</a></li>
-                                    <li><a class="dropdown-item" href="">Application Form</a></li>
+                                    {{-- <li><a class="dropdown-item" href="">Application Form</a></li> --}}
                                     <li><a class="dropdown-item" href="">Tuition Fees</a></li>
                                     <li><a class="dropdown-item" href="">Scholarships</a></li>
                                     <li><a class="dropdown-item" href="{{ route('application.login') }}">Admission Form</a></li>

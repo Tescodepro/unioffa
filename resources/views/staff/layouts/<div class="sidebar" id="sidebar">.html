@@ -1,0 +1,113 @@
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-inner slimscroll">
+        <div id="sidebar-menu" class="sidebar-menu">
+
+            <!-- Logo / Home -->
+            <ul>
+                <li>
+                    <a href="{{ route('burser.dashboard') }}"
+                        class="d-flex align-items-center border bg-white rounded p-2 mb-4">
+                        <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
+                            class="avatar avatar-md img-fluid rounded" alt="Profile">
+                        <span class="text-dark ms-2 fw-normal">UNIOFFA</span>
+                    </a>
+                </li>
+            </ul>
+
+            <ul>
+                <!-- MAIN -->
+                <li>
+                    <h6 class="submenu-hdr"><span>Main</span></h6>
+                    <ul>
+                        <li>
+                            <a href="{{ route('students.dashboard') }}"
+                                class="{{ request()->routeIs('students.dashboard') ? 'active' : '' }}">
+                                <i class="ti ti-layout-dashboard"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- TRANSACTIONS -->
+                <li>
+                    <h6 class="submenu-hdr"><span>Transactions</span></h6>
+                    <ul>
+                        <li>
+                            <a href="{{ route('bursary.transactions') }}"
+                                class="{{ request()->routeIs('bursary.transactions') ? 'active' : '' }}">
+                                <i class="ti ti-credit-card"></i>
+                                <span>All Transactions</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('bursary.transactions.export', ['format' => 'xlsx']) }}">
+                                <i class="ti ti-download"></i>
+                                <span>Export Transactions</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('bursary.verify.form') }}"
+                                class="{{ request()->routeIs('bursary.verify.form') ? 'active' : '' }}">
+                                <i class="ti ti-check"></i>
+                                <span>Verify Payment</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- REPORTS -->
+                <li>
+                    <h6 class="submenu-hdr"><span>Reports</span></h6>
+                    <ul>
+                        <li>
+                            <a href="#">
+                                <i class="ti ti-file-analytics"></i>
+                                <span>By Faculty</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="ti ti-file-text"></i>
+                                <span>By Department</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="ti ti-bar-chart"></i>
+                                <span>By Level</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- PAYMENTS -->
+                <li>
+                    <h6 class="submenu-hdr"><span>Payments</span></h6>
+                    <ul>
+                        <li>
+                            <a href="#">
+                                <i class="ti ti-settings"></i>
+                                <span>Payment Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- LOGOUT -->
+                <li>
+                    <h6 class="submenu-hdr"><span>Account</span></h6>
+                    <ul>
+                        <li>
+                            <a href="{{ route('staff.logout') }}">
+                                <i class="ti ti-logout"></i>
+                                <span>Logout</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</div>

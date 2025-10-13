@@ -5,6 +5,7 @@ use App\Http\Controllers\CourseRegistrationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Staff\AuthController as StaffAuthController;
 use App\Http\Controllers\Staff\GeneralController as AdminGeneralController;
+use App\Http\Controllers\Staff\BursaryController;
 use App\Http\Controllers\Student\AuthController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
@@ -22,6 +23,7 @@ RouteServiceProvider within a group which contains the "web" middleware group. N
 |
 
 */
+
 Route::controller(GeneralController::class)->group(function () {
     Route::get('/', 'home')->name('home');
     Route::get('/contact', 'contact')->name('contact');
@@ -40,7 +42,6 @@ Route::prefix('admission')->group(function () {
 
         Route::get('/dashboard', 'dashboard')->middleware('user.type:applicant')->name('application.dashboard');
         Route::post('/start-application', 'startApplication')->middleware('user.type:applicant')->name('application.start');
-
         Route::get('/form/{user_application_id}', 'applicationForm')->middleware('user.type:applicant')->name('application.form');
 
         // ======= form submition ======= //
@@ -56,7 +57,6 @@ Route::prefix('admission')->group(function () {
         Route::post('/forgot-password', 'postForgotPassword')->name('password.email');
         Route::get('/password/update-otp', 'showUpdateWithOtp')->name('password.otp.update');
         Route::post('/password/update-otp', 'updateWithOtp');
-
     });
 });
 
@@ -80,7 +80,6 @@ Route::prefix('students')->group(function () {
         Route::post('/forget-password', 'forgetPasswordAction');
         Route::get('/auth/change-password', 'verifyOtpIndex')->name('students.auth.change-password');
         Route::post('/auth/change-password', 'verifyOtpAction');
-        
     });
 
     Route::middleware('user.type:student')->group(function () {
@@ -102,8 +101,6 @@ Route::prefix('students')->group(function () {
             Route::post('course-registration', 'store');
             Route::get('course-registration/download', 'downloadCourseForm')->name('students.course.download');
         });
-
-
     });
 });
 
@@ -120,6 +117,20 @@ Route::prefix('staff')->group(function () {
             Route::post('recommend/{userId}', 'recommendStudent')->name('admin.recommend');
             Route::get('/export-applicants', 'exportApplicants')->name('admin.exportApplicants');
             Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admin.applicants.details');
+        });
+    });
+
+    Route::middleware('user.type:bursary')->group(function () {
+        Route::prefix('burser')->group(function () {
+            Route::controller(BursaryController::class)->group(function () {
+                Route::get('/dashboard', 'dashboard')->name('burser.dashboard');
+                Route::get('/transactions', 'transactions')->name('bursary.transactions');
+                Route::get('/transactions/export/{format}',  'exportTransactions')->name('bursary.transactions.export');
+                Route::get('/transactions/verify/{id}',  'verifySingle')->name('bursary.transactions.verify');
+                Route::get('/verify-payment', 'verifyPaymentForm')->name('bursary.verify.form');
+                Route::post('/verify-payment', 'verifyPaymentAction')->name('bursary.verify.action');
+                Route::get('/transactions/{id}/verify', 'verifySingle')->name('bursary.transactions.verify');
+            });
         });
     });
 });

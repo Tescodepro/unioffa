@@ -31,13 +31,22 @@ class UserSeeder extends Seeder
         //     'password' => 'Registrar@UniOffa123',
         // ]);
 
-        $this->createAccount('vice-chancellor', [
-            'first_name' => 'Vice',
-            'last_name' => 'Chancellor',
-            'email' => 'vc@unioffa.edu.ng',
-            'phone' => '+234902222333',
-            'username' => 'VC001',
-            'password' => 'Vc@Unioffa123',
+        // $this->createAccount('vice-chancellor', [
+        //     'first_name' => 'Vice',
+        //     'last_name' => 'Chancellor',
+        //     'email' => 'vc@unioffa.edu.ng',
+        //     'phone' => '+234902222333',
+        //     'username' => 'VC001',
+        //     'password' => 'Vc@Unioffa123',
+        // ]);
+
+        $this->createAccount('bursary', [
+            'first_name' => 'Bursary',
+            'last_name' => 'Officer',
+            'email' => 'bursary@unioffa.edu.ng',
+            'phone' => '+234903333444',
+            'username' => 'BURSARY001',
+            'password' => 'Bursary@Unioffa123',
         ]);
     }
 
