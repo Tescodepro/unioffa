@@ -61,7 +61,7 @@
 
                 @if (in_array(auth()->user()->userType->name, ['bursary']))
                     <!-- REPORTS -->
-                    <li>
+                    {{-- <li>
                         <h6 class="submenu-hdr"><span>Reports</span></h6>
                         <ul>
                             <li>
@@ -89,7 +89,7 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li> --}}
 
 
                     <!-- PAYMENTS -->
