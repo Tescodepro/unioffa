@@ -40,13 +40,13 @@ class UserSeeder extends Seeder
         //     'password' => 'Vc@Unioffa123',
         // ]);
 
-        $this->createAccount('bursary', [
-            'first_name' => 'Bursary',
+        $this->createAccount('ict', [
+            'first_name' => 'ICT',
             'last_name' => 'Officer',
-            'email' => 'bursary@unioffa.edu.ng',
-            'phone' => '+234903333444',
-            'username' => 'BURSARY001',
-            'password' => 'Bursary@Unioffa123',
+            'email' => 'ict@unioffa.edu.ng',
+            'phone' => '+234903333440',
+            'username' => 'ICT001',
+            'password' => 'ict@Unioffa123',
         ]);
     }
 

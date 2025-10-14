@@ -57,12 +57,21 @@ class AuthController extends Controller
                     return redirect()->route('admin.dashboard')->with('success', "Welcome $name");
                 case 'bursary':
                     return redirect()->route('burser.dashboard')->with('success', "Welcome $name");
+                case 'ict':
+                    return redirect()->route('ict.dashboard')->with('success', "Welcome $name");
                 default:
                     Auth::logout();
                     return redirect()->route('staff.login')->with('error', 'Unauthorized access.');
             }
         }
         return back()->with('error', 'The provided credentials do not match our records.');
+    }
+
+    public function logoutAction()
+    {
+        Auth::logout();
+
+        return redirect()->route('staff.login')->with('success', 'Logged out successfully.');
     }
 
     

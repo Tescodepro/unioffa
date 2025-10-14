@@ -27,6 +27,7 @@ class UserTypeMiddleware
                 case 'bursary':
                 case 'registrar':
                 case 'vice-chancellor':
+                case 'ict':
                     $redirectRoute = route('staff.login');
                     break;
                 default:
@@ -52,8 +53,8 @@ class UserTypeMiddleware
         }
 
         // 4️⃣ Allow any staff type to access shared staff routes
-        if (in_array($userType, ['administrator', 'registrar', 'vice-chancellor', 'bursary']) &&
-            in_array($type, ['administrator', 'registrar', 'vice-chancellor', 'bursary'])) {
+        if (in_array($userType, ['administrator', 'registrar', 'vice-chancellor', 'bursary', 'ict']) &&
+            in_array($type, ['administrator', 'registrar', 'vice-chancellor', 'bursary', 'ict'])) {
             return $next($request);
         }
         // 5️⃣ Strict check for other cases

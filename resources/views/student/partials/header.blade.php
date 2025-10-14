@@ -88,9 +88,8 @@
         <a href="javascript:void(0);" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
             aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
         <div class="dropdown-menu dropdown-menu-end">
-            <a class="dropdown-item" href="profile.html">My Profile</a>
-            <a class="dropdown-item" href="profile-settings.html">Settings</a>
-            <a class="dropdown-item" href="login.html">Logout</a>
+            <a class="dropdown-item" href="{{ route('students.profile') }}">My Profile</a>
+            <a class="dropdown-item" href="{{ route('students.logout') }}">Logout</a>
         </div>
     </div>
     <!-- /Mobile Menu -->

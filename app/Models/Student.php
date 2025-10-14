@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class Student extends Model
 {
@@ -74,7 +75,7 @@ class Student extends Model
     {
         return DB::transaction(function () use ($departmentCode, $admissionYear, $programme) {
             // Validate programme
-            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDEL', 'UTME', 'REGULAR', 'Transfer', 'DIPLOMA'];
+            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDELDE', 'UTME', 'TRANSFER', 'DIPLOMA','DE'];
             if (! in_array($programme, $validProgrammes)) {
                 throw new InvalidArgumentException('Invalid programme specified.');
             }
@@ -82,8 +83,10 @@ class Student extends Model
             // Modify department code based on programme
             $modifiedCode = match ($programme) {
                 'TOPUP' => 'T'.$departmentCode,        // e.g., CSC -> TCSC
-                'IDELUTME', 'IDEL' => 'D'.$departmentCode, // e.g., CSC -> DCSC
+                'IDELUTME', 'IDELDE' => 'D'.$departmentCode, // e.g., CSC -> DCSC
                 'DIPLOMA' => 'DP'.$departmentCode,     // e.g., CSC -> DPCSC
+                'DE' => 'DE'.$departmentCode,          // e.g., CSC -> DECSC
+                'TRANSFER' => 'TR'.$departmentCode,      // e.g., CSC -> TRCSC
                 default => $departmentCode,              // UTME, Transfer: no change
             };
 

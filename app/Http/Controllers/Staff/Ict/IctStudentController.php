@@ -1,0 +1,276 @@
+<?php
+
+namespace App\Http\Controllers\Staff\Ict;
+
+use App\Http\Controllers\Controller;
+use App\Models\Student;
+use App\Models\Department;
+use App\Models\Faculty;
+use App\Models\User;
+use App\Models\UserType;
+use App\Models\Campus;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Exception;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\StudentsImport;
+use App\Exports\StudentsTemplateExport;
+
+class IctStudentController extends Controller
+{
+    // Dashboard
+    public function dashboard()
+    {
+        // 🔹 Total number of students
+        $totalStudents = Student::count();
+
+        // 🔹 Students grouped by Department (including department name and faculty)
+        $studentsByDept = Department::with(['faculty'])
+            ->withCount('students')
+            ->orderBy('department_name')
+            ->get();
+
+        // 🔹 Students grouped by Faculty
+        $studentsByFaculty = Faculty::with(['departments.students'])
+            ->get()
+            ->map(function ($faculty) {
+                $faculty->total_students = $faculty->departments->sum(fn($dept) => $dept->students->count());
+                return $faculty;
+            });
+
+        // 🔹 Optional: Students grouped by Programme
+        $studentsByProgramme = Student::select('programme', DB::raw('COUNT(*) as total'))
+            ->groupBy('programme')
+            ->orderBy('programme')
+            ->get();
+
+        // 🔹 Pass all data to Blade
+        return view('staff.ict.dashboard', compact(
+            'totalStudents',
+            'studentsByDept',
+            'studentsByFaculty',
+            'studentsByProgramme'
+        ));
+    }
+    public function index(Request $request)
+    {
+        $departmentId = $request->department_id;
+        $level = $request->level;
+        $name = $request->name;
+        $matric = $request->matric_no;
+
+        $students = Student::with(['user', 'department.faculty'])
+            ->when($departmentId, fn($q) => $q->where('department_id', $departmentId))
+            ->when($level, fn($q) => $q->where('level', $level))
+            ->when($name, fn($q) => $q->whereHas(
+                'user',
+                fn($u) =>
+                $u->where('first_name', 'like', "%{$name}%")
+                    ->orWhere('last_name', 'like', "%{$name}%")
+            ))
+            ->when($matric, fn($q) => $q->where('matric_no', 'like', "%{$matric}%"))
+            ->orderBy('matric_no')
+            ->paginate(20);
+
+        $departments = Department::with('faculty')->get();
+
+        $stats = [
+            'total' => Student::count(),
+            'by_department' => Student::select('department_id', DB::raw('COUNT(*) as total'))
+                ->groupBy('department_id')
+                ->with('department')
+                ->get(),
+        ];
+
+        return view('staff.ict.students.index', compact('students', 'departments', 'stats'));
+    }
+    public function create()
+    {
+        $departments = Department::with('faculty')->orderBy('department_name')->get();
+        $campuses = Campus::where('status', '1')->get();
+        return view('staff.ict.students.create', compact('departments', 'campuses'));
+    }
+    //Store single student
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'first_name'      => 'required|string|max:100',
+            'last_name'       => 'required|string|max:100',
+            'email'           => 'required|email|unique:users,email',
+            'phone'           => 'required|string|unique:users,phone',
+            'department_id'   => 'required|exists:departments,id',
+            'level'           => 'required|integer|in:100,200,300,400,500',
+            'gender'          => 'required|in:male,female',
+            'admission_year'  => 'required|string|regex:/^\d{4}\/\d{4}$/',
+            'campus_id'       => 'required|exists:campuses,id',
+            'stream'          => 'nullable|integer',
+            'entry_mode'      => 'required|string|in:TOPUP,IDELUTME,IDELDE,UTME,TRANSFER,DIPLOMA,DE',
+            'dob'             => 'required|date|before:today',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $department = Department::findOrFail($request->department_id);
+
+            // Extract admission year (first part before slash)
+            $admissionYear = (int) explode('/', $request->admission_year)[0];
+
+            // Generate matric number using the entry_mode directly
+            $matricNo = Student::generateMatricNo(
+                $department->department_code,
+                $admissionYear,
+                $request->entry_mode
+            );
+
+            // Get user type
+            $userType = UserType::where('name', 'student')->firstOrFail();
+            // Create user
+            $user = User::create([
+                'first_name'       => $request->first_name,
+                'last_name'        => $request->last_name,
+                'email'            => $request->email,
+                'phone'            => $request->phone,
+                'username'         => $matricNo,
+                'registration_no'  => null,
+                'password'         => Hash::make($request->last_name),
+                'user_type_id'     => $userType->id,
+                'date_of_birth'    => $request->dob,
+                'campus_id'        => $request->campus_id,
+            ]);
+            Student::create([
+                'user_id'            => $user->id,
+                'campus_id'          => $request->campus_id,
+                'department_id'      => $department->id,
+                'matric_no'          => $matricNo,
+                'programme'          => $request->entry_mode, // Store original entry mode
+                'stream'             => $request->stream,
+                'entry_mode'         => $request->entry_mode,
+                'level'              => $request->level,
+                'admission_session'  => $request->admission_year,
+                'admission_date'     => "{$admissionYear}-09-01", // Assuming Sept admission
+                'status'             => 1,
+                'sex'                => $request->gender, // Map gender to sex
+                'address'            => null, // Optional field not in form
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('ict.students.index')
+                ->with('success', "Student added successfully. Matric No: {$matricNo}");
+        } catch (Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error creating student: ' . $e->getMessage());
+        }
+    }
+    // Bulk upload form
+    public function bulkUploadForm()
+    {
+        $departments = Department::with('faculty')->get();
+        return view('staff.ict.students.bulk', compact('departments'));
+    }
+
+    // Bulk upload process
+public function bulkUpload(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,csv,xls|max:10240', // 10MB max
+    ]);
+
+    try {
+        Excel::import(new StudentsImport, $request->file('file'));
+        
+        $successCount = session('upload_success_count', 0);
+        $skipCount = session('upload_skip_count', 0);
+        
+        if ($successCount > 0 && $skipCount == 0) {
+            return redirect()
+                ->route('ict.students.index')
+                ->with('success', "Successfully uploaded {$successCount} student(s).");
+        } elseif ($successCount > 0 && $skipCount > 0) {
+            return redirect()
+                ->route('ict.students.index')
+                ->with('warning', "Uploaded {$successCount} student(s). {$skipCount} row(s) were skipped due to errors.");
+        } else {
+            return back()->with('error', 'No students were uploaded. Please check the errors and try again.');
+        }
+        
+    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        $failures = $e->failures();
+        $errors = [];
+        
+        foreach ($failures as $failure) {
+            $errors[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
+        }
+        
+        return back()->with('upload_errors', $errors);
+        
+    } catch (Exception $e) {
+        return back()->with('error', 'Upload failed: ' . $e->getMessage());
+    }
+}
+
+// Download template
+public function downloadTemplate()
+{
+    return Excel::download(new StudentsTemplateExport, 'students_upload_template.xlsx');
+}
+
+    public function edit($id)
+    {
+        $student = Student::with('user', 'department.faculty')->findOrFail($id);
+        $departments = Department::with('faculty')->get();
+        return view('staff.ict.students.edit', compact('student', 'departments'));
+    }
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'required|email|max:255',
+            'matric_no'  => 'required|string|max:255',
+            'department_id' => 'required|uuid',
+            'programme'  => 'required|string|max:255',
+            'level'      => 'required|integer',
+            'sex'        => 'required|string',
+        ]);
+
+        $student = Student::with('user')->findOrFail($id);
+
+        // Update user details
+        $student->user->update([
+            'first_name' => $request->first_name,
+            'last_name'  => $request->last_name,
+            'email'      => $request->email,
+            'phone'      => $request->phone,
+        ]);
+
+        // Update student details
+        $student->update([
+            'matric_no'     => $request->matric_no,
+            'department_id' => $request->department_id,
+            'programme'     => $request->programme,
+            'level'         => $request->level,
+            'sex'           => $request->sex,
+        ]);
+
+        return redirect()->route('ict.students.index')->with('success', 'Student updated successfully.');
+    }
+
+    public function destroy(Student $student)
+    {
+        $student->delete();
+        return back()->with('success', 'Student deleted successfully.');
+    }
+
+    private function getUserTypeId(string $name): ?string
+    {
+        return UserType::where('name', $name)->value('id');
+    }
+}

@@ -108,6 +108,7 @@ Route::prefix('staff')->group(function () {
     Route::controller(StaffAuthController::class)->group(function () {
         Route::get('/', 'login')->name('staff.login');
         Route::post('/', 'loginAction');
+        Route::get('logout', 'logoutAction')->name('staff.logout');
     });
 
     Route::middleware('user.type:administrator')->group(function () {
@@ -146,6 +147,23 @@ Route::prefix('staff')->group(function () {
                 Route::put('/payment-settings/{paymentSetting}', 'update')->name('bursary.payment-settings.update');
                 Route::delete('/payment-settings/{paymentSetting}', 'destroy')->name('bursary.payment-settings.destroy');
             });
+        });
+    });
+
+    Route::prefix('ict')->middleware('user.type:ict')->group(function () {
+        Route::controller(App\Http\Controllers\Staff\Ict\IctStudentController::class)->group(function () {
+            Route::get('/dashboard', 'dashboard')->name('ict.dashboard');
+            // Student CRUD
+            Route::get('/students', 'index')->name('ict.students.index');
+            Route::get('/students/create', 'create')->name('ict.students.create');
+            Route::post('/students', 'store')->name('ict.students.store');
+            Route::get('/students/{student}/edit', 'edit')->name('ict.students.edit');
+            Route::put('/students/{student}', 'update')->name('ict.students.update');
+            Route::delete('/students/{student}', 'destroy')->name('ict.students.destroy');
+            // Bulk upload
+            Route::get('/students/bulk', 'bulkUploadForm')->name('ict.students.bulk');
+            Route::post('/students/bulk', 'bulkUpload')->name('ict.students.bulk.upload');
+            Route::get('/students/bulk/template', 'downloadTemplate')->name('ict.students.bulk.template');
         });
     });
 });
