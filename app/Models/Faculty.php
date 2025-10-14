@@ -35,4 +35,11 @@ class Faculty extends Model
     {
         return $this->hasMany(Department::class);
     }
+
+    // app/Models/Faculty.php
+    public function students()
+    {
+        return $this->hasMany(Student::class);
+    }
+
 }

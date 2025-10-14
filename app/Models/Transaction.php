@@ -23,7 +23,7 @@ class Transaction extends Model
         'session',
     ];
 
-        public function user()
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }

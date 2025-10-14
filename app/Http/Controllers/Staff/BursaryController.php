@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\{Transaction, PaymentSetting, Student};
+use App\Models\{Transaction, PaymentSetting, Student, Faculty, Department};
 use App\Services\PaymentVerificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\TransactionsExport;
+use App\Exports\{TransactionsExport, GenericExport};
 
 class BursaryController extends Controller
 {
@@ -22,7 +22,7 @@ class BursaryController extends Controller
             'total_collected' => Transaction::where('payment_status', 1)->sum('amount'),
             'pending_payments' => Transaction::where('payment_status', 0)->count(),
             'failed_payments' => Transaction::where('payment_status', 2)->count(),
-            'total_transactions' => Transaction::count(),
+            'total_transactions' => Transaction::where('payment_status', 1)->count(),
         ];
 
         // Group transactions by payment_type
@@ -31,6 +31,7 @@ class BursaryController extends Controller
             DB::raw('COUNT(*) as total'),
             DB::raw('SUM(amount) as total_amount')
         )
+            ->where('payment_status', '1')
             ->groupBy('payment_type')
             ->get();
 
@@ -108,7 +109,6 @@ class BursaryController extends Controller
         return back()->with('error', 'Invalid export format.');
     }
 
-
     /**
      * Show verify payment page — enter reference number manually.
      */
@@ -116,7 +116,6 @@ class BursaryController extends Controller
     {
         return view('staff.bursary.verify');
     }
-
     /**
      * Process verification from form input.
      */
@@ -156,7 +155,6 @@ class BursaryController extends Controller
         ]);
     }
 
-
     /**
      * Verify directly from transaction table button.
      */
@@ -178,48 +176,134 @@ class BursaryController extends Controller
         return back()->with('success', 'Transaction verified successfully.');
     }
 
-    public function summary()
+    // 📘 REPORT BY FACULTY
+    public function reportByFaculty()
     {
-        $summary = PaymentSetting::select('payment_type', DB::raw('SUM(amount) as total_amount'))
-            ->groupBy('payment_type')
-            ->get();
+        $faculties = Faculty::with(['departments.students.user.transactions'])->get();
 
-        $studentsCount = Student::count();
-        $expectedTotals = $summary->map(function ($item) use ($studentsCount) {
-            $item->expected_total = $studentsCount * $item->total_amount;
-            return $item;
+        $data = $faculties->map(function ($faculty) {
+            $transactions = collect();
+
+            foreach ($faculty->departments as $department) {
+                foreach ($department->students as $student) {
+                    if ($student->user && $student->user->transactions) {
+                        $transactions = $transactions->merge($student->user->transactions);
+                    }
+                }
+            }
+
+            $totalReceived = $transactions->where('status', 'success')->sum('amount');
+            $totalTransactions = $transactions->count();
+            $expected = PaymentSetting::where('faculty_id', $faculty->id)->sum('amount');
+
+            return [
+                'faculty' => $faculty->faculty_code ?? $faculty->name,
+                'total_transactions' => $totalTransactions,
+                'expected' => $expected,
+                'received' => $totalReceived,
+                'outstanding' => $expected - $totalReceived,
+            ];
         });
 
-        return view('staff.bursary.summary', compact('expectedTotals'));
+        return view('staff.bursary.reports.by_faculty', compact('data'));
     }
 
-    public function report()
+    // 📘 REPORT BY DEPARTMENT
+    public function reportByDepartment()
     {
-        return view('staff.bursary.report');
+        $departments = Department::with(['students.user.transactions'])->get();
+
+        $data = $departments->map(function ($dept) {
+            $transactions = collect();
+
+            foreach ($dept->students as $student) {
+                if ($student->user && $student->user->transactions) {
+                    $transactions = $transactions->merge($student->user->transactions);
+                }
+            }
+
+            $totalReceived = $transactions->where('status', 'success')->sum('amount');
+            $totalTransactions = $transactions->count();
+            $expected = PaymentSetting::where('department_id', $dept->id)->sum('amount');
+
+            return [
+                'faculty' => $dept->faculty->faculty_code ?? '',
+                'department' => $dept->department_code ?? $dept->name,
+                'total_transactions' => $totalTransactions,
+                'expected' => $expected,
+                'received' => $totalReceived,
+                'outstanding' => $expected - $totalReceived,
+            ];
+        });
+
+        return view('staff.bursary.reports.by_department', compact('data'));
     }
 
-    public function settings()
+    // 📘 REPORT BY LEVEL
+    public function reportByLevel()
     {
-        $settings = PaymentSetting::latest()->get();
-        return view('staff.bursary.settings', compact('settings'));
+        $levels = PaymentSetting::select('level')->distinct()->pluck('level');
+        $data = [];
+
+        foreach ($levels as $levelsJson) {
+            $levelsArray = json_decode($levelsJson, true);
+            if (!is_array($levelsArray)) continue;
+
+            foreach ($levelsArray as $level) {
+                $expected = PaymentSetting::whereJsonContains('level', $level)->sum('amount');
+                $received = Transaction::where('level', $level)
+                    ->where('status', 'success')
+                    ->sum('amount');
+
+                $data[] = [
+                    'level' => $level,
+                    'expected' => $expected,
+                    'received' => $received,
+                    'outstanding' => $expected - $received,
+                ];
+            }
+        }
+
+        return view('staff.bursary.reports.by_level', compact('data'));
     }
 
-    public function storeSetting(Request $request)
+    // 📘 REPORT BY STUDENT
+    public function reportByStudent()
     {
-        $request->validate([
-            'payment_type' => 'required|string',
-            'amount' => 'required|numeric',
-            'session' => 'required|string',
-        ]);
+        $transactions = Transaction::with(['user.student.department.faculty'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        PaymentSetting::updateOrCreate(
-            [
-                'payment_type' => $request->payment_type,
-                'session' => $request->session,
-            ],
-            $request->only('faculty_id', 'department_id', 'level', 'sex', 'amount', 'student_type', 'description')
-        );
+        $data = $transactions->map(function ($txn) {
+            return [
+                'student_name' => $txn->user->name ?? 'N/A',
+                'matric_number' => $txn->user->student->matric_number ?? 'N/A',
+                'faculty' => $txn->user->student->department->faculty->faculty_code ?? 'N/A',
+                'department' => $txn->user->student->department->department_code ?? 'N/A',
+                'amount' => $txn->amount,
+                'status' => ucfirst($txn->status),
+                'reference' => $txn->reference_number,
+                'date' => $txn->created_at->format('Y-m-d'),
+            ];
+        });
 
-        return back()->with('success', 'Payment setting updated successfully.');
+        return view('staff.bursary.reports.by_student', compact('data'));
+    }
+
+    // 📘 EXPORT HANDLER
+    public function export($type, $format)
+    {
+        $fileName = "report_{$type}." . $format;
+
+        if ($format === 'pdf') {
+            $pdf = PDF::loadView("staff.bursary.reports.exports.{$type}");
+            return $pdf->download($fileName);
+        }
+
+        if ($format === 'xlsx') {
+            return Excel::download(new GenericExport($type), $fileName);
+        }
+
+        abort(404);
     }
 }

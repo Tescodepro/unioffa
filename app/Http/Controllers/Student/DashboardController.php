@@ -201,9 +201,25 @@ class DashboardController extends Controller
         $student = $user->student;
         // ✅ 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
-            ->where('student_type', $student->programme)
-            ->whereJsonContains('level', (int) $student->level)
-            ->where('session', $currentSession)
+            ->where('session', $currentSession) // session must always match
+            ->when($student->programme, function ($q) use ($student) {
+                $q->where(function ($sub) use ($student) {
+                    $sub->whereNull('student_type')
+                        ->orWhere('student_type', $student->programme);
+                });
+            }, function ($q) {
+                // If student type is null, only accept settings where student_type is null
+                $q->whereNull('student_type');
+            })
+            ->when($student->level, function ($q) use ($student) {
+                $q->where(function ($sub) use ($student) {
+                    $sub->whereNull('level')
+                        ->orWhereJsonContains('level', (int) $student->level);
+                });
+            }, function ($q) {
+                // If student's level is null, only accept settings where level is null
+                $q->whereNull('level');
+            })
             ->when($student->department?->faculty_id, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
                     $sub->whereNull('faculty_id')
@@ -222,7 +238,7 @@ class DashboardController extends Controller
             })
             ->where(function ($q) use ($student) {
                 $q->whereNull('matric_number')
-                    ->orWhere('matric_number', $student->matric_number);
+                    ->orWhere('matric_number', $student->matric_no);
             })
             ->get();
 

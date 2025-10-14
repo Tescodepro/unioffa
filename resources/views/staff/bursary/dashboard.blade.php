@@ -88,7 +88,7 @@
                                     <i class="ti ti-receipt fs-16"></i>
                                 </span>
                                 <div>
-                                    <h6 class="mb-0">Total Transactions</h6>
+                                    <h6 class="mb-0">Total Successful Transactions</h6>
                                     <h5 class="mb-0">{{ $stats['total_transactions'] }}</h5>
                                 </div>
                             </div>
@@ -149,7 +149,7 @@
                                 @forelse($recentTransactions as $txn)
                                 <tr>
                                     <td>{{ $txn->refernce_number }}</td>
-                                    <td>{{ $txn->user->name ?? 'Unknown' }}</td>
+                                    <td>{{ $txn->user->full_name ?? 'Unknown' }}</td>
                                     <td>₦{{ number_format($txn->amount, 2) }}</td>
                                     <td>
                                         @if($txn->payment_status == 1)

@@ -33,6 +33,11 @@ class AuthController extends Controller
         ];
 
         if (Auth::attempt($authCredentials)) {
+
+            if(in_array( Auth::user()->center_id, ['927755cd-4f58-48d8-8e46-d293956457a2','2b82858c-e671-4deb-80c8-9c2abc196429', 'aa2cd785-f53a-485f-b654-cc41c42895c0'])){
+                return back()->with('error', 'Kindly check back on 7 days time');
+            }
+
             $request->session()->regenerate();
 
             $to = Auth::user()->email;

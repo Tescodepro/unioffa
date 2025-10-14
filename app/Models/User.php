@@ -100,7 +100,6 @@ class User extends Authenticatable
     {
         return $this->hasOne(CourseOfStudy::class, 'user_id');
     }
-
     public function applicationSetting()
     {
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');

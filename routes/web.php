@@ -5,7 +5,7 @@ use App\Http\Controllers\CourseRegistrationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Staff\AuthController as StaffAuthController;
 use App\Http\Controllers\Staff\GeneralController as AdminGeneralController;
-use App\Http\Controllers\Staff\BursaryController;
+use App\Http\Controllers\Staff\{BursaryController, PaymentSettingController};
 use App\Http\Controllers\Student\AuthController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
@@ -130,6 +130,21 @@ Route::prefix('staff')->group(function () {
                 Route::get('/verify-payment', 'verifyPaymentForm')->name('bursary.verify.form');
                 Route::post('/verify-payment', 'verifyPaymentAction')->name('bursary.verify.action');
                 Route::get('/transactions/{id}/verify', 'verifySingle')->name('bursary.transactions.verify');
+                Route::get('/reports/faculty', 'reportByFaculty')->name('bursary.reports.faculty');
+                Route::get('/reports/department', 'reportByDepartment')->name('bursary.reports.department');
+                Route::get('/reports/level', 'reportByLevel')->name('bursary.reports.level');
+                Route::get('/reports/student', 'reportByStudent')->name('bursary.reports.student');
+
+                // Exports
+                Route::get('/reports/{type}/export/{format}', 'export')->name('bursary.reports.export');
+            });
+            Route::controller(PaymentSettingController::class)->group(function () {
+                Route::get('/payment-settings', 'index')->name('bursary.payment-settings.index');
+                Route::get('/payment-settings/create', 'create')->name('bursary.payment-settings.create');
+                Route::post('/payment-settings', 'store')->name('bursary.payment-settings.store');
+                Route::get('/payment-settings/{paymentSetting}/edit', 'edit')->name('bursary.payment-settings.edit');
+                Route::put('/payment-settings/{paymentSetting}', 'update')->name('bursary.payment-settings.update');
+                Route::delete('/payment-settings/{paymentSetting}', 'destroy')->name('bursary.payment-settings.destroy');
             });
         });
     });
