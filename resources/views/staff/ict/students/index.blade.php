@@ -26,20 +26,43 @@
                     <a href="{{ route('ict.students.bulk') }}" class="btn btn-secondary">
                         <i class="ti ti-upload"></i> Bulk Upload
                     </a>
-                    {{-- Uncomment if export is enabled
-                    <div class="btn-group">
-                        <a href="{{ route('ict.students.export', 'xlsx') }}" class="btn btn-success">
-                            <i class="ti ti-download"></i> Export Excel
-                        </a>
-                        <a href="{{ route('ict.students.export', 'pdf') }}" class="btn btn-danger">
-                            <i class="ti ti-file-type-pdf"></i> Export PDF
-                        </a>
-                    </div>
-                    --}}
                 </div>
             </div>
 
-            <!-- Filters -->
+            <!-- Statistics -->
+            <div class="row mb-3">
+                <div class="col-md-6 col-6">
+                    <div class="card text-center p-3 shadow-sm border-0">
+                        <h6 class="text-muted mb-1">Total Students</h6>
+                        <h3 class="fw-bold">{{ number_format($stats['total']) }}</h3>
+                    </div>
+                </div>
+                <div class="col-md-6 col-6">
+                    <div class="card text-center p-3 shadow-sm border-0">
+                        <h6 class="text-muted mb-1">Departments</h6>
+                        <h3 class="fw-bold">{{ $departments->count() }}</h3>
+                    </div>
+                </div>
+                <div class="col-md-12 mt-3 mt-md-0">
+                    <div class="card p-3 shadow-sm border-0">
+                        <h6 class="text-muted mb-2">Students by Department</h6>
+                        @if($stats['by_department']->count())
+                            <ul class="list-group list-group-flush small">
+                                @foreach ($stats['by_department'] as $dept)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ $dept->department->department_name ?? '—' }}
+                                        <span class="badge bg-primary rounded-pill">{{ $dept->total }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-muted mb-0">No data available</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+             <!-- Filters -->
             <div class="card mb-3">
                 <div class="card-body">
                     <form method="GET" class="row g-3">
@@ -83,39 +106,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            <!-- Statistics -->
-            <div class="row mb-3">
-                <div class="col-md-6 col-6">
-                    <div class="card text-center p-3 shadow-sm border-0">
-                        <h6 class="text-muted mb-1">Total Students</h6>
-                        <h3 class="fw-bold">{{ number_format($stats['total']) }}</h3>
-                    </div>
-                </div>
-                <div class="col-md-6 col-6">
-                    <div class="card text-center p-3 shadow-sm border-0">
-                        <h6 class="text-muted mb-1">Departments</h6>
-                        <h3 class="fw-bold">{{ $departments->count() }}</h3>
-                    </div>
-                </div>
-                <div class="col-md-12 mt-3 mt-md-0">
-                    <div class="card p-3 shadow-sm border-0">
-                        <h6 class="text-muted mb-2">Students by Department</h6>
-                        @if($stats['by_department']->count())
-                            <ul class="list-group list-group-flush small">
-                                @foreach ($stats['by_department'] as $dept)
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        {{ $dept->department->department_name ?? '—' }}
-                                        <span class="badge bg-primary rounded-pill">{{ $dept->total }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="text-muted mb-0">No data available</p>
-                        @endif
-                    </div>
                 </div>
             </div>
 

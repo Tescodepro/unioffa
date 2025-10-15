@@ -638,4 +638,49 @@ class ApplicationController extends Controller
 
         return redirect()->route('application.login')->with('success', 'Password updated successfully! Please login.');
     }
+
+    public function downloadApplicantDetails($applicationId)
+    {
+        $userId = Auth::id();
+
+        $application = UserApplications::with([
+            'applicationSetting',
+            'profile',
+            'olevels',
+            'jambDetail',
+            'documents',
+            'educationHistories',
+            'user.courseOfStudy.firstDepartment',
+            'user.courseOfStudy.secondDepartment',
+        ])
+            ->where('id', $applicationId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        // Process olevels
+        foreach ($application->olevels as $olevel) {
+            $subjects = is_string($olevel->subjects) ? json_decode($olevel->subjects, true) : $olevel->subjects;
+            $grades = is_string($olevel->grades) ? json_decode($olevel->grades, true) : $olevel->grades;
+            $olevel->subjects = array_combine($subjects ?? [], $grades ?? []) ?: [];
+        }
+
+        // Process JAMB details
+        if ($application->jambDetail) {
+            $subjects = is_string($application->jambDetail->subjects) ? json_decode($application->jambDetail->subjects, true) : $application->jambDetail->subjects;
+            $scores = is_string($application->jambDetail->subject_scores) ? json_decode($application->jambDetail->subject_scores, true) : $application->jambDetail->subject_scores;
+            $application->jambDetail->subject_scores = array_combine($subjects ?? [], $scores ?? []) ?: [];
+        }
+
+        $modules = json_decode($application->applicationSetting->modules_enable, true);
+
+        $data = [
+            'application' => $application,
+            'modules' => $modules
+        ];
+
+        $pdf = Pdf::loadView('applications.application-details-printout', $data)
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->download('Application_Filled_Details.pdf');
+    }
 }

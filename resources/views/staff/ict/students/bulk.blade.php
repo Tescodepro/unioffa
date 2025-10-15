@@ -91,7 +91,7 @@
 
             <div class="row">
                 {{-- Upload Form --}}
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">Upload File</h5>
@@ -138,7 +138,7 @@
                 </div>
 
                 {{-- Instructions --}}
-                <div class="col-md-4">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header bg-primary text-white">
                             <h5 class="card-title mb-0 text-white">

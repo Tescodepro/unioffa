@@ -5,24 +5,24 @@
             <ul>
                 <li>
                     @if (in_array(auth()->user()->userType->name, ['administrator', 'vice-chancellor', 'registrar']))
-                        <a href="{{ route('students.dashboard') }}" 
-                           class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}" 
-                                 class="avatar avatar-md img-fluid rounded" alt="Profile">
+                        <a href="{{ route('students.dashboard') }}"
+                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
+                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
+                                class="avatar avatar-md img-fluid rounded" alt="Profile">
                             <span class="text-dark ms-2 fw-normal">University of Offa</span>
                         </a>
                     @elseif(auth()->user()->userType->name === 'bursary')
-                        <a href="{{ route('burser.dashboard') }}" 
-                           class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}" 
-                                 class="avatar avatar-md img-fluid rounded" alt="Profile">
+                        <a href="{{ route('burser.dashboard') }}"
+                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
+                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
+                                class="avatar avatar-md img-fluid rounded" alt="Profile">
                             <span class="text-dark ms-2 fw-normal">University of Offa</span>
                         </a>
                     @elseif(auth()->user()->userType->name === 'ict')
-                        <a href="{{ route('ict.dashboard') }}" 
-                           class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}" 
-                                 class="avatar avatar-md img-fluid rounded" alt="Profile">
+                        <a href="{{ route('ict.dashboard') }}"
+                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
+                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
+                                class="avatar avatar-md img-fluid rounded" alt="Profile">
                             <span class="text-dark ms-2 fw-normal">University of Offa</span>
                         </a>
                     @endif
@@ -36,8 +36,8 @@
                     <ul>
                         <li>
                             @if (in_array(auth()->user()->userType->name, ['administrator', 'vice-chancellor', 'registrar']))
-                                <a href="{{ route('students.dashboard') }}"
-                                    class="{{ request()->routeIs('students.dashboard') ? 'active' : '' }}">
+                                <a href="{{ route('admin.dashboard') }}"
+                                    class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                                     <i class="ti ti-layout-dashboard"></i>
                                     <span>Dashboard</span>
                                 </a>
@@ -88,9 +88,10 @@
                     </li>
                 @endif
 
-                @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
+                @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor', 'ict']))
                     <!-- TRANSACTIONS -->
-                    <li class="{{ request()->is('staff/bursary/transactions*') || request()->is('staff/bursary/verify*') ? 'open' : '' }}">
+                    <li
+                        class="{{ request()->is('staff/bursary/transactions*') || request()->is('staff/bursary/verify*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>Transactions</span></h6>
                         <ul>
                             <li>
@@ -111,7 +112,7 @@
                     </li>
                 @endif
 
-                @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
+                @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor', 'ict']))
                     <!-- PAYMENTS -->
                     <li class="{{ request()->is('staff/bursary/payment-settings*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>Payments</span></h6>
@@ -134,7 +135,7 @@
                     </li>
                 @endif
 
-                @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
+                {{-- @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
                     <!-- REPORTS -->
                     <li class="{{ request()->is('staff/bursary/reports*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>Reports</span></h6>
@@ -169,7 +170,7 @@
                             </li>
                         </ul>
                     </li>
-                @endif
+                @endif --}}
 
                 <!-- ACCOUNT -->
                 <li>

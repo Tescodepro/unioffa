@@ -57,6 +57,8 @@ Route::prefix('admission')->group(function () {
         Route::post('/forgot-password', 'postForgotPassword')->name('password.email');
         Route::get('/password/update-otp', 'showUpdateWithOtp')->name('password.otp.update');
         Route::post('/password/update-otp', 'updateWithOtp');
+        Route::get('/application/{id}/download',  'downloadApplicantDetails')->name('applicant.printout.download')->middleware('auth');
+
     });
 });
 

@@ -725,6 +725,34 @@
                         </div>
                     @endif
 
+                    @if($application->submitted_by)
+                        <div class="col-xl-12 mt-5">
+                            <div id="admission_letter_section">
+                                <div class="card">
+                                    <div class="card-body text-center py-5">
+                                        <h4>Congratulations, {{ $application->user->full_name ?? 'Student' }}!</h4>
+                                        <p class="text-muted mb-4">
+                                            You have successfully applied for admission into {{ config('app.name') }}.
+                                        </p>
+                                        <p class="text-muted mb-4">
+                                            Admission committe will review your application shortly and notify you via email regarding the outcome of your application.
+                                        </p>
+                                        <p class="text-muted mb-4">
+                                            If you have not received a notification within 2 working days, kindly contact us at +234 903 615 4339, +234 810 966 8798, +234 703 456 7377</a>.
+                                        </p>
+                                        <p>
+                                            Kindly download and print your application printout for future reference.
+                                        </p>
+                                        <a href="{{ route('applicant.printout.download', $application->id) }}" 
+                                        class="theme-btn" target="_blank">
+                                            <i class="fas fa-file-pdf"></i> Download Application Printout
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Transaction History Section -->
                     @if($payment_transaction->count() > 0)
                         <div class="card mt-4">

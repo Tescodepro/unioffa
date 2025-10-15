@@ -121,17 +121,17 @@
                             </thead>
                             <tbody>
                                 @forelse($settings as $key => $setting)
-                                    @if ($setting->payment_type != 'technical1')
+                                    @if ($setting->payment_type != 'technical')
                                         <tr>
                                             <td>{{ $key + 1 }}</td>
-                                            <td>{{ $setting->faculty->faculty_code ?? '-' }}</td>
-                                            <td>{{ $setting->department->department_code ?? '-' }}</td>
+                                            <td>{{ $setting->faculty->faculty_code ?? 'All' }}</td>
+                                            <td>{{ $setting->department->department_code ?? 'All' }}</td>
                                             <td>{{ implode(', ', $setting->level ?? []) }}</td>
-                                            <td>{{ $setting->matric_number ?? '-' }}</td>
+                                            <td>{{ $setting->matric_number ?? 'All' }}</td>
                                             <td>{{ ucfirst($setting->payment_type) }}</td>
                                             <td>{{ number_format($setting->amount, 2) }}</td>
                                             <td>{{ $setting->session }}</td>
-                                            <td>{{ $setting->student_type ?? '-' }}</td>
+                                            <td>{{ $setting->student_type ?? 'All' }}</td>
                                             <td>
                                                 @if ($setting->installmental_allow_status)
                                                     <span class="badge bg-success">Allowed</span>
