@@ -82,6 +82,7 @@
                                     <th>#</th>
                                     <th>Reference</th>
                                     <th>Student</th>
+                                    <th>Matric No / Student ID</th>
                                     <th>Payment Type</th>
                                     <th>Amount</th>
                                     <th>Status</th>
@@ -95,6 +96,7 @@
                                         <td>{{ $loop->iteration + ($transactions->currentPage() - 1) * $transactions->perPage() }}</td>
                                         <td><strong>{{ $txn->refernce_number }}</strong></td>
                                         <td>{{ optional($txn->user)->first_name }} {{ optional($txn->user)->last_name }}</td>
+                                        <td>{{ optional($txn->user)->username }}</td>
                                         <td>{{ ucfirst($txn->payment_type) }}</td>
                                         <td>{{ number_format($txn->amount, 2) }}</td>
                                         <td>
