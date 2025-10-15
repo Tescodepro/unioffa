@@ -127,8 +127,8 @@ class GeneralController extends Controller
 
         $content = [
             'title' => 'Dear ' . $user->full_name . ',',
-            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study ' . ($department->department_name ?? 'your chosen course') . '. for the ' . $user_application->academic_session . ' academic session admission. This achievement is a testament to your hard work, dedication, and academic excellence.',
-            'footer' => 'Offa University Security Team',
+            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study ' . ($department->department_name ?? 'your chosen course') . '. for the ' . $user_application->academic_session . ' academic session admission. log in to your portal for further information',
+            'footer' => '',
         ];
 
         Mail::to($to)->send(new GeneralMail($subject, $content, false));
