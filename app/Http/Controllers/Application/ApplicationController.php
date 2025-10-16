@@ -63,7 +63,7 @@ class ApplicationController extends Controller
             'middle_name' => 'nullable|string|max:255',
             'center' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|unique:users,phone',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
