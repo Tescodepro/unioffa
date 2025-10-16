@@ -58,7 +58,6 @@ Route::prefix('admission')->group(function () {
         Route::get('/password/update-otp', 'showUpdateWithOtp')->name('password.otp.update');
         Route::post('/password/update-otp', 'updateWithOtp');
         Route::get('/application/{id}/download',  'downloadApplicantDetails')->name('applicant.printout.download')->middleware('auth');
-
     });
 });
 
@@ -133,10 +132,17 @@ Route::prefix('staff')->group(function () {
                 Route::get('/verify-payment', 'verifyPaymentForm')->name('bursary.verify.form');
                 Route::post('/verify-payment', 'verifyPaymentAction')->name('bursary.verify.action');
                 Route::get('/transactions/{id}/verify', 'verifySingle')->name('bursary.transactions.verify');
+
+                Route::get('/transactions/create',  'createManual')->name('bursary.transactions.create');
+                Route::post('/transactions/store',  'storeManual')->name('bursary.transactions.store');
+                Route::put('/transactions/update/{transaction}',  'updateManual')->name('bursary.transactions.update');
+                Route::delete('/transactions/destroy/{transaction}',  'destroyManual')->name('bursary.transactions.destroy');
+
                 Route::get('/reports/faculty', 'reportByFaculty')->name('bursary.reports.faculty');
                 Route::get('/reports/department', 'reportByDepartment')->name('bursary.reports.department');
                 Route::get('/reports/level', 'reportByLevel')->name('bursary.reports.level');
                 Route::get('/reports/student', 'reportByStudent')->name('bursary.reports.student');
+
 
                 // Exports
                 Route::get('/reports/{type}/export/{format}', 'export')->name('bursary.reports.export');

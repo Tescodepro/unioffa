@@ -89,7 +89,7 @@
                 @endif
 
                 @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor', 'ict']))
-                    <!-- TRANSACTIONS -->
+                    <!-- TRANSACTIONS bursary.transactions.create-->
                     <li
                         class="{{ request()->is('staff/bursary/transactions*') || request()->is('staff/bursary/verify*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>Transactions</span></h6>
@@ -108,6 +108,15 @@
                                     <span>Verify Payment</span>
                                 </a>
                             </li>
+                            @if (in_array(auth()->user()->userType->name, ['bursary']))
+                                <li>
+                                    <a href="{{ route('bursary.transactions.create') }}"
+                                        class="{{ request()->routeIs('bursary.transactions.create') ? 'active' : '' }}">
+                                        <i class="ti ti-check"></i>
+                                        <span>Upload Manual Payment</span>
+                                    </a>
+                                </li>
+                            @endif
                         </ul>
                     </li>
                 @endif

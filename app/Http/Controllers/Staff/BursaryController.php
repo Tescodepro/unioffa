@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\{Transaction, PaymentSetting, Student, Faculty, Department};
+use App\Models\{Transaction, PaymentSetting, Student, Faculty, Department, User};
 use App\Services\PaymentVerificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -71,7 +71,6 @@ class BursaryController extends Controller
 
         return view('staff.bursary.transactions', compact('transactions'));
     }
-
     public function exportTransactions(Request $request, $format)
     {
         $query = Transaction::with('user');
@@ -108,7 +107,6 @@ class BursaryController extends Controller
 
         return back()->with('error', 'Invalid export format.');
     }
-
     /**
      * Show verify payment page — enter reference number manually.
      */
@@ -175,7 +173,6 @@ class BursaryController extends Controller
 
         return back()->with('success', 'Transaction verified successfully.');
     }
-
     // 📘 REPORT BY FACULTY
     public function reportByFaculty()
     {
@@ -207,7 +204,6 @@ class BursaryController extends Controller
 
         return view('staff.bursary.reports.by_faculty', compact('data'));
     }
-
     // 📘 REPORT BY DEPARTMENT
     public function reportByDepartment()
     {
@@ -305,5 +301,87 @@ class BursaryController extends Controller
         }
 
         abort(404);
+    }
+
+    public function createManual()
+    {
+        $paymentTypes = PaymentSetting::getPaymentTypes();
+        $startYear = 2022;
+        $currentYear = now()->year;
+
+        $sessions = [];
+
+        for ($year = $startYear; $year <= $currentYear; $year++) {
+            $next = $year + 1;
+            $sessions[] = "{$year}/{$next}";
+        }
+
+        // Fetch all manual transactions
+        $manualTransactions = Transaction::with('user')
+            ->where('payment_method', 'manual')
+            ->latest()
+            ->paginate(10);
+
+        return view('staff.bursary.create-transaction', compact('paymentTypes', 'sessions', 'manualTransactions'));
+    }
+
+    public function storeManual(Request $request)
+    {
+        $validated = $request->validate([
+            'identifier' => 'required|string',
+            'payment_type' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'session' => 'required|string',
+        ]);
+
+        // Try to locate the user by username, email, or matric_no
+        $user = User::where('username', $validated['identifier'])
+            ->orWhere('email', $validated['identifier'])
+            ->first();
+        if (!$user) {
+            return back()->with('error', 'The student with that email or username or matric number does not exist in our record.')->withInput();
+        }
+
+        // Create new transaction
+        $transaction = new Transaction();
+        $transaction->refernce_number = strtolower($validated['payment_type']) . '_' . Transaction::generateReferenceNumber();
+        $transaction->user_id = $user->id;
+        $transaction->payment_type = $validated['payment_type'];
+        $transaction->amount = $validated['amount'];
+        $transaction->payment_status = 1;
+        $transaction->payment_method = 'manual';
+        $transaction->session = $validated['session'];
+        $transaction->description = 'manual upload by burser'; // optional column if you want to track
+        $transaction->save();
+
+        return redirect()
+            ->route('bursary.transactions')
+            ->with('success', 'Manual transaction recorded successfully.');
+    }
+
+    public function updateManual(Request $request, Transaction $transaction)
+    {
+        if ($transaction->payment_method !== 'manual') {
+            return back()->with('error', 'Only manual transactions can be updated.');
+        }
+
+        $validated = $request->validate([
+            'payment_type' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'session' => 'required|string',
+            'payment_status' => 'required|in:0,1,2',
+        ]);
+
+        $transaction->update($validated);
+        return back()->with('success', 'Manual transaction updated successfully.');
+    }
+
+    public function destroyManual(Transaction $transaction)
+    {
+        if ($transaction->payment_method !== 'manual') {
+            return back()->with('error', 'Only manual transactions can be deleted.');
+        }
+        $transaction->delete();
+        return back()->with('success', 'Manual transaction deleted successfully.');
     }
 }

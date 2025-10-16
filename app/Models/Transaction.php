@@ -28,6 +28,16 @@ class Transaction extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public static function generateReferenceNumber()
+    {
+        $prefix = 'manual';
+        $date = now()->format('Ymd');
+        $random = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6)); // 6-char random
+
+        return "{$prefix}-{$date}-{$random}";
+    }
+
+
     protected static function boot()
     {
         parent::boot();

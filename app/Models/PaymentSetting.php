@@ -44,6 +44,25 @@ class PaymentSetting extends Model
         });
     }
 
+    public static function getPaymentTypes()
+    {
+        // Fetch distinct payment types from the database
+        $types = static::query()
+            ->distinct()
+            ->pluck('payment_type')
+            ->filter()
+            ->values();
+
+        // Define the defaults you always want available
+        $defaultTypes = collect(['acceptance', 'application']);
+
+        // Merge and remove duplicates
+        return $types->merge($defaultTypes)->unique()->values();
+    }
+
+
+
+
     public function faculty()
     {
         return $this->belongsTo(Faculty::class);
