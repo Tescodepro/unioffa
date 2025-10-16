@@ -81,7 +81,7 @@
 
                             <div class="col-md-4">
                                 <label class="form-label">Gender</label>
-                                <select name="gender" class="form-select" required>
+                                <select name="sex" class="form-select" required>
                                     <option value="male" {{ $student->sex == 'male' ? 'selected' : '' }}>Male</option>
                                     <option value="female" {{ $student->sex == 'female' ? 'selected' : '' }}>Female</option>
                                 </select>

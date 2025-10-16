@@ -177,50 +177,48 @@ class IctStudentController extends Controller
     }
 
     // Bulk upload process
-public function bulkUpload(Request $request)
-{
-    $request->validate([
-        'file' => 'required|mimes:xlsx,csv,xls|max:10240', // 10MB max
-    ]);
+    public function bulkUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv,xls|max:10240', // 10MB max
+        ]);
 
-    try {
-        Excel::import(new StudentsImport, $request->file('file'));
-        
-        $successCount = session('upload_success_count', 0);
-        $skipCount = session('upload_skip_count', 0);
-        
-        if ($successCount > 0 && $skipCount == 0) {
-            return redirect()
-                ->route('ict.students.index')
-                ->with('success', "Successfully uploaded {$successCount} student(s).");
-        } elseif ($successCount > 0 && $skipCount > 0) {
-            return redirect()
-                ->route('ict.students.index')
-                ->with('warning', "Uploaded {$successCount} student(s). {$skipCount} row(s) were skipped due to errors.");
-        } else {
-            return back()->with('error', 'No students were uploaded. Please check the errors and try again.');
+        try {
+            Excel::import(new StudentsImport, $request->file('file'));
+
+            $successCount = session('upload_success_count', 0);
+            $skipCount = session('upload_skip_count', 0);
+
+            if ($successCount > 0 && $skipCount == 0) {
+                return redirect()
+                    ->route('ict.students.index')
+                    ->with('success', "Successfully uploaded {$successCount} student(s).");
+            } elseif ($successCount > 0 && $skipCount > 0) {
+                return redirect()
+                    ->route('ict.students.index')
+                    ->with('warning', "Uploaded {$successCount} student(s). {$skipCount} row(s) were skipped due to errors.");
+            } else {
+                return back()->with('error', 'No students were uploaded. Please check the errors and try again.');
+            }
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $errors = [];
+
+            foreach ($failures as $failure) {
+                $errors[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
+            }
+
+            return back()->with('upload_errors', $errors);
+        } catch (Exception $e) {
+            return back()->with('error', 'Upload failed: ' . $e->getMessage());
         }
-        
-    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-        $failures = $e->failures();
-        $errors = [];
-        
-        foreach ($failures as $failure) {
-            $errors[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
-        }
-        
-        return back()->with('upload_errors', $errors);
-        
-    } catch (Exception $e) {
-        return back()->with('error', 'Upload failed: ' . $e->getMessage());
     }
-}
 
-// Download template
-public function downloadTemplate()
-{
-    return Excel::download(new StudentsTemplateExport, 'students_upload_template.xlsx');
-}
+    // Download template
+    public function downloadTemplate()
+    {
+        return Excel::download(new StudentsTemplateExport, 'students_upload_template.xlsx');
+    }
 
     public function edit($id)
     {
