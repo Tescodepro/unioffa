@@ -17,6 +17,8 @@
                 </a>
             </div>
 
+            @include('layouts.flash-message')
+
             <div class="card">
                 <div class="card-body">
                     <form method="POST" action="{{ route('ict.students.update', $student->id) }}">
