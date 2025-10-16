@@ -85,11 +85,11 @@ class PaymentSettingController extends Controller
         // Ensure instalment percentages sum to 100% (if installment is allowed)
         if ($request->installmental_allow_status && is_array($request->list_instalment_percentage)) {
             $totalPercent = array_sum($request->list_instalment_percentage);
-            if ($totalPercent != 100) {
-                return back()
-                    ->withInput()
-                    ->with('error', 'Installment percentages must sum up to 100%.');
-            }
+            // if ($totalPercent != 100) {
+            //     return back()
+            //         ->withInput()
+            //         ->with('error', 'Installment percentages must sum up to 100%.');
+            // }
         }
 
         PaymentSetting::create([
@@ -155,13 +155,13 @@ class PaymentSettingController extends Controller
             && isset($validated['list_instalment_percentage'])
         ) {
             $total = array_sum($validated['list_instalment_percentage']);
-            if ($total != 100) {
-                return back()
-                    ->withErrors([
-                        'list_instalment_percentage' => 'Total instalment percentages must equal 100%.'
-                    ])
-                    ->withInput();
-            }
+            // if ($total != 100) {
+            //     return back()
+            //         ->withErrors([
+            //             'list_instalment_percentage' => 'Total instalment percentages must equal 100%.'
+            //         ])
+            //         ->withInput();
+            // }
         }
 
         // ✅ Encode installment percentages if enabled

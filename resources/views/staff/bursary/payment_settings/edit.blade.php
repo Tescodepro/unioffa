@@ -16,9 +16,8 @@
                     </a>
                 </div>
 
-                @if (session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
+                {{-- Alerts --}}
+                @include('layouts.flash-message')
 
                 <form action="{{ route('bursary.payment-settings.update', $paymentSetting->id) }}" method="POST"
                     class="card p-4 shadow-sm">
@@ -29,7 +28,7 @@
                         {{-- Faculty --}}
                         <div class="col-md-6 mb-3">
                             <label>Faculty</label>
-                            <select name="faculty_id" class="form-control">
+                            <select name="faculty_id" class="form-select">
                                 <option value="">Select</option>
                                 @foreach ($faculties as $faculty)
                                     <option value="{{ $faculty->id }}"
@@ -43,7 +42,7 @@
                         {{-- Department --}}
                         <div class="col-md-6 mb-3">
                             <label>Department</label>
-                            <select name="department_id" class="form-control">
+                            <select name="department_id" class="form-select">
                                 <option value="">Select</option>
                                 @foreach ($departments as $dept)
                                     <option value="{{ $dept->id }}"
@@ -60,7 +59,7 @@
                             @php
                                 $selectedLevels = $paymentSetting->level ?? [];
                             @endphp
-                            <select name="level[]" multiple class="form-control">
+                            <select name="level[]" multiple class="form-select">
                                 @foreach ([100, 200, 300, 400, 500] as $lvl)
                                     <option value="{{ $lvl }}"
                                         {{ in_array($lvl, $selectedLevels) ? 'selected' : '' }}>
@@ -95,20 +94,34 @@
                         {{-- Student Type --}}
                         <div class="col-md-6 mb-3">
                             <label>Student Type</label>
-                            <input type="text" name="student_type" class="form-control"
-                                value="{{ old('student_type', $paymentSetting->student_type) }}"
-                                placeholder="REGULAR, TOPUP, IDEL">
+                            <select name="student_type" class="form-select">
+                                <option value="">Select Type</option>
+                                <option value="REGULAR"
+                                    {{ old('student_type', $paymentSetting->student_type) == 'REGULAR' ? 'selected' : '' }}>
+                                    REGULAR</option>
+                                <option value="TOPUP"
+                                    {{ old('student_type', $paymentSetting->student_type) == 'TOPUP' ? 'selected' : '' }}>
+                                    TOPUP</option>
+                                <option value="IDELDE"
+                                    {{ old('student_type', $paymentSetting->student_type) == 'IDELDE' ? 'selected' : '' }}>
+                                    IDELDE</option>
+                                <option value="IDELUTME"
+                                    {{ old('student_type', $paymentSetting->student_type) == 'IDELUTME' ? 'selected' : '' }}>
+                                    IDELUTME</option>
+                            </select>
                         </div>
+
                         {{-- Matric Number (Optional) --}}
-<div class="col-md-6 mb-3">
-    <label>Matric Number (Specific Student)</label>
-    <input type="text" name="matric_number" class="form-control"
-        value="{{ old('matric_number', $paymentSetting->matric_number) }}"
-        placeholder="Enter matric number if specific to one student">
-    <small class="text-muted">
-        Leave blank to apply this payment setting to all students in the selected faculty/department.
-    </small>
-</div>
+                        <div class="col-md-6 mb-3">
+                            <label>Matric Number (Specific Student)</label>
+                            <input type="text" name="matric_number" class="form-control"
+                                value="{{ old('matric_number', $paymentSetting->matric_number) }}"
+                                placeholder="Enter matric number if specific to one student">
+                            <small class="text-muted">
+                                Leave blank to apply this payment setting to all students in the selected
+                                faculty/department.
+                            </small>
+                        </div>
 
 
                         {{-- Description --}}

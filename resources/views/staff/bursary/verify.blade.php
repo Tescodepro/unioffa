@@ -13,13 +13,7 @@
             <h4 class="mb-3">Verify Payment by Reference</h4>
 
             {{-- Alerts --}}
-            @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @elseif(session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @elseif(session('info'))
-                <div class="alert alert-info">{{ session('info') }}</div>
-            @endif
+            @include('layouts.flash-message')
 
             {{-- Verification Form --}}
             <form action="{{ route('bursary.verify.action') }}" method="POST" class="card p-3 shadow-sm mb-4">
