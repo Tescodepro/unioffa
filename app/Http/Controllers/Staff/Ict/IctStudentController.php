@@ -17,6 +17,8 @@ use Exception;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StudentsImport;
 use App\Exports\StudentsTemplateExport;
+use App\Mail\GeneralMail;
+use Illuminate\Support\Facades\Mail;
 
 class IctStudentController extends Controller
 {
@@ -101,6 +103,7 @@ class IctStudentController extends Controller
         $request->validate([
             'first_name'      => 'required|string|max:100',
             'last_name'       => 'required|string|max:100',
+            'middle_name'     => 'nullable|string|max:100',
             'email'           => 'required|email|unique:users,email',
             'phone'           => 'required|string|unique:users,phone',
             'department_id'   => 'required|exists:departments,id',
@@ -134,6 +137,7 @@ class IctStudentController extends Controller
             $user = User::create([
                 'first_name'       => $request->first_name,
                 'last_name'        => $request->last_name,
+                'middle_name'      => $request->middle_name ?? Null,
                 'email'            => $request->email,
                 'phone'            => $request->phone,
                 'username'         => $matricNo,
@@ -143,12 +147,20 @@ class IctStudentController extends Controller
                 'date_of_birth'    => $request->dob,
                 'campus_id'        => $request->campus_id,
             ]);
+
+            if (in_array($request->entry_mode, ['UTME', 'TRANSFER', 'DE'])) {
+                $programme = 'REGULAR';
+            } else {
+                $programme = strtoupper($request->entry_mode);
+            }
+
+
             Student::create([
                 'user_id'            => $user->id,
                 'campus_id'          => $request->campus_id,
                 'department_id'      => $department->id,
                 'matric_no'          => $matricNo,
-                'programme'          => $request->entry_mode, // Store original entry mode
+                'programme'          => $programme, // Store original entry mode
                 'stream'             => $request->stream,
                 'entry_mode'         => $request->entry_mode,
                 'level'              => $request->level,
@@ -159,11 +171,46 @@ class IctStudentController extends Controller
                 'address'            => null, // Optional field not in form
             ]);
 
+            $name = $request->first_name . ' ' . $request->last_name;
+
+            $to = $request->email;
+
+            // Assuming you've generated these two variables earlier in your code
+            $matric_number = $matricNo;
+            $password = $request->last_name;
+            $subject = "Welcome to Offa University! Your Student Account Details";
+            $content = [
+                'title' => "Welcome, {$request->first_name}!",
+                'body' => 'We are delighted to welcome you to **Offa University**! 🎓
+    
+    <br><br>
+    
+    Your student account has been successfully created. Please find your essential login credentials below:
+    
+    <br>
+    
+    - **Matriculation Number:** **' . $matric_number . '**
+    - **Initial Password:** **' . $password . '** <br>
+    
+    We strongly recommend that you log in to the student portal immediately and change your password for security purposes.
+    
+    <br><br>
+    
+    **Student Portal Link:** [Insert your portal link here]
+    
+    <br><br>
+    
+    We look forward to your success!',
+                'footer' => 'Best regards,  
+        Offa University Administration',
+            ];
+            Mail::to($to)->send(new GeneralMail($subject, $content, false));
+
             DB::commit();
 
             return redirect()
                 ->route('ict.students.index')
-                ->with('success', "Student added successfully. Matric No: {$matricNo}");
+                ->with('success', "Student added successfully. Matric No: {$matricNo} AND password is {$request->last_name}.");
         } catch (Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error creating student: ' . $e->getMessage());
