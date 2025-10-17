@@ -45,7 +45,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label">Middle Name</label>
                                     <input type="text" name="middle_name" value="{{ old('middle_name') }}"
-                                        class="form-control" required>
+                                        class="form-control" >
                                 </div>
 
                                 {{-- Email --}}
