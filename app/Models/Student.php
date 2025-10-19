@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\Auth;
+
 
 class Student extends Model
 {
@@ -75,18 +77,18 @@ class Student extends Model
     {
         return DB::transaction(function () use ($departmentCode, $admissionYear, $programme) {
             // Validate programme
-            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDELDE', 'UTME', 'TRANSFER', 'DIPLOMA','DE'];
+            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDELDE', 'UTME', 'TRANSFER', 'DIPLOMA', 'DE'];
             if (! in_array($programme, $validProgrammes)) {
                 throw new InvalidArgumentException('Invalid programme specified.');
             }
 
             // Modify department code based on programme
             $modifiedCode = match ($programme) {
-                'TOPUP' => 'T'.$departmentCode,        // e.g., CSC -> TCSC
-                'IDELUTME', 'IDELDE' => 'D'.$departmentCode, // e.g., CSC -> DCSC
-                'DIPLOMA' => 'DP'.$departmentCode,     // e.g., CSC -> DPCSC
-                'DE' => 'DE'.$departmentCode,          // e.g., CSC -> DECSC
-                'TRANSFER' => 'TR'.$departmentCode,      // e.g., CSC -> TRCSC
+                'TOPUP' => 'T' . $departmentCode,        // e.g., CSC -> TCSC
+                'IDELUTME', 'IDELDE' => 'D' . $departmentCode, // e.g., CSC -> DCSC
+                'DIPLOMA' => 'DP' . $departmentCode,     // e.g., CSC -> DPCSC
+                'DE' => 'DE' . $departmentCode,          // e.g., CSC -> DECSC
+                'TRANSFER' => 'TR' . $departmentCode,      // e.g., CSC -> TRCSC
                 default => $departmentCode,              // UTME, Transfer: no change
             };
 
@@ -95,8 +97,10 @@ class Student extends Model
             $faculty = $department->faculty;
 
             // Count students in this department + year
+            $matricPattern = '^[0-9]{2}\\/[A-Za-z]{2,5}\\/(?:T|D|DP|DE|TR)?[A-Za-z]{2,5}\\/[0-9]{3}$';
             $count = self::where('department_id', $department->id)
                 ->whereYear('admission_date', $admissionYear)
+                 ->whereRaw('matric_no REGEXP ?', [$matricPattern])
                 ->lockForUpdate()
                 ->count() + 1;
 
@@ -127,5 +131,30 @@ class Student extends Model
 
             throw new Exception('Unable to generate unique matric number. Maximum student limit reached.');
         });
+    }
+
+    public static function hasMatricNumber(): bool
+    {
+        $user = Auth::user();
+        // If user not logged in, or has no linked student record → false
+        if (! $user || ! $user->student) {
+            return false;
+        }
+        $matric_no = $user->student->matric_no;
+        // Empty or null → not a real matric number
+        if (empty($matric_no)) {
+            return false;
+        }
+        // Reject application-style IDs (e.g. UOO/APP/2025/00001)
+        if (preg_match('/^UOO\/APP\//i', $matric_no)) {
+            return false;
+        }
+        // Valid matric pattern examples:
+        // 24/FAS/CSC/001
+        // 25/ENG/DPCSC/112
+        // 23/SCI/TRCSC/005
+        $pattern = '/^\d{2}\/[A-Z]{2,5}\/(T|D|DP|DE|TR)?[A-Z]{2,5}\/\d{3}$/i';
+
+        return preg_match($pattern, $matric_no) === 1;
     }
 }

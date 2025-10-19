@@ -106,7 +106,7 @@ class PaymentSlitSeeder extends Seeder
             } else {
                 $campus = Campus::first();
             }
-            $data['center'] = $campus->id;
+            $data['center'] = $campus->slug;
             
             DB::table('payment_splits')->updateOrInsert(
             ['name' => $data['name']], // unique check

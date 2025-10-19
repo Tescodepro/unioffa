@@ -424,7 +424,6 @@ class DashboardController extends Controller
     }
 
     // ==================== Hostel ===============================
-
     public function hostelIndex()
     {
         $student = Auth::user()->student;

@@ -148,10 +148,10 @@ class ApplicationController extends Controller
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
-            Offa University Security Team',
+            Offa University Team',
             ];
 
-            // Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
             return redirect()->intended(route('application.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }

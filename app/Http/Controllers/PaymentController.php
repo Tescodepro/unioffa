@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserApplications;
 use App\Models\UserType;
+use App\Models\Campus;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,8 @@ use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\HostelAssignmentService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 class PaymentController extends Controller
 {
@@ -49,6 +52,12 @@ class PaymentController extends Controller
             ]),
         ]);
 
+        $campusDetail = Campus::getCampusDetail($user->campus_id);
+
+        if (!$campusDetail) {
+            return back()->with('error', 'There an error in your information kindly contact support to update your campus details.');
+        }
+
         if (in_array($request->fee_type, ['application', 'acceptance'])) {
             $getuserstype = UserApplications::where('user_id', Auth::id())
                 ->join('application_settings', 'user_applications.application_setting_id', '=', 'application_settings.id')
@@ -57,7 +66,7 @@ class PaymentController extends Controller
             if (!$getuserstype) {
                 return back()->with('error', 'Application record not found for this user.');
             }
-            
+
             // Normalize programme
             if ($getuserstype->programme === 'TRANSFER') {
                 $programme = 'REGULAR';
@@ -71,17 +80,17 @@ class PaymentController extends Controller
                 $programme = $getuserstype->programme;
             }
 
-            $split_code = $this->splitGet($request->fee_type, $programme, $user->campus_id);
+            $split_code = $this->splitGet($request->fee_type, $programme, $campusDetail->slug);
         } else {
             $student = Student::where('user_id', $user->id)->first();
             if (!$student) {
                 return back()->with('error', 'Student record not found for this user.');
             }
-            $split_code = $this->splitGet($request->fee_type, $student->programme, $student->campus_id);
+            $split_code = $this->splitGet($request->fee_type, $student->programme, $campusDetail->slug);
         }
-
-
         // Prepare gateway data
+
+        // dd($split_code);
         $data = [
             'amount' => $request->amount,
             'email' => $user->email,
@@ -96,12 +105,11 @@ class PaymentController extends Controller
         ];
 
         if ($split_code !== null) {
-            $data['split_code'] = $split_code;
+            // $data['split_code'] = $split_code;
         }
 
         // Generate payment link
         $response = $paymentService->generatePaymentLink($data);
-        // dd($response);
 
         if ($response['status'] && ! empty($response['checkout_url'])) {
             return redirect()->away($response['checkout_url']);
@@ -143,10 +151,39 @@ class PaymentController extends Controller
             if (in_array($paymentType, ['accommodation', 'hostel', 'maintenance'])) {
                 $backRoute = route('students.hostel.index');
             } else {
+                // Generate matric number if tuition payment and student has no matric number
+                $student = Student::where('user_id', $transaction->user_id)->first();
+                $department = $student->department;
+
+                if ($paymentType == 'tuition' && !Student::hasMatricNumber()) {
+                    // Extract admission year as integer
+                    $year = (int) \Carbon\Carbon::parse($student->admission_date)->year;
+                    // Generate new matric number
+                    $newMatricNo = Student::generateMatricNo(
+                        $department->department_code,
+                        $year,
+                        $student->entry_mode
+                    );
+
+                    // Wrap in DB transaction for safety
+                    DB::transaction(function () use ($student, $newMatricNo) {
+                        // Update student's matric number
+                        $student->update([
+                            'matric_no' => $newMatricNo,
+                        ]);
+                        // Update related user's username (or any field that stores the matric)
+                        $student->user->update([
+                            'username' => $newMatricNo,
+                        ]);
+                    });
+                    // Optional: Log or notify
+                    Log::info("Matric number generated for student {$student->id}: {$newMatricNo}");
+                }
+
                 $backRoute = route('students.load_payment');
             }
         }
-        
+
         if ($response['success']) {
 
             if ($transaction) {
@@ -199,7 +236,7 @@ class PaymentController extends Controller
 
         if ($applicationSetting->application_code == 'DE') {
             $studentData = [
-                'programme' => 'DE',
+                'programme' => 'REGULAR',
                 'entry_mode' => 'DE',
                 'level' => '200',
                 'admission_session' => $user_application->academic_session,
@@ -214,7 +251,7 @@ class PaymentController extends Controller
             ];
         } elseif ($applicationSetting->application_code == 'TRANSFER') {
             $studentData = [
-                'programme' => 'TRANSFER',
+                'programme' => 'REGULAR',
                 'entry_mode' => 'TRANSFER',
                 'level' => '200',
                 'admission_session' => $user_application->academic_session,
@@ -235,7 +272,7 @@ class PaymentController extends Controller
             ];
         } elseif ($applicationSetting->application_code == 'UTME') {
             $studentData = [
-                'programme' => 'UTME',
+                'programme' => 'REGULAR',
                 'entry_mode' => 'UTME',
                 'level' => '100',
                 'admission_session' => $user_application->academic_session,

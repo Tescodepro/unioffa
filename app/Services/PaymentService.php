@@ -55,7 +55,6 @@ class PaymentService
             };
         } catch (Exception $e) {
             Log::error("{$this->gateway} payment error: ".$e->getMessage());
-
             return [
                 'status' => false,
                 'message' => $e->getMessage(),

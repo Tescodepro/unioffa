@@ -18,11 +18,12 @@ class DatabaseSeeder extends Seeder
         // $this->call(PaymentGateWaySettingsSeeder::class);
         // $this->call(UserSeeder::class);
         // $this->call(CampusSeeder::class);
-        // $this->call(StudentSeeder::class);
+        // // $this->call(StudentSeeder::class);
         // $this->call(CourseSeeder::class);
         // $this->call(SemesterSeeder::class);
         // $this->call(SessionSeeder::class);
         // $this->call(PaymentSettingsSeeder::class);
+        // $this->call(PaymentSlitSeeder::class);
         // $this->call(HostelSeeder::class);
 
     }

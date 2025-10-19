@@ -22,12 +22,26 @@ class Campus extends Model
         'phone_number',
         'email',
         'direction',
+        'slug',
     ];
 
     public function scopeActive($query)
     {
         return $query->where('status', 1);
     }
+
+    // return the campus id and slug when campus name as a single value
+    public static function getCampusDetail($value)
+    {
+        // Try to find campus by id or name
+        $campus = static::where('id', $value)
+            ->orWhere('name', $value)
+            ->first();
+
+        return $campus; // return the model itself (can be null)
+    }
+
+
 
     public function users()
     {

@@ -12,6 +12,7 @@ class CampusSeeder extends Seeder
         $campuses = [
             [
                 'name' => 'Main Campus',
+                'slug' => 'main-campus',
                 'address' => 'Beside Len Poly',
                 'phone_number' => '+2349036154339',
                 'email' => 'info1@unioffa.edu.ng',
@@ -19,6 +20,7 @@ class CampusSeeder extends Seeder
             ],
             [
                 'name' => 'Ilorin Campus',
+                'slug' => 'ilorin-campus',
                 'address' => 'Muhydeen College Of Education, Ilorin',
                 'phone_number' => '+2348068242496',
                 'email' => 'info3@university.edu',
@@ -26,6 +28,7 @@ class CampusSeeder extends Seeder
             ],
             [
                 'name' => 'Ogun Campus',
+                'slug' => 'ogun-campus',
                 'address' => 'DSP Adegbenro ICT Polythenic Itori',
                 'phone_number' => '+2348066280969',
                 'email' => 'info2@university.edu',
@@ -33,6 +36,7 @@ class CampusSeeder extends Seeder
             ],
             [
                 'name' => 'Igbeti Campus',
+                'slug' => 'igbeti-campus',
                 'address' => 'Igbeti Oyo State',
                 'phone_number' => '+2348027216771',
                 'email' => 'info4@university.edu',
