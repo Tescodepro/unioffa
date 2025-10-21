@@ -18,10 +18,10 @@ class StudentMigrationService
     /**
      * Migrate user to student
      *
-     * @param int|null $userId
+     * @param string|null $userId
      * @return Student|null
      */
-    public function migrate(int $userId = null): ?Student
+    public function migrate(string | null $userId = null): ?Student
     {
         try {
             $user = $userId ? User::findOrFail($userId) : Auth::user();
@@ -31,10 +31,17 @@ class StudentMigrationService
                 return null;
             }
 
+            // ✅ PREVENT DUPLICATES - CHECK IF ALREADY STUDENT
+            if ($user->student) {
+                Log::info("User {$user->id} is already a student: {$user->student->id}");
+                return $user->student; // RETURN EXISTING STUDENT
+            }
+
             // Wrap entire migration in DB transaction
             return DB::transaction(function () use ($user) {
                 return $this->performMigration($user);
             });
+
         } catch (\Exception $e) {
             Log::error('Student migration failed: ' . $e->getMessage(), [
                 'user_id' => $userId,
@@ -77,7 +84,6 @@ class StudentMigrationService
     private function updateUserType(User $user): void
     {
         $studentType = UserType::where('name', 'student')->first();
-
         if ($studentType) {
             $user->update(['user_type_id' => $studentType->id]);
         }
@@ -94,7 +100,7 @@ class StudentMigrationService
     /**
      * Get user application
      */
-    private function getUserApplication(int $userId, ?string $session): ?UserApplications
+    private function getUserApplication(string $userId, ?string $session): ?UserApplications
     {
         return UserApplications::where('user_id', $userId)
             ->where('academic_session', $session)
@@ -112,7 +118,7 @@ class StudentMigrationService
     /**
      * Get admission record
      */
-    private function getAdmission(int $userId): ?AdmissionList
+    private function getAdmission(string $userId): ?AdmissionList
     {
         return AdmissionList::where('user_id', $userId)->first();
     }

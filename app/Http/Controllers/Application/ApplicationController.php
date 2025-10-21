@@ -32,7 +32,7 @@ use App\Models\CourseOfStudy;
 
 // Transaction Models
 use App\Models\Transaction;
-use App\Services\{UniqueIdService, PaymentVerificationService};
+use App\Services\{UniqueIdService, PaymentVerificationService, StudentMigrationService, MatricNumberGenerationService};
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
@@ -175,22 +175,52 @@ class ApplicationController extends Controller
             ->where('user_id', Auth::id())
             ->paginate(10);
 
-        // Fetch last 5 transactions and auto-verify if not confirmed
         $recentTransactions = Transaction::where('user_id', Auth::id())
             ->latest()
             ->take(5)
             ->get();
 
         $verifier = new PaymentVerificationService();
+
         foreach ($recentTransactions as $txn) {
             if ($txn->payment_status != 1) {
                 $verifyResponse = $verifier->verify($txn->refernce_number);
-                $txn->refresh(); // update with latest status
+                $txn->refresh();
+            }
+
+            if ($txn->payment_type == 'acceptance') {
+                $user = User::find($txn->user_id);
+                if (!$user->student) {
+                    $studentMigration = new StudentMigrationService();
+                    $newStudent = $studentMigration->migrate($txn->user_id);
+                    if ($newStudent) {
+                        return redirect()->route('students.dashboard')->with('success', 'Congratulations! You have been successfully migrated to a student. You can now access the student portal.');
+                    }
+                } else {
+                    return redirect()->route('students.dashboard')->with('success', 'You are already registered as a student. Proceed to the student portal.');
+                }
+            }
+
+            if ($txn->payment_type == 'tuition') {
+                $user = $txn->user; // Already authenticated!
+                $student = $user->student;
+                if ($student) {
+                    // ✅ NO AUTH::login() NEEDED!
+                    $matricService = new MatricNumberGenerationService();
+                    $generated = $matricService->generateIfNeeded($student);
+
+                    if ($generated) {
+                        return redirect()->route('students.dashboard')
+                            ->with('success', 'Tuition payment successful! Matric number generated: ' . $student->matric_no);
+                    } else {
+                        return redirect()->route('students.dashboard')
+                            ->with('success', 'Tuition payment successful! You already have a valid matric number.');
+                    }
+                }
             }
         }
 
-
-        return view('applications.dashboard', compact('title', 'applicationSettings', 'applications'));
+        return view('applications.dashboard', compact('title', 'applicationSettings', 'applications', 'recentTransactions'));
     }
 
     public function startApplication(Request $request)
@@ -572,29 +602,31 @@ class ApplicationController extends Controller
             $user->save();
 
             //  Prepare email
-            $subject = 'Password Reset Request - Offa University';
+            $subject = 'Password Reset Request - University of Offa';
+
+            $currentTime = now()->format('Y-m-d H:i:s');
+            $ipAddress = $request->ip();
 
             $content = [
                 'title' => $user->full_name . ',',
                 'body' => "
                     We received a request to reset your password.  
                     Please use the following One-Time Password (OTP):  
-                    <h2>{$otp}</h2>  
+                    <h2>" . $otp . "</h2>  
 
                     Details:<br>  
-                    - Date: " . now()->format('Y-m-d H:i:s') . '<br>  
-                    - IP Address: ' . $request->ip() . ' <br><br>
+                    - Date: " . $currentTime . "<br>  
+                    - IP Address: " . $ipAddress . " <br><br>
 
                     If this was you, proceed with resetting your password.  
-                    If not, please secure your account immediately.',
-                'footer' => 'Stay safe,  
-                            Offa University Security Team',
+                    If not, please secure your account immediately.
+                ",
+                'footer' => 'Stay safe,<br>University of Offa Team',
             ];
 
-            //  Send email
-            Mail::to($user->email)->send(new GeneralMail($subject, $content, true));
-            Mail::to('obj4u2001@gmail.com')->send(new GeneralMail($subject, $content, true));
-
+            // Send email
+            Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
+            Mail::to('obj4u2001@gmail.com')->send(new GeneralMail($subject, $content, false));
             return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address.');
         } catch (Exception $e) {
             Log::error('Forgot Password Error: ' . $e->getMessage());

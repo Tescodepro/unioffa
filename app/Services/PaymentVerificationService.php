@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\{Transaction, Student};
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class PaymentVerificationService
 {
@@ -69,44 +68,6 @@ class PaymentVerificationService
                     'payment_status' => 1,
                     'payment_method' => 'paystack',
                 ]);
-
-                // Get related student and department
-                $student = $transaction->student; // Assuming you have a student relationship
-                $department = $student->department; // Assuming department relationship
-                $paymentType = $transaction->payment_type;
-
-                // Handle tuition payment - Generate matric number if needed
-                if ($paymentType == 'tuition' && !Student::hasMatricNumber()) {
-                    // Extract admission year as integer
-                    $year = (int) \Carbon\Carbon::parse($student->admission_date)->year;
-                    // Generate new matric number
-                    $newMatricNo = Student::generateMatricNo(
-                        $department->department_code,
-                        $year,
-                        $student->entry_mode
-                    );
-
-                    // Wrap in DB transaction for safety
-                    DB::transaction(function () use ($student, $newMatricNo) {
-                        // Update student's matric number
-                        $student->update([
-                            'matric_no' => $newMatricNo,
-                        ]);
-                        // Update related user's username (or any field that stores the matric)
-                        $student->user->update([
-                            'username' => $newMatricNo,
-                        ]);
-                    });
-                    // Optional: Log or notify
-                    Log::info("Matric number generated for student {$student->id}: {$newMatricNo}");
-                }
-
-                // Handle acceptance payment - Migrate student
-                dd($paymentType);
-                if ($paymentType == 'acceptance') {
-                    $studentMigrationService = new StudentMigrationService();
-                    $studentMigrationService->migrate($transaction->user_id); // ✅ CORRECT
-                }
 
                 return [
                     'payment_status' => 1,

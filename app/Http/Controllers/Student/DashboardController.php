@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationSetting;
-use App\Models\Hostel;
+use App\Models\{Hostel, User, Student};
 use App\Models\PaymentSetting;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -12,8 +12,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use App\Services\PaymentVerificationService;
+use App\Services\{UniqueIdService, PaymentVerificationService, StudentMigrationService, MatricNumberGenerationService};
 use App\Services\HostelAssignmentService;
+
 
 class DashboardController extends Controller
 {
@@ -29,7 +30,30 @@ class DashboardController extends Controller
         foreach ($recentTransactions as $txn) {
             if ($txn->payment_status != 1) {
                 $verifyResponse = $verifier->verify($txn->refernce_number);
-                $txn->refresh(); // update with latest status
+                $txn->refresh();
+            }
+
+            if ($txn->payment_type == 'acceptance') {
+                $user = User::find($txn->user_id);
+                if (!$user->student) {
+                    $studentMigration = new StudentMigrationService();
+                    $newStudent = $studentMigration->migrate($txn->user_id);
+                    if ($newStudent) {
+                        return redirect()->route('students.dashboard')->with('success', 'Congratulations! You have been successfully migrated to a student. You can now access the student portal.');
+                    }
+                } else {
+                    return redirect()->route('students.dashboard')->with('success', 'You are already registered as a student. Proceed to the student portal.');
+                }
+            }
+
+            if ($txn->payment_type == 'tuition' && !Student::hasMatricNumber()) {
+                $user = $txn->user; // Already authenticated!
+                $student = $user->student;
+                if ($student) {
+                    // ✅ NO AUTH::login() NEEDED!
+                    $matricService = new MatricNumberGenerationService();
+                    $generated = $matricService->generateIfNeeded($student);
+                }
             }
         }
         return view('student.dashboard', compact('user'));

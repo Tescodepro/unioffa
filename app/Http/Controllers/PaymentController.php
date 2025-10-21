@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Services\HostelAssignmentService;
+use App\Services\{HostelAssignmentService, MatricNumberGenerationService};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -138,7 +138,6 @@ class PaymentController extends Controller
 
         // Find the transaction
         $transaction = Transaction::where('refernce_number', $reference)->first();
-
         // get payment type
         $paymentType = $transaction->payment_type;
         // decide redirect route
@@ -151,33 +150,13 @@ class PaymentController extends Controller
             if (in_array($paymentType, ['accommodation', 'hostel', 'maintenance'])) {
                 $backRoute = route('students.hostel.index');
             } else {
-                // Generate matric number if tuition payment and student has no matric number
-                $student = Student::where('user_id', $transaction->user_id)->first();
-                $department = $student->department;
-
                 if ($paymentType == 'tuition' && !Student::hasMatricNumber()) {
-                    // Extract admission year as integer
-                    $year = (int) \Carbon\Carbon::parse($student->admission_date)->year;
-                    // Generate new matric number
-                    $newMatricNo = Student::generateMatricNo(
-                        $department->department_code,
-                        $year,
-                        $student->entry_mode
-                    );
-
-                    // Wrap in DB transaction for safety
-                    DB::transaction(function () use ($student, $newMatricNo) {
-                        // Update student's matric number
-                        $student->update([
-                            'matric_no' => $newMatricNo,
-                        ]);
-                        // Update related user's username (or any field that stores the matric)
-                        $student->user->update([
-                            'username' => $newMatricNo,
-                        ]);
-                    });
-                    // Optional: Log or notify
-                    Log::info("Matric number generated for student {$student->id}: {$newMatricNo}");
+                    $user = $transaction->user; // Already authenticated!
+                    $student = $user->student;
+                    if ($student) {
+                        $matricService = new MatricNumberGenerationService();
+                        $matricService->generateIfNeeded($student);
+                    }
                 }
 
                 $backRoute = route('students.load_payment');
