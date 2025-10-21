@@ -138,7 +138,7 @@ class StudentMigrationService
             'TOPUP' => [
                 'programme' => 'TOPUP',
                 'entry_mode' => 'TOPUP',
-                'level' => '300',
+                'level' => '200',
                 'admission_session' => $userApplication->academic_session,
             ],
             'TRANSFER' => [
