@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Services\{UniqueIdService, PaymentVerificationService, StudentMigrationService, MatricNumberGenerationService};
 use App\Services\HostelAssignmentService;
+use Illuminate\Support\Facades\Log;
+
 
 
 class DashboardController extends Controller
@@ -26,36 +28,45 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Initialize services ONCE outside loop
         $verifier = new PaymentVerificationService();
+        $studentMigration = new StudentMigrationService();
+        $matricService = new MatricNumberGenerationService();
         foreach ($recentTransactions as $txn) {
-            if ($txn->payment_status != 1) {
-                $verifyResponse = $verifier->verify($txn->refernce_number);
-                $txn->refresh();
-            }
+            try {
+                // 1. VERIFY PAYMENT (only if not verified)
+                if ($txn->payment_status != 1) {
+                    $verifyResponse = $verifier->verify($txn->reference_number); // ✅ FIXED TYPO
 
-            if ($txn->payment_type == 'acceptance') {
-                $user = User::find($txn->user_id);
-                if (!$user->student) {
-                    $studentMigration = new StudentMigrationService();
-                    $newStudent = $studentMigration->migrate($txn->user_id);
-                    if ($newStudent) {
-                        return redirect()->route('students.dashboard')->with('success', 'Congratulations! You have been successfully migrated to a student. You can now access the student portal.');
+                    // Update status if successful
+                    if (isset($verifyResponse['status']) && $verifyResponse['status'] === 'success') {
+                        $txn->update(['payment_status' => 1]);
                     }
-                } else {
-                    return redirect()->route('students.dashboard')->with('success', 'You are already registered as a student. Proceed to the student portal.');
+                    $txn->refresh();
                 }
-            }
 
-            if ($txn->payment_type == 'tuition' && !Student::hasMatricNumber()) {
-                $user = $txn->user; // Already authenticated!
-                $student = $user->student;
-                if ($student) {
-                    // ✅ NO AUTH::login() NEEDED!
-                    $matricService = new MatricNumberGenerationService();
+                // 2. ACCEPTANCE PAYMENT - CREATE STUDENT RECORD
+                if ($txn->payment_type === 'acceptance' && !$user->student) {
+                    $user = User::find($txn->user_id);
+                    if (!$user->student) {
+                        $newStudent = $studentMigration->migrate($txn->user_id);
+                        $user->load('student.department.faculty'); // ✅ RELOAD RELATIONSHIPS
+                    }
+                }
+                // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER
+                if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
+                    $student = $user->student;
+                    // ✅ FIXED: Direct call on student instance
                     $generated = $matricService->generateIfNeeded($student);
                 }
+            } catch (\Exception $e) {
+                Log::error("Transaction {$txn->id} processing failed: " . $e->getMessage());
             }
         }
+
+        // ✅ FINAL RELOAD - Ensure dashboard has latest data
+        $user->load('student.department.faculty');
+
         return view('student.dashboard', compact('user'));
     }
 
