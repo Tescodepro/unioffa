@@ -102,6 +102,7 @@ class PaymentVerificationService
                 }
 
                 // Handle acceptance payment - Migrate student
+                dd($paymentType);
                 if ($paymentType == 'acceptance') {
                     $studentMigrationService = new StudentMigrationService();
                     $studentMigrationService->migrate($transaction->user_id); // ✅ CORRECT

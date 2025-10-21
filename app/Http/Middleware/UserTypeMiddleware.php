@@ -60,7 +60,8 @@ class UserTypeMiddleware
         // 5️⃣ Strict check for other cases
         // If none of the above conditions are met, deny access (abort with a message or redirect as needed)
         if ($userType !== $type) {
-            abort(403, 'Unauthorized action.');
+            Auth::logout();
+            return redirect()->back()->with('error', 'You do not have permission to access this page.');
         }
 
         return $next($request);
