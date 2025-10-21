@@ -36,7 +36,7 @@ class DashboardController extends Controller
             try {
                 // 1. VERIFY PAYMENT (only if not verified)
                 if ($txn->payment_status != 1) {
-                    $verifyResponse = $verifier->verify($txn->reference_number); // ✅ FIXED TYPO
+                    $verifyResponse = $verifier->verify($txn->refernce_number); // ✅ FIXED TYPO
 
                     // Update status if successful
                     if (isset($verifyResponse['status']) && $verifyResponse['status'] === 'success') {
