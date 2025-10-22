@@ -3,7 +3,6 @@
 @section('title', 'Required Payments')
 
 @push('styles')
-    <!-- Adjust path as needed -->
     <style>
         .table th,
         .table td {
@@ -17,7 +16,29 @@
 
         .badge-completed {
             background-color: #28a745;
-            /* Green for completed */
+        }
+
+        /* iOS Modal Fixes */
+        .modal {
+            -webkit-overflow-scrolling: touch;
+            z-index: 1050 !important;
+        }
+
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+
+        body.modal-open {
+            position: fixed;
+            width: 100%;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Ensure buttons are tappable on iOS */
+        .btn {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+            touch-action: manipulation;
         }
     </style>
 @endpush
@@ -239,4 +260,16 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Force modal initialization for iOS
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevent double-tap zoom on buttons
+            document.querySelectorAll('.btn').forEach(function(btn) {
+                btn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    this.click();
+                }, {passive: false});
+            });
+        });
+    </script>
 @endpush
