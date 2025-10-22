@@ -53,7 +53,7 @@
                             <div class="col-md-6">
                                 <label class="form-label">Matric Number</label>
                                 <input type="text" name="matric_no" class="form-control" 
-                                    value="{{ old('matric_no', $student->matric_no) }}" readonly>
+                                    value="{{ old('matric_no', $student->matric_no) }}" required>
                             </div>
 
                             <div class="col-md-6">
@@ -91,7 +91,16 @@
                                 <label class="form-label">Entry Mode</label>
                                 <input type="text" name="entry_mode" class="form-control" 
                                     value="{{ old('entry_mode', $student->entry_mode) }}" required>
+                                <select name="entry_mode" class="form-select" required>
+                                        <option value="">Select Entry Mode</option>
+                                        @foreach (['TOPUP', 'IDELUTME', 'IDELDE', 'UTME', 'TRANSFER', 'DIPLOMA','DE'] as $mode)
+                                            <option value="{{ $mode }}"
+                                                {{ old('entry_mode') == $mode ? 'selected' : '' }}>{{ $mode }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                             </div>
+                            
 
                             <div class="col-md-6">
                                 <label class="form-label">Admission Year</label>
@@ -107,8 +116,16 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Programme</label>
-                                <input type="text" name="programme" class="form-control"
-                                    value="{{ old('programme', $student->programme) }}">
+                                {{-- <input type="text" name="programme" class="form-control"
+                                    value="{{ old('programme', $student->programme) }}"> --}}
+                                <select name="programme" class="form-select" required>
+                                        <option value="">Select Entry Mode</option>
+                                        @foreach (['TOPUP', 'IDELUTME', 'IDELDE', 'REGULAR'] as $mode)
+                                            <option value="{{ $mode }}"
+                                                {{ old('programme') == $mode ? 'selected' : '' }}>{{ $mode }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                             </div>
 
                             <div class="col-md-6">

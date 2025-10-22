@@ -127,7 +127,7 @@ class IctStudentController extends Controller
             // Generate matric number using the entry_mode directly
             $matricNo = Student::generateMatricNo(
                 $department->department_code,
-                $admissionYear,
+                $request->admission_year,
                 $request->entry_mode
             );
 
