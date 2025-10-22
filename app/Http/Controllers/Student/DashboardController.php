@@ -56,8 +56,10 @@ class DashboardController extends Controller
                 // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER
                 if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
                     $student = $user->student;
-$year = Carbon::parse(now())->format('Y');
+                    $year = Carbon::parse(now())->format('Y');
+                    Log::info('Generating matric number for student ID: ' . $student->id);
                     $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
+                    Log::info('Generated matric number: ' . $newMatricNo);
                     $student->update(['matric_no' => $newMatricNo]);
                     $student->user->update(['username' => $newMatricNo]);
                 }
