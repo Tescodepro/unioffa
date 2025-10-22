@@ -154,8 +154,9 @@ class PaymentController extends Controller
                     $user = $transaction->user; // Already authenticated!
                     $student = $user->student;
                     if ($student) {
-                        $matricService = new MatricNumberGenerationService();
-                        $matricService->generateIfNeeded($student);
+                        $newMatricNo = Student::generateMatricNo($student->department->code, $student->admission_session, $student->programme);
+                        $student->update(['matric_no' => $newMatricNo]);
+                        $student->user->update(['username' => $newMatricNo]);
                     }
                 }
 

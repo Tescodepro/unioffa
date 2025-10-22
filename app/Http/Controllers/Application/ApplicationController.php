@@ -24,6 +24,7 @@ use App\Models\Alevel;
 use App\Models\Olevel;
 use App\Models\JambDetail;
 use App\Models\EducationHistory;
+use App\Models\Student;
 
 // Profile & Document Models
 use App\Models\Profile;
@@ -170,7 +171,6 @@ class ApplicationController extends Controller
     {
         $title = 'Application Dashboard';
         $applicationSettings = ApplicationSetting::where('enabled', 1)->get();
-
         $applications = UserApplications::with(['applicationSetting', 'transactions'])
             ->where('user_id', Auth::id())
             ->paginate(10);
@@ -205,9 +205,9 @@ class ApplicationController extends Controller
                 $user = $txn->user; // Already authenticated!
                 $student = $user->student;
                 if ($student) {
-                    // ✅ NO AUTH::login() NEEDED!
-                    $matricService = new MatricNumberGenerationService();
-                    $generated = $matricService->generateIfNeeded($student);
+                    $newMatricNo = Student::generateMatricNo($student->department->code, $student->admission_session, $student->programme);
+                    $student->update(['matric_no' => $newMatricNo]);
+                    $student->user->update(['username' => $newMatricNo]);
 
                     if ($generated) {
                         return redirect()->route('students.dashboard')
