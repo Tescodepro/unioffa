@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 
 class Student extends Model
@@ -79,7 +81,7 @@ class Student extends Model
             // Validate programme
             $validProgrammes = ['TOPUP', 'IDELUTME', 'IDELDE', 'UTME', 'TRANSFER', 'DIPLOMA', 'DE'];
             if (! in_array($programme, $validProgrammes)) {
-                throw new InvalidArgumentException('Invalid programme specified.');
+                Log::error('Invalid programme specified: ' . $programme);
             }
 
             // Modify department code based on programme
@@ -114,7 +116,7 @@ class Student extends Model
             $matricNo = strtoupper("{$yearShort}/{$faculty->faculty_code}/{$modifiedCode}/{$sequence}");
 
             // Check for duplicates in users and students tables
-            $maxAttempts = 999; // Max sequence number
+            $maxAttempts = 9990; // Max sequence number
             while ($count <= $maxAttempts) {
                 $existsInUsers = User::where('username', $matricNo)->exists();
                 $existsInStudents = self::where('matric_no', $matricNo)->exists();
@@ -128,8 +130,7 @@ class Student extends Model
                 $sequence = str_pad($count, 3, '0', STR_PAD_LEFT);
                 $matricNo = strtoupper("{$yearShort}/{$faculty->faculty_code}/{$modifiedCode}/{$sequence}");
             }
-
-            throw new Exception('Unable to generate unique matric number. Maximum student limit reached.');
+           Log::error('Unable to generate unique matric number. Maximum student limit reached.');
         });
     }
 
