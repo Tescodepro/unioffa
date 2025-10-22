@@ -155,7 +155,7 @@ class PaymentController extends Controller
                     $user = $transaction->user; // Already authenticated!
                     $student = $user->student;
                     if ($student) {
-                    $year = Carbon::parse(now())->format('Y');
+                    $year = $year = $student->admission_session;
                     $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
                         $student->update(['matric_no' => $newMatricNo]);
                         $student->user->update(['username' => $newMatricNo]);

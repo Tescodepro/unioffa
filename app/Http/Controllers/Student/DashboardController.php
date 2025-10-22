@@ -37,7 +37,6 @@ class DashboardController extends Controller
                 // 1. VERIFY PAYMENT (only if not verified)
                 if ($txn->payment_status != 1) {
                     $verifyResponse = $verifier->verify($txn->refernce_number); // ✅ FIXED TYPO
-
                     // Update status if successful
                     if (isset($verifyResponse['status']) && $verifyResponse['status'] === 'success') {
                         $txn->update(['payment_status' => 1]);
@@ -56,7 +55,7 @@ class DashboardController extends Controller
                 // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER
                 if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
                     $student = $user->student;
-                    $year = Carbon::parse(now())->format('Y');
+                    $year = $year = $student->admission_session;
                     Log::info('Generating matric number for student ID: ' . $student->id);
                     $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
                     Log::info('Generated matric number: ' . $newMatricNo);

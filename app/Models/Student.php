@@ -75,7 +75,7 @@ class Student extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public static function generateMatricNo(string $departmentCode, int $admissionYear, string $programme): string
+    public static function generateMatricNo(string $departmentCode, string $admissionYear, string $programme): string
     {
         return DB::transaction(function () use ($departmentCode, $admissionYear, $programme) {
             // Validate programme
@@ -101,13 +101,14 @@ class Student extends Model
             // Count students in this department + year
             $matricPattern = '^[0-9]{2}\\/[A-Za-z]{2,5}\\/(?:T|D|DP|DE|TR)?[A-Za-z]{2,5}\\/[0-9]{3}$';
             $count = self::where('department_id', $department->id)
-                ->whereYear('admission_date', $admissionYear)
+                ->whereYear('admission_session', $admissionYear)
                  ->whereRaw('matric_no REGEXP ?', [$matricPattern])
                 ->lockForUpdate()
                 ->count() + 1;
 
             // Format year (last 2 digits only)
-            $yearShort = substr((string) $admissionYear, -2); // e.g., 2023 -> "23"
+           [$startYear, ] = explode('/', $admissionYear);
+        $yearShort = substr(trim($startYear), -2); // e.g., 2023 -> "23"
 
             // Format sequence (3 digits: 001, 002, etc.)
             $sequence = str_pad($count, 3, '0', STR_PAD_LEFT);
