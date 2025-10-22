@@ -53,7 +53,12 @@ class PaymentController extends Controller
             ]),
         ]);
 
-        $campusDetail = Campus::getCampusDetail($user->student->campus_id);
+        if(!$user->student->campus_id){
+            $center_id_generated = $user->campus_id;
+        }else{
+            $center_id_generated = $user->student->campus_id;
+        }
+        $campusDetail = Campus::getCampusDetail($center_id_generated);
 
         if (!$campusDetail) {
             return back()->with('error', 'There an error in your information kindly contact support to update your campus details.');
