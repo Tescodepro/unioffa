@@ -56,7 +56,7 @@ class DashboardController extends Controller
                 // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER
                 if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
                     $student = $user->student;
-                    $newMatricNo = Student::generateMatricNo($student->department->code, $student->admission_session, $student->programme);
+                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $student->admission_session, $student->programme);
                     $student->update(['matric_no' => $newMatricNo]);
                     $student->user->update(['username' => $newMatricNo]);
                 }
