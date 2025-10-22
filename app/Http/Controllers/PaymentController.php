@@ -53,7 +53,7 @@ class PaymentController extends Controller
             ]),
         ]);
 
-        if(!$user->student->campus_id){
+        if(!isset($user->student->campus_id)){
             $center_id_generated = $user->campus_id;
         }else{
             $center_id_generated = $user->student->campus_id;
