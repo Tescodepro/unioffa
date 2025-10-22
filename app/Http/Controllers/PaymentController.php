@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserApplications;
 use App\Models\UserType;
 use App\Models\Campus;
+use Carbon\Carbon;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -154,7 +155,8 @@ class PaymentController extends Controller
                     $user = $transaction->user; // Already authenticated!
                     $student = $user->student;
                     if ($student) {
-                        $newMatricNo = Student::generateMatricNo($student->department->department_code, $student->admission_session, $student->programme);
+                    $year = Carbon::parse(now())->format('Y');
+                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->programme);
                         $student->update(['matric_no' => $newMatricNo]);
                         $student->user->update(['username' => $newMatricNo]);
                     }

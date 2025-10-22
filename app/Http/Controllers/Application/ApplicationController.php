@@ -205,11 +205,12 @@ class ApplicationController extends Controller
                 $user = $txn->user; // Already authenticated!
                 $student = $user->student;
                 if ($student) {
-                    $newMatricNo = Student::generateMatricNo($student->department->code, $student->admission_session, $student->programme);
+                    $year = Carbon::parse(now())->format('Y');
+                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->programme);
                     $student->update(['matric_no' => $newMatricNo]);
                     $student->user->update(['username' => $newMatricNo]);
 
-                    if ($generated) {
+                    if ($newMatricNo) {
                         return redirect()->route('students.dashboard')
                             ->with('success', 'Tuition payment successful! Matric number generated: ' . $student->matric_no);
                     } else {
