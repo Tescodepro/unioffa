@@ -18,27 +18,32 @@
             background-color: #28a745;
         }
 
-        /* iOS Modal Fixes */
-        .modal {
-            -webkit-overflow-scrolling: touch;
-            z-index: 1050 !important;
-        }
-
+        /* CRITICAL iOS Modal Fix - Backdrop behind modal */
         .modal-backdrop {
             z-index: 1040 !important;
         }
 
-        body.modal-open {
-            position: fixed;
-            width: 100%;
-            overflow: hidden;
-            -webkit-overflow-scrolling: touch;
+        .modal {
+            z-index: 1055 !important; /* Higher than backdrop */
         }
 
-        /* Ensure buttons are tappable on iOS */
-        .btn {
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-            touch-action: manipulation;
+        .modal-dialog {
+            z-index: 1060 !important; /* Even higher */
+            position: relative;
+        }
+
+        /* Ensure modal content is clickable */
+        .modal-content {
+            position: relative;
+            z-index: 1061 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Fix body scrolling */
+        body.modal-open {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
     </style>
 @endpush
@@ -261,14 +266,27 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Force modal initialization for iOS
         document.addEventListener('DOMContentLoaded', function() {
-            // Prevent double-tap zoom on buttons
-            document.querySelectorAll('.btn').forEach(function(btn) {
-                btn.addEventListener('touchend', function(e) {
-                    e.preventDefault();
-                    this.click();
-                }, {passive: false});
+            // Fix iOS modal backdrop issue
+            const modals = document.querySelectorAll('.modal');
+            
+            modals.forEach(function(modal) {
+                modal.addEventListener('show.bs.modal', function(e) {
+                    // Move modal to body end to fix z-index
+                    if (!modal.hasAttribute('data-moved')) {
+                        document.body.appendChild(modal);
+                        modal.setAttribute('data-moved', 'true');
+                    }
+                    
+                    // Force backdrop to be behind modal
+                    setTimeout(function() {
+                        const backdrop = document.querySelector('.modal-backdrop');
+                        if (backdrop) {
+                            backdrop.style.zIndex = '1040';
+                        }
+                        modal.style.zIndex = '1055';
+                    }, 10);
+                });
             });
         });
     </script>
