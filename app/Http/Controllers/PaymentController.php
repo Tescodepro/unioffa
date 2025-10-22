@@ -105,7 +105,7 @@ class PaymentController extends Controller
         ];
 
         if ($split_code !== null) {
-            // $data['split_code'] = $split_code;
+            $data['split_code'] = $split_code;
         }
 
         // Generate payment link
