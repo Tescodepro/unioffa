@@ -57,7 +57,7 @@ class DashboardController extends Controller
                 if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
                     $student = $user->student;
 $year = Carbon::parse(now())->format('Y');
-                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->programme);
+                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
                     $student->update(['matric_no' => $newMatricNo]);
                     $student->user->update(['username' => $newMatricNo]);
                 }
