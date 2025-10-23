@@ -62,17 +62,41 @@ class IctStudentController extends Controller
         $level = $request->level;
         $name = $request->name;
         $matric = $request->matric_no;
+        $phone = $request->phone;
+        $email = $request->email;
 
         $students = Student::with(['user', 'department.faculty'])
             ->when($departmentId, fn($q) => $q->where('department_id', $departmentId))
             ->when($level, fn($q) => $q->where('level', $level))
-            ->when($name, fn($q) => $q->whereHas(
-                'user',
-                fn($u) =>
-                $u->where('first_name', 'like', "%{$name}%")
-                    ->orWhere('last_name', 'like', "%{$name}%")
-            ))
+            ->when(
+                $name,
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
+                    $u->where('first_name', 'like', "%{$name}%")
+                        ->orWhere('last_name', 'like', "%{$name}%")
+                )
+            )
             ->when($matric, fn($q) => $q->where('matric_no', 'like', "%{$matric}%"))
+            ->when(
+                $phone,
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
+                    $u->where('phone', 'like', "%{$phone}%")
+                )
+            )
+            ->when(
+                $email,
+                fn($q) =>
+                $q->whereHas(
+                    'user',
+                    fn($u) =>
+                    $u->where('email', 'like', "%{$email}%")
+                )
+            )
             ->orderBy('matric_no')
             ->paginate(20);
 
@@ -88,6 +112,7 @@ class IctStudentController extends Controller
 
         return view('staff.ict.students.index', compact('students', 'departments', 'stats'));
     }
+
     public function create()
     {
         $departments = Department::with('faculty')->orderBy('department_name')->get();

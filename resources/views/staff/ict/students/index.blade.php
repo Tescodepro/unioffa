@@ -100,6 +100,16 @@
                             <input type="text" name="matric_no" class="form-control" placeholder="Search by matric no" value="{{ request('matric_no') }}">
                         </div>
 
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="text" name="email" class="form-control" placeholder="Search by Email" value="{{ request('email') }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Phone Number</label>
+                            <input type="text" name="phone" class="form-control" placeholder="Search by phone number" value="{{ request('phone') }}">
+                        </div>
+
                         <div class="col-md-1 d-flex align-items-end">
                             <button class="btn btn-primary w-100">
                                 <i class="ti ti-search"></i>
