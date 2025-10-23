@@ -176,8 +176,8 @@
 
         <!-- Signature -->
         <div class="signature-block">
-            <p class="signature-name">Mr. Salaudeen OYEWALE</p>
-            <p class="signature-title">Ag. Bursar</p>
+            <p class="signature-name">Mr. Popola Saheed Abiodun</p>
+            <p class="signature-title">University Accountant</p>
         </div>
 
     </div>
