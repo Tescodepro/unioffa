@@ -197,7 +197,7 @@ class ApplicationController extends Controller
             if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && !$user->student) {
                 // Check if user has submitted application for this session
                 $hasSubmittedApplication = UserApplications::where('user_id', Auth::id())
-                    ->where('session', $txn->session)
+                    ->where('academic_session', $txn->session)
                     ->whereNotNull('submitted_by')
                     ->exists();
 
