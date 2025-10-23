@@ -32,39 +32,28 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
-        // Catch expired session / CSRF token mismatch (419)
         if ($exception instanceof TokenMismatchException) {
-
-            $currentRoute = optional($request->route())->getName();
-
-            // Decide which login page to redirect to
-            if ($currentRoute && (
-                str_contains($currentRoute, 'application') ||
-                str_contains($currentRoute, 'applicant') ||
-                str_contains($currentRoute, 'admission')
-            )) {
-                $redirect = route('application.login');
+            // Flush out the bad session and regenerate a clean one
+            try {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            } catch (Throwable $e) {
+                // ignore any issue here - we just want a clean session
             }
-            elseif ($currentRoute && (
-                str_contains($currentRoute, 'student') ||
-                str_contains($currentRoute, 'students')
-            )) {
+
+            // Figure out which login page to send them to
+            $path = $request->path();
+            if (str_contains($path, 'students')) {
                 $redirect = route('student.login');
-            }
-            elseif ($currentRoute && (
-                str_contains($currentRoute, 'staff') ||
-                str_contains($currentRoute, 'burser') ||
-                str_contains($currentRoute, 'bursary') ||
-                str_contains($currentRoute, 'ict') ||
-                str_contains($currentRoute, 'admin')
-            )) {
+            } elseif (str_contains($path, 'admission') || str_contains($path, 'application')) {
+                $redirect = route('application.login');
+            } elseif (str_contains($path, 'staff') || str_contains($path, 'bursary') || str_contains($path, 'ict') || str_contains($path, 'admin')) {
                 $redirect = route('staff.login');
-            }
-            else {
+            } else {
                 $redirect = route('home');
             }
 
-            return redirect($redirect)->with('error', 'Your session has expired. Please log in again.');
+            return redirect($redirect)->with('error', 'Your session expired or was invalid. Please log in again.');
         }
 
         return parent::render($request, $exception);

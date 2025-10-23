@@ -48,7 +48,7 @@
         }
         a.button {
             display: inline-block;
-            background-color: #2563eb;
+            background-color: #10bf68;
             color: #fff;
             text-decoration: none;
             padding: 0.75rem 1.5rem;
@@ -57,7 +57,7 @@
             transition: background 0.2s ease;
         }
         a.button:hover {
-            background-color: #1e40af;
+            background-color: #19822b;
         }
         .small {
             font-size: 0.85rem;
