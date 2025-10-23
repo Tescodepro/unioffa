@@ -181,44 +181,78 @@ class ApplicationController extends Controller
             ->get();
 
         $verifier = new PaymentVerificationService();
+        $redirectRoute = null;
+        $redirectMessage = null;
+
+        $user = Auth::user();
 
         foreach ($recentTransactions as $txn) {
+            // Verify payment if not already verified
             if ($txn->payment_status != 1) {
-                $verifyResponse = $verifier->verify($txn->refernce_number);
+                $verifyResponse = $verifier->verify($txn->reference_number);
                 $txn->refresh();
             }
 
-            if ($txn->payment_type == 'acceptance') {
-                $user = User::find($txn->user_id);
-                if (!$user->student) {
+            // Handle acceptance fee payment - ONLY for non-students
+            if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && !$user->student) {
+                // Check if user has submitted application for this session
+                $hasSubmittedApplication = UserApplications::where('user_id', Auth::id())
+                    ->where('session', $txn->session)
+                    ->whereNotNull('submitted_by')
+                    ->exists();
+
+                if ($hasSubmittedApplication) {
                     $studentMigration = new StudentMigrationService();
-                    $newStudent = $studentMigration->migrate($txn->user_id);
+                    $newStudent = $studentMigration->migrate(Auth::id());
+
                     if ($newStudent) {
-                        return redirect()->route('students.dashboard')->with('success', 'Congratulations! You have been successfully migrated to a student. You can now access the student portal.');
+                        $redirectRoute = 'students.dashboard';
+                        $redirectMessage = 'Congratulations! You have been successfully migrated to a student. You can now access the student portal.';
+                        break;
                     }
-                } else {
-                    return redirect()->route('students.dashboard')->with('success', 'You are already registered as a student. Proceed to the student portal.');
                 }
             }
 
-            if ($txn->payment_type == 'tuition') {
-                $user = $txn->user; // Already authenticated!
+            // If already a student and has acceptance payment, redirect to student dashboard
+            if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && $user->student) {
+                $redirectRoute = 'students.dashboard';
+                $redirectMessage = 'You are already registered as a student. Proceed to the student portal.';
+                break;
+            }
+
+            // Handle tuition payment - ONLY for students
+            if ($txn->payment_type == 'tuition' && $txn->payment_status == 1 && $user->student) {
                 $student = $user->student;
-                if ($student) {
-                    $year = $student->admission_session;
-                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
-                    $student->update(['matric_no' => $newMatricNo]);
-                    $student->user->update(['username' => $newMatricNo]);
 
-                    if ($newMatricNo) {
-                        return redirect()->route('students.dashboard')
-                            ->with('success', 'Tuition payment successful! Matric number generated: ' . $student->matric_no);
+                if ($student && $student->department) {
+                    if (empty($student->matric_no)) {
+                        $year = $student->admission_session;
+                        $newMatricNo = Student::generateMatricNo(
+                            $student->department->department_code,
+                            $year,
+                            $student->entry_mode
+                        );
+
+                        if ($newMatricNo) {
+                            $student->update(['matric_no' => $newMatricNo]);
+                            $student->user->update(['username' => $newMatricNo]);
+
+                            $redirectRoute = 'students.dashboard';
+                            $redirectMessage = 'Tuition payment successful! Matric number generated: ' . $newMatricNo;
+                            break;
+                        }
                     } else {
-                        return redirect()->route('students.dashboard')
-                            ->with('success', 'Tuition payment successful! You already have a valid matric number.');
+                        $redirectRoute = 'students.dashboard';
+                        $redirectMessage = 'Tuition payment successful! You already have a valid matric number.';
+                        break;
                     }
                 }
             }
+        }
+
+        // Perform redirect if needed
+        if ($redirectRoute) {
+            return redirect()->route($redirectRoute)->with('success', $redirectMessage);
         }
 
         return view('applications.dashboard', compact('title', 'applicationSettings', 'applications', 'recentTransactions'));

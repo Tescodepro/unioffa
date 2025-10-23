@@ -123,7 +123,6 @@ class PaymentController extends Controller
 
         return back()->with('error', $response['message'] ?? 'Unable to start payment');
     }
-
     /**
      * Handle gateway callback
      */
