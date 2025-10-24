@@ -179,7 +179,6 @@ class ApplicationController extends Controller
             ->latest()
             ->take(5)
             ->get();
-        dd($recentTransactions);
 
         $verifier = new PaymentVerificationService();
         $redirectRoute = null;
@@ -190,7 +189,7 @@ class ApplicationController extends Controller
         foreach ($recentTransactions as $txn) {
             // Verify payment if not already verified
             if ($txn->payment_status != 1) {
-                $verifyResponse = $verifier->verify($txn->reference_number);
+                $verifyResponse = $verifier->verify($txn->refernce_number);
                 $txn->refresh();
             }
 
