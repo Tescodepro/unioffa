@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Models\{AcademicSemester, User};
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -34,7 +36,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($authCredentials)) {
 
-            if(in_array( Auth::user()->center_id, ['927755cd-4f58-48d8-8e46-d293956457a2','2b82858c-e671-4deb-80c8-9c2abc196429', 'aa2cd785-f53a-485f-b654-cc41c42895c0'])){
+            if (in_array(Auth::user()->center_id, ['927755cd-4f58-48d8-8e46-d293956457a2', '2b82858c-e671-4deb-80c8-9c2abc196429', 'aa2cd785-f53a-485f-b654-cc41c42895c0'])) {
                 return back()->with('error', 'Kindly check back on 7 days time');
             }
 
@@ -43,12 +45,12 @@ class AuthController extends Controller
             $to = Auth::user()->email;
             $subject = 'Login Notification';
             $content = [
-                'title' => Auth::user()->full_name.',',
+                'title' => Auth::user()->full_name . ',',
                 'body' => 'We noticed a login to your Offa University account.<br><br>
 
             Details:<br>  
-            - Date: '.now()->format('Y-m-d H:i:s').'<br>  
-            - IP Address: '.request()->ip().' <br><br>
+            - Date: ' . now()->format('Y-m-d H:i:s') . '<br>  
+            - IP Address: ' . request()->ip() . ' <br><br>
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
@@ -75,40 +77,38 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('username', $request->matric_number)->first();
-        
+
         if (!$user) {
             return back()->with('error', 'No account found with this matric number.');
         }
 
         // Generate OTP
         $otp = $this->generateOtp();
-        
-        // Store OTP in session
-        session(['reset_otp' => $otp]);
-        session(['reset_user_id' => $user->id]);
-        
+
+        // Save OTP in user's record
+        $user->otp = $otp;
+        $user->otp_expires_at = now(); // optional if you have this column
+        $user->save();
+
         // Send OTP via email
         $to = $user->email;
         $subject = 'Password Reset OTP';
         $content = [
-            'title' => $user->full_name.',',
+            'title' => $user->full_name . ',',
             'body' => "Your OTP for password reset is: {$otp}<br><br>
-                      This OTP will expire in 10 minutes.<br>
-                      If you didn't request this, please ignore this email.",
-            'footer' => 'Best regards,
-                        Offa University'
+                  This OTP will expire in 10 minutes.<br>
+                  If you didn't request this, please ignore this email.",
+            'footer' => 'Best regards,<br>Offa University'
         ];
 
         Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
-        return redirect()->route('students.auth.change-password')->with('success', 'OTP has been sent to your email.');
+        return redirect()->route('students.auth.change-password')
+            ->with('success', 'OTP has been sent to your email.');
     }
 
     public function verifyOtpIndex()
     {
-        if (!session('reset_otp')) {
-            return redirect()->route('students.forget-password')->with('error', 'Please request OTP first.');
-        }
         return view('student.auth.change-password');
     }
 
@@ -119,27 +119,28 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed'
         ]);
 
+        // Find user by OTP
+        $user = User::where('otp', $request->otp)->first();
 
-        if (!session('reset_otp') || !session('reset_user_id')) {
-            return redirect()->route('students.auth.forget-password')
-                ->with('error', 'OTP session has expired. Please request a new one.');
+        if (!$user) {
+            return back()->with('error', 'Invalid or expired OTP.');
         }
 
-        if ($request->otp != session('reset_otp')) {
-            return back()->with('error', 'Invalid OTP entered.');
+        // Optional: check OTP expiration if you store timestamps
+        if (isset($user->otp_expires_at) && now()->diffInMinutes($user->otp_expires_at) > 10) {
+            return redirect()->route('students.auth.forget-password')
+                ->with('error', 'OTP has expired. Please request a new one.');
         }
 
         // Update user's password
-        $user = User::find(session('reset_user_id'));
-        $user->password = bcrypt($request->password);
+        $user->password = Hash::make($request->password);
+        $user->otp = null; // clear OTP after use
         $user->save();
-
-        // Clear all reset-related session data
-        session()->forget(['reset_otp', 'reset_user_id']);
 
         return redirect()->route('student.login')
             ->with('success', 'Password has been reset successfully. Please login with your new password.');
     }
+
 
     private function generateOtp()
     {
