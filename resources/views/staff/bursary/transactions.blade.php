@@ -45,10 +45,16 @@
                             <label class="form-label">Payment Type</label>
                             <select name="payment_type" class="form-select">
                                 <option value="">-- Select --</option>
-                                <option value="tuition" {{ request('payment_type') == 'tuition' ? 'selected' : '' }}>Tuition</option>
+                                {{-- <option value="tuition" {{ request('payment_type') == 'tuition' ? 'selected' : '' }}>Tuition</option>
                                 <option value="application" {{ request('payment_type') == 'application' ? 'selected' : '' }}>Application</option>
                                 <option value="acceptance" {{ request('payment_type') == 'acceptance' ? 'selected' : '' }}>Acceptance</option>
-                                <option value="accommodation" {{ request('payment_type') == 'accommodation' ? 'selected' : '' }}>Accommodation</option>
+                                <option value="accommodation" {{ request('payment_type') == 'accommodation' ? 'selected' : '' }}>Accommodation</option> --}}
+                                @foreach ($paymentTypes as $type)
+                                    <option value="{{ $type }}"
+                                        {{ request('payment_type') == $type ? 'selected' : '' }}>
+                                        {{ ucfirst($type) }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-2">

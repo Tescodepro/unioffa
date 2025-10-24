@@ -68,8 +68,10 @@ class BursaryController extends Controller
 
         $transactions = $query->latest()->paginate(20);
 
+        $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
 
-        return view('staff.bursary.transactions', compact('transactions'));
+
+        return view('staff.bursary.transactions', compact('transactions', 'paymentTypes'));
     }
     public function exportTransactions(Request $request, $format)
     {
