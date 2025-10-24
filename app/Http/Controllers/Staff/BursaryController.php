@@ -75,7 +75,7 @@ class BursaryController extends Controller
     }
     public function exportTransactions(Request $request, $format)
     {
-        $query = Transaction::with('user');
+        $query = Transaction::with('user')->where('payment_status', 1);
 
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
