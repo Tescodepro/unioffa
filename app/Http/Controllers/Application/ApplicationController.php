@@ -179,6 +179,7 @@ class ApplicationController extends Controller
             ->latest()
             ->take(5)
             ->get();
+        dd($recentTransactions);
 
         $verifier = new PaymentVerificationService();
         $redirectRoute = null;
