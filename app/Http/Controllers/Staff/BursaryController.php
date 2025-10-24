@@ -45,7 +45,7 @@ class BursaryController extends Controller
     }
     public function transactions(Request $request)
     {
-        $query = Transaction::query()->with('user');
+        $query = Transaction::query()->with('user')->where('payment_status', 1);
 
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
