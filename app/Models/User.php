@@ -35,7 +35,8 @@ class User extends Authenticatable
         'registration_no',
         'password',
         'user_type_id',
-        'campus_id'
+        'campus_id',
+        'referee_code',
     ];
 
     /**

@@ -108,6 +108,16 @@
                                     @enderror
                                 </div>
 
+                                {{-- Refeer code input field --}}
+                                <div class="form-group mb-3">
+                                    <label for="referee_code">Referee Code (Optional)</label>
+                                    <input id="referee_code" name="referee_code" type="text"
+                                        class="form-control @error('referee_code') is-invalid @enderror"
+                                        value="{{ old('referee_code') }}">
+                                    @error('referee_code')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
                                 <div class="form-group mb-3">
                                     <label for="password">Password <code>*</code></label>

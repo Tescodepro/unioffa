@@ -66,6 +66,7 @@ class ApplicationController extends Controller
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|unique:users,phone',
             'password' => 'required|string|min:6|confirmed',
+            'referee_code' => 'nullable|string|max:255'
         ]);
 
         $uniqueId = $uniqueIdService->generate('applicant');
@@ -85,6 +86,7 @@ class ApplicationController extends Controller
                 'username' => $uniqueId,
                 'registration_no' => $uniqueId,
                 'user_type_id' => UserType::where('name', 'applicant')->first()->id,
+                'referee_code' => $request->referee_code,
             ]);
 
             // Try sending email
