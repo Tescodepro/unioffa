@@ -61,22 +61,22 @@ class ApplicationController extends Controller
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
     {
         $request->validate([
-    'first_name'    => 'required|string|max:255',
-    'last_name'     => 'required|string|max:255',
-    'middle_name'   => 'nullable|string|max:255',
-    'center'        => 'required|string|max:255',
-    'email'         => 'required|email|unique:users,email',
-    'phone'         => 'required|string|unique:users,phone',
-    'password'      => 'required|string|min:6|confirmed',
-    'referee_code'  => [
-        'nullable',
-        'string',
-        'max:255',
-        Rule::exists('agent_applications', 'unique_code')->where(function ($query) {
-            $query->where('status', 'approved'); // only approved agents
-        }),
-    ],
-]);
+            'first_name'    => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
+            'middle_name'   => 'nullable|string|max:255',
+            'center'        => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email',
+            'phone'         => 'required|string|unique:users,phone',
+            'password'      => 'required|string|min:6|confirmed',
+            'referee_code'  => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::exists('agent_applications', 'unique_code')->where(function ($query) {
+                    $query->where('status', 'approved'); // only approved agents
+                }),
+            ],
+        ]);
 
 
         $uniqueId = $uniqueIdService->generate('applicant');

@@ -214,6 +214,11 @@ class NigeriaLocationsSeeder extends Seeder
                 'Irele', 'Odigbo', 'Okitipupa', 'Ifedore', 'Ese Odo', 'Ilaje',
                 'Ile Oluji/Okeigbo'
             ],
+            'Kwara' => [
+                'Asa', 'Baruten', 'Edu', 'Ekiti', 'Ifelodun', 'Ilorin East',
+                'Ilorin South', 'Ilorin West', 'Irepodun', 'Isin', 'Kaiama',
+                'Moro', 'Offa', 'Oke Ero', 'Oyun', 'Pategi'
+            ],
             'Osun' => [
                 'Bolawaduro', 'Boripe', 'Ede', 'Ede North', 'Atakumosa West',
                 'Atakumosa East', 'Ayedaade', 'Ayedire', 'Ife South', 'Ife East',
