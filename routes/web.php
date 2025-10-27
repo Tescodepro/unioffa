@@ -27,6 +27,11 @@ RouteServiceProvider within a group which contains the "web" middleware group. N
 Route::controller(GeneralController::class)->group(function () {
     Route::get('/', 'home')->name('home');
     Route::get('/contact', 'contact')->name('contact');
+    Route::get('/agent-application', 'agentApplication')->name('agent.application');
+    Route::post('/submit-agent-application', 'submitAgentApplication')->name('agent.application.submit');
+    Route::get('/lgas/{state_id}', 'getLgas')->name('lgas.by.state');
+    Route::get('/scholarship-application', 'scholarshipApplication')->name('scholarship.application');
+
 });
 
 // ====== Application Routes ======= //
@@ -119,6 +124,8 @@ Route::prefix('staff')->group(function () {
             Route::post('recommend/{userId}', 'recommendStudent')->name('admin.recommend');
             Route::get('/export-applicants', 'exportApplicants')->name('admin.exportApplicants');
             Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admin.applicants.details');
+            Route::get('/agent-applicants', 'showAgentDetail')->name('admin.agent.applicants');
+            Route::post('/agent-applicants/update-status', 'changeAgentStatus')->name('admin.agent.application.update_status');
         });
     });
 

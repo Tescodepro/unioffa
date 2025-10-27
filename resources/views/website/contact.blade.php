@@ -19,7 +19,7 @@
             <div class="container">
                 <h2 class="breadcrumb-title">Contact Us</h2>
                 <ul class="breadcrumb-menu">
-                    <li><a href="{{route('home')}}">Home</a></li>
+                    <li><a href="{{ route('home') }}">Home</a></li>
                     <li class="active">Contact Us</li>
                 </ul>
             </div>
@@ -50,7 +50,8 @@
                                 </div>
                                 <div class="contact-info-content">
                                     <h5>Call Us</h5>
-                                    <p><a href="tel:+2348066814330"><i class="far fa-phone-volume"></i> +234 806 681 4330</a> <a href="tel:+2348066552935">|  +234 806 655 2935</a></p>
+                                    <p><a href="tel:+2348066814330"><i class="far fa-phone-volume"></i> +234 806 681
+                                            4330</a> <a href="tel:+2348066552935">| +234 806 655 2935</a></p>
                                 </div>
                             </div>
                         </div>
@@ -79,8 +80,8 @@
                                 <div class="contact-form-header">
                                     <h2>Get In Touch</h2>
                                     <p>
-                                        The University of Offa is committed to providing quality education that inspires innovation, 
-                                        nurtures character, and prepares students for leadership roles in society. 
+                                        The University of Offa is committed to providing quality education that inspires innovation,
+                                        nurtures character, and prepares students for leadership roles in society.
                                         Our programs are designed to meet global standards while addressing local and national needs.
                                     </p>
 
@@ -105,8 +106,7 @@
                                             placeholder="Your Subject" required>
                                     </div>
                                     <div class="form-group">
-                                        <textarea name="message" cols="30" rows="5" class="form-control"
-                                            placeholder="Write Your Message"></textarea>
+                                        <textarea name="message" cols="30" rows="5" class="form-control" placeholder="Write Your Message"></textarea>
                                     </div>
                                     <button type="submit" class="theme-btn">Send
                                         Message <i class="far fa-paper-plane"></i></button>
@@ -123,17 +123,13 @@
         <!-- end contact area -->
 
         <!-- map -->
-       <div class="contact-map">
-  <iframe 
-    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3933.3292164000896!2d4.721121515326307!3d8.1475628941374!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1036a112dbb36f01%3A0xd0c2c8eb87e2f3cb!2sOffa%2C%20Kwara%20State!5e0!3m2!1sen!2sng!4v1694277563450!5m2!1sen!2sng" 
-    width="600" 
-    height="450" 
-    style="border:0;" 
-    allowfullscreen="" 
-    loading="lazy" 
-    referrerpolicy="no-referrer-when-downgrade">
-  </iframe>
-</div>
+        <div class="contact-map">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3933.3292164000896!2d4.721121515326307!3d8.1475628941374!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1036a112dbb36f01%3A0xd0c2c8eb87e2f3cb!2sOffa%2C%20Kwara%20State!5e0!3m2!1sen!2sng!4v1694277563450!5m2!1sen!2sng"
+                width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
 
 
     </main>
@@ -143,9 +139,6 @@
     <!-- footer area -->
     @include('website.partials.footer')
     <!-- footer area end -->
-
-
-
 
     <!-- scroll-top -->
     <a href="contact.html#" id="scroll-top"><i class="far fa-arrow-up-from-arc"></i></a>

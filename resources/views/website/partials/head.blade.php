@@ -8,7 +8,7 @@
     <!-- title -->
     <title> {{$title}} &amp;  {{ config('app.name') }}   </title>
     <!-- favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/img/logo/logo.jpg">
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/logo/logo.jpeg') }}">
     <!-- css -->
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/all-fontawesome.min.css">

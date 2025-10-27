@@ -144,6 +144,22 @@
                     </li>
                 @endif
 
+                @if (in_array(auth()->user()->userType->name, [ 'vice-chancellor']))
+                    <!-- PAYMENTS -->
+                    <li class="{{ request()->is('staff/bursary/payment-settings*') ? 'open' : '' }}">
+                        <h6 class="submenu-hdr"><span>Agents</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('admin.agent.applicants') }}"
+                                    class="{{ request()->routeIs('admin.agent.applicants') ? 'active' : '' }}">
+                                    <i class="ti ti-list-details"></i>
+                                    <span>All Agent Applications</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
                 {{-- @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
                     <!-- REPORTS -->
                     <li class="{{ request()->is('staff/bursary/reports*') ? 'open' : '' }}">

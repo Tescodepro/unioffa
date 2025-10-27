@@ -32,7 +32,7 @@
             <nav class="navbar navbar-expand-lg">
                 <div class="container position-relative">
                     <a class="navbar-brand" href="{{route('home')}}">
-                        <img src="assets/img/logo/logo.jpeg" alt="logo" style="width: 80px; height: auto;">
+                        <img src='{{ asset("assets/img/logo/logo.jpeg") }}' alt="logo" style="width: 80px; height: auto;">
                     </a>
                     <div class="mobile-menu-right">
                         <div class="search-btn">
@@ -158,7 +158,7 @@
                                     <li><a class="dropdown-item" href="">How To Apply</a></li>
                                     {{-- <li><a class="dropdown-item" href="">Application Form</a></li> --}}
                                     <li><a class="dropdown-item" href="">Tuition Fees</a></li>
-                                    <li><a class="dropdown-item" href="">Scholarships</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('scholarship.application') }}">Scholarships</a></li>
                                     <li><a class="dropdown-item" href="{{ route('application.login') }}">Admission Form</a></li>
                                 </ul>
                             </li>
@@ -172,7 +172,7 @@
                                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Support Units</a>
                                 <ul class="dropdown-menu fade-down">
                                     <li><a class="dropdown-item" href="">Academic Planning Unit</a></li>
-                                    <li><a class="dropdown-item" href="">Admissions</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('application.login') }}">Admissions</a></li>
                                     <li><a class="dropdown-item" href="">Bursary</a></li>
                                     <li><a class="dropdown-item" href="">Communication & Marketing</a></li>
                                     <li><a class="dropdown-item" href="">General Studies Unit</a></li>

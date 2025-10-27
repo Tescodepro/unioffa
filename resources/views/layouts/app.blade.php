@@ -36,6 +36,7 @@
 
     @stack('styles') {{-- For page-specific CSS --}}
 </head>
+
 <body>
 
     @yield('content')

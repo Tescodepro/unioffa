@@ -11,6 +11,7 @@ use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\User;
 use App\Models\UserApplications;
+use App\Models\AgentApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -196,5 +197,48 @@ class GeneralController extends Controller
         $modules = json_decode($application->applicationSetting->modules_enable, true);
 
         return view('staff.applicant_details', compact('application', 'modules'));
+    }
+
+    public function showAgentDetail()
+    {
+        $agentApplications = AgentApplication::all();
+        return view('staff.agent-applicants', compact('agentApplications'));
+    }
+
+    public function changeAgentStatus(Request $request)
+    {
+        $agent = AgentApplication::findOrFail($request->agent_id);
+
+        $agent->status = $request->status;
+
+        if ($request->status === 'approved' && !$agent->unique_code) {
+            $agent->unique_code = $this->generateUniqueCode();
+        }
+
+        $agent->save();
+
+        $subject = 'Agent Application Status Update';
+        $content = [
+            'title' => 'Hello ' . $agent->first_name . ',',
+            'body' => "
+We are writing to inform you that your application status has been updated to '{$request->status}'. 
+" . ($agent->unique_code ? "Your unique agent code is: {$agent->unique_code}.<br><br>" : "") . "
+Thank you for your interest in partnering with the University of Offa.",
+            'footer' => 'Warm regards,<br>University of Offa Admissions Team',
+        ];
+
+        Mail::to($agent->email)->send(new GeneralMail($subject, $content, false));
+
+        return back()->with('success', 'Agent status updated successfully.');
+    }
+
+
+    private function generateUniqueCode()
+    {
+        do {
+            $code = strtoupper(bin2hex(random_bytes(4))); // Generates an 8-character code
+        } while (AgentApplication::where('unique_code', $code)->exists());
+
+        return $code;
     }
 }
