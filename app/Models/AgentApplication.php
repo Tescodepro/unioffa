@@ -23,6 +23,8 @@ class AgentApplication extends Model
         'status',
         'unique_code',
         'referrals_count',
+        'bank_code',
+        'split_code',
     ];
 
     /**

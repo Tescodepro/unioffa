@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdmissionList;
+use App\Models\AgentApplication;
 use App\Models\ApplicationSetting;
 use App\Models\Student;
 use App\Models\Transaction;
@@ -85,8 +86,12 @@ class PaymentController extends Controller
             } else {
                 $programme = $getuserstype->programme;
             }
-
             $split_code = $this->splitGet($request->fee_type, $programme, $campusDetail->slug);
+
+            if($request->fee_type == "acceptance"){
+                $split_code = AgentApplication::where('unique_code', $user->referee_code)->value('split_code') ?? null;
+            }
+
         } else {
             $student = Student::where('user_id', $user->id)->first();
             if (!$student) {
