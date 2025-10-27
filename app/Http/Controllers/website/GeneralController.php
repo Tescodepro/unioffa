@@ -118,7 +118,7 @@ class GeneralController extends Controller
                     'business_name' => "{$application->first_name} {$application->last_name}",
                     'settlement_bank' => $bankCode,
                     'account_number' => $application->account_number,
-                    'percentage_charge' => 30, // adjust if needed
+                    'percentage_charge' => 100, // adjust if needed
                 ]);
 
             if ($subaccountResponse->successful() && isset($subaccountResponse['data']['subaccount_code'])) {
@@ -133,7 +133,7 @@ class GeneralController extends Controller
                         'subaccounts' => [
                             [
                                 'subaccount' => $subaccountCode,
-                                'share' => 50, // percentage share
+                                'share' => 40, // percentage share
                             ],
                         ],
                     ]);
@@ -165,6 +165,11 @@ class GeneralController extends Controller
             ];
 
             Mail::to($application->email)->send(new GeneralMail($subject, $content, false));
+            if (Mail::failures()) {
+                Log::warning('Failed to send agent application confirmation email to ' . $application->email);
+            } else {
+                Log::info('Agent application confirmation email sent to ' . $application->email);
+            }
 
             // Notify admin
             $adminEmail = env('ADMIN_EMAIL', 'vc@unioffa.edu.ng');
