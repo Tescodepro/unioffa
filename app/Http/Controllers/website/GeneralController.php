@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\GeneralMail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+
 
 class GeneralController extends Controller
 {
@@ -35,7 +39,26 @@ class GeneralController extends Controller
         $states = State::orderBy('name', 'asc')->get();
         $lgas = Lga::all();
 
-        return view('website.application-form', compact('title', 'states', 'lgas'));
+        try {
+            // Fetch from Paystack API
+            $response = Http::withToken(env('PAYSTACK_AUTH_KEY'))
+                ->get('https://api.paystack.co/bank', [
+                    'country' => 'nigeria', // optional filter
+                ]);
+            // Extract only bank name & code if response is successful
+            $banks = $response->successful()
+                ? collect($response->json('data'))->map(fn($bank) => [
+                    'name' => $bank['name'],
+                    'code' => $bank['code'],
+                ])
+                : collect(); // fallback to empty collection
+
+        } catch (\Exception $e) {
+            // Handle network/API failure gracefully
+            $banks = collect();
+        }
+
+        return view('website.application-form', compact('title', 'states', 'lgas', 'banks'));
     }
     public function submitAgentApplication(Request $request)
     {
@@ -61,12 +84,18 @@ class GeneralController extends Controller
         }
 
         try {
-            // Double-check duplicate prevention
+            // Prevent duplicates
             if (AgentApplication::where('email', $request->email)->orWhere('phone', $request->phone)->exists()) {
                 return redirect()->back()->with('error', 'An account with this email or phone number already exists.');
             }
 
-            // Create the agent application
+            // Split "Bank Name (Code)"
+            $bankName = $request->bank_name;
+            preg_match('/(.*?)\s*\((.*?)\)/', $bankName, $matches);
+            $cleanBankName = $matches[1] ?? $bankName;
+            $bankCode = $matches[2] ?? null;
+
+            // Create agent application (status: pending for now)
             $application = AgentApplication::create([
                 'first_name' => $request->first_name,
                 'middle_name' => $request->middle_name,
@@ -75,35 +104,70 @@ class GeneralController extends Controller
                 'phone' => $request->phone,
                 'state_id' => $request->state,
                 'lga_id' => $request->lga,
-                'bank_name' => $request->bank_name,
+                'bank_name' => $cleanBankName,
+                'bank_code' => $bankCode,
                 'account_number' => $request->account_number,
                 'account_name' => $request->account_name,
                 'status' => 'pending',
             ]);
 
-            // Send confirmation email to applicant
+            // Create Paystack subaccount
+            $paystackSecret = env('PAYSTACK_AUTH_KEY');
+            $subaccountResponse = Http::withToken($paystackSecret)
+                ->post('https://api.paystack.co/subaccount', [
+                    'business_name' => "{$application->first_name} {$application->last_name}",
+                    'settlement_bank' => $bankCode,
+                    'account_number' => $application->account_number,
+                    'percentage_charge' => 30, // adjust if needed
+                ]);
+
+            if ($subaccountResponse->successful() && isset($subaccountResponse['data']['subaccount_code'])) {
+                $subaccountCode = $subaccountResponse['data']['subaccount_code'];
+
+                // Create Paystack split
+                $splitResponse = Http::withToken($paystackSecret)
+                    ->post('https://api.paystack.co/split', [
+                        'name' => "{$application->first_name} {$application->last_name} Split",
+                        'type' => 'percentage',
+                        'currency' => 'NGN',
+                        'subaccounts' => [
+                            [
+                                'subaccount' => $subaccountCode,
+                                'share' => 50, // percentage share
+                            ],
+                        ],
+                    ]);
+
+                if ($splitResponse->successful() && isset($splitResponse['data']['split_code'])) {
+                    $splitCode = $splitResponse['data']['split_code'];
+
+                    // Save split code to application
+                    $application->update([
+                        'split_code' => $splitCode,
+                    ]);
+                }
+            }
+
+            // Send confirmation email
             $subject = 'Agent Application Received';
             $content = [
                 'title' => 'Hi ' . $application->first_name . ',',
                 'body' => "
                 We've received your Agent Application and it’s currently under review.<br><br>
-                Here’s a quick summary of your submission:<br><br>
                 <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
                 <strong>Email:</strong> {$application->email}<br>
                 <strong>Phone:</strong> {$application->phone}<br>
                 <strong>State:</strong> {$application->state->name}<br>
                 <strong>LGA:</strong> {$application->lga->name}<br><br>
-                Once approved, you’ll receive your unique referral code via email.<br><br>
-                Thank you for your interest in partnering with Offa University.
+                Once approved, you’ll receive your unique referral code via email.
             ",
                 'footer' => 'Warm regards,<br>Offa University Admissions Team',
             ];
 
             Mail::to($application->email)->send(new GeneralMail($subject, $content, false));
 
-            // Send a copy to admin
+            // Notify admin
             $adminEmail = env('ADMIN_EMAIL', 'vc@unioffa.edu.ng');
-
             $adminSubject = 'New Agent Application Submitted';
             $adminContent = [
                 'title' => 'New Agent Application Received',
@@ -112,11 +176,10 @@ class GeneralController extends Controller
                 <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
                 <strong>Email:</strong> {$application->email}<br>
                 <strong>Phone:</strong> {$application->phone}<br>
-                <strong>State:</strong> {$application->state->name}<br>
-                <strong>LGA:</strong> {$application->lga->name}<br>
                 <strong>Bank:</strong> {$application->bank_name}<br>
                 <strong>Account Name:</strong> {$application->account_name}<br>
-                <strong>Account Number:</strong> {$application->account_number}<br><br>
+                <strong>Account Number:</strong> {$application->account_number}<br>
+                <strong>Split Code:</strong> {$application->split_code}<br><br>
                 You can review and approve this application from the admin dashboard.
             ",
                 'footer' => '— Automated Notification from Offa University Website',
@@ -126,6 +189,7 @@ class GeneralController extends Controller
 
             return redirect()->back()->with('success', 'Your application has been submitted successfully! A confirmation email has been sent to you.');
         } catch (\Exception $e) {
+            Log::error('Agent Application Error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'An error occurred while submitting your application. Please try again later.');
         }
     }

@@ -192,14 +192,19 @@
                                                             class="form-select @error('bank_name') is-invalid @enderror select2-bank"
                                                             name="bank_name" required>
                                                             <option value="">Select Bank</option>
-                                                            <!-- (existing bank list remains unchanged) -->
-                                                            @include('website.partials.bank-options')
+                                                            @foreach ($banks as $bank)
+                                                                <option
+                                                                    value="{{ $bank['name'] }} ({{ $bank['code'] }})">
+                                                                    {{ $bank['name'] }}
+                                                                </option>
+                                                            @endforeach
                                                         </select>
                                                         @error('bank_name')
                                                             <div class="invalid-feedback">{{ $message }}</div>
                                                         @enderror
                                                     </div>
                                                 </div>
+
 
                                                 <div class="col-lg-4">
                                                     <div class="form-group">

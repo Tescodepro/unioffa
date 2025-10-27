@@ -57,7 +57,6 @@ class ApplicationController extends Controller
 
         return view('applications.register', compact('title', 'campuses'));
     }
-
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
     {
         $request->validate([
