@@ -54,13 +54,11 @@ class PaymentController extends Controller
             ]),
         ]);
 
-        if(!isset($user->student->campus_id)){
-            $center_id_generated = $user->campus_id;
-        }else{
-            $center_id_generated = $user->student->campus_id;
+        $center_id_generated = $user->student->campus_id ?? $user->campus_id ?? null;
+        if (!$center_id_generated) {
+            return back()->with('error', 'Campus ID missing for this user. Please contact support.');
         }
         $campusDetail = Campus::getCampusDetail($center_id_generated);
-
         if (!$campusDetail) {
             return back()->with('error', 'There an error in your information kindly contact support to update your campus details.');
         }
@@ -75,23 +73,17 @@ class PaymentController extends Controller
             }
 
             // Normalize programme
-            if ($getuserstype->programme === 'TRANSFER') {
-                $programme = 'REGULAR';
-            } else if ($getuserstype->programme === 'DIPLOMA') {
-                $programme = 'REGULAR';
-            } else if ($getuserstype->programme === 'DE') {
-                $programme = 'REGULAR';
-            } else if ($getuserstype->programme === 'UTME') {
+            if (in_array($getuserstype->programme, ['TRANSFER', 'DIPLOMA', 'DE', 'UTME'])) {
                 $programme = 'REGULAR';
             } else {
                 $programme = $getuserstype->programme;
             }
+
             $split_code = $this->splitGet($request->fee_type, $programme, $campusDetail->slug);
-
-            if($request->fee_type == "acceptance"){
-                $split_code = AgentApplication::where('unique_code', $user->referee_code)->value('split_code') ?? null;
+            if ($request->fee_type === 'acceptance' && $user->referee_code) {
+                $agentSplit = AgentApplication::where('unique_code', $user->referee_code)->where('status', 'approved')->value('split_code');
+                $split_code = $agentSplit ?? $split_code;
             }
-
         } else {
             $student = Student::where('user_id', $user->id)->first();
             if (!$student) {
@@ -121,8 +113,7 @@ class PaymentController extends Controller
 
         // Generate payment link
         $response = $paymentService->generatePaymentLink($data);
-
-        if ($response['status'] && ! empty($response['checkout_url'])) {
+        if ($response['status'] && !empty($response['checkout_url'])) {
             return redirect()->away($response['checkout_url']);
         }
 
@@ -164,8 +155,8 @@ class PaymentController extends Controller
                     $user = $transaction->user; // Already authenticated!
                     $student = $user->student;
                     if ($student) {
-                    $year = $year = $student->admission_session;
-                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
+                        $year = $year = $student->admission_session;
+                        $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
                         $student->update(['matric_no' => $newMatricNo]);
                         $student->user->update(['username' => $newMatricNo]);
                     }

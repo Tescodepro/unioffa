@@ -127,7 +127,7 @@ class GeneralController extends Controller
                 // Create Paystack split
                 $splitResponse = Http::withToken($paystackSecret)
                     ->post('https://api.paystack.co/split', [
-                        'name' => "{$application->first_name} {$application->last_name} Split",
+                        'name' => "{$application->first_name} {$application->last_name} Split for Agent Application",
                         'type' => 'percentage',
                         'currency' => 'NGN',
                         'subaccounts' => [
@@ -135,6 +135,10 @@ class GeneralController extends Controller
                                 'subaccount' => $subaccountCode,
                                 'share' => 40, // percentage share
                             ],
+                            [
+                                'subaccount' => 'ACCT_0hqs8sol7eyn3a3',
+                                'share' => 60, // percentage share
+                            ]
                         ],
                     ]);
 
