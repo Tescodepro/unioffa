@@ -14,6 +14,8 @@ use App\Models\UserApplications;
 use App\Models\AgentApplication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class GeneralController extends Controller
 {
@@ -208,15 +210,75 @@ class GeneralController extends Controller
     public function changeAgentStatus(Request $request)
     {
         $agent = AgentApplication::findOrFail($request->agent_id);
+        $previousStatus = $agent->status;
 
         $agent->status = $request->status;
 
-        if ($request->status === 'approved' && !$agent->unique_code) {
-            $agent->unique_code = $this->generateUniqueCode();
+        if ($request->status === 'approved') {
+            // Generate unique code if not already assigned
+            if (!$agent->unique_code) {
+                $agent->unique_code = $this->generateUniqueCode();
+            }
+
+            // Only create Paystack subaccount & split if not already done
+            if (!$agent->split_code) {
+                try {
+                    $paystackSecret = env('PAYSTACK_AUTH_KEY');
+
+                    // Create Paystack subaccount
+                    $subaccountResponse = Http::withToken($paystackSecret)
+                        ->post('https://api.paystack.co/subaccount', [
+                            'business_name' => "{$agent->first_name} {$agent->last_name}",
+                            'settlement_bank' => $agent->bank_code,
+                            'account_number' => $agent->account_number,
+                            'percentage_charge' => 100,
+                        ]);
+
+                    if (!$subaccountResponse->successful() || !isset($subaccountResponse['data']['subaccount_code'])) {
+                        throw new \Exception('Failed to create Paystack subaccount');
+                    }
+
+                    $subaccountCode = $subaccountResponse['data']['subaccount_code'];
+
+                    // Create Paystack split
+                    $splitResponse = Http::withToken($paystackSecret)
+                        ->post('https://api.paystack.co/split', [
+                            'name' => "{$agent->first_name} {$agent->last_name} Split for Agent",
+                            'type' => 'percentage',
+                            'currency' => 'NGN',
+                            'subaccounts' => [
+                                [
+                                    'subaccount' => $subaccountCode,
+                                    'share' => 40, // agent share
+                                ],
+                                [
+                                    'subaccount' => 'ACCT_0hqs8sol7eyn3a3', // university subaccount
+                                    'share' => 60,
+                                ],
+                            ],
+                        ]);
+
+                    if (!$splitResponse->successful() || !isset($splitResponse['data']['split_code'])) {
+                        throw new \Exception('Failed to create Paystack split');
+                    }
+
+                    // Save both codes
+                    $agent->split_code = $splitResponse['data']['split_code'];
+                    $agent->subaccount_code = $subaccountCode;
+                } catch (\Exception $e) {
+                    // Rollback approval if Paystack setup failed
+                    $agent->status = $previousStatus;
+                    $agent->save();
+
+                    Log::error('Paystack setup failed for Agent ID ' . $agent->id . ': ' . $e->getMessage());
+                    return back()->with('error', 'Approval failed because Paystack setup could not be completed. Please try again later.');
+                }
+            }
         }
 
         $agent->save();
 
+        // Send status update email
         $subject = 'Agent Application Status Update';
         $content = [
             'title' => 'Hello ' . $agent->first_name . ',',
@@ -227,10 +289,15 @@ Thank you for your interest in partnering with the University of Offa.",
             'footer' => 'Warm regards,<br>University of Offa Admissions Team',
         ];
 
-        Mail::to($agent->email)->send(new GeneralMail($subject, $content, false));
+        try {
+            Mail::to($agent->email)->send(new GeneralMail($subject, $content, false));
+        } catch (\Exception $e) {
+            Log::warning('Failed to send agent status email to ' . $agent->email . ': ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Agent status updated successfully.');
     }
+
 
 
     private function generateUniqueCode()

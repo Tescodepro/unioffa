@@ -89,13 +89,13 @@ class GeneralController extends Controller
                 return redirect()->back()->with('error', 'An account with this email or phone number already exists.');
             }
 
-            // Split "Bank Name (Code)"
+            // Extract clean bank name and code
             $bankName = $request->bank_name;
             preg_match('/(.*?)\s*\((.*?)\)/', $bankName, $matches);
             $cleanBankName = $matches[1] ?? $bankName;
             $bankCode = $matches[2] ?? null;
 
-            // Create agent application (status: pending for now)
+            // Create agent application (status: pending)
             $application = AgentApplication::create([
                 'first_name' => $request->first_name,
                 'middle_name' => $request->middle_name,
@@ -111,60 +111,19 @@ class GeneralController extends Controller
                 'status' => 'pending',
             ]);
 
-            // Create Paystack subaccount
-            $paystackSecret = env('PAYSTACK_AUTH_KEY');
-            $subaccountResponse = Http::withToken($paystackSecret)
-                ->post('https://api.paystack.co/subaccount', [
-                    'business_name' => "{$application->first_name} {$application->last_name}",
-                    'settlement_bank' => $bankCode,
-                    'account_number' => $application->account_number,
-                    'percentage_charge' => 100, // adjust if needed
-                ]);
-
-            if ($subaccountResponse->successful() && isset($subaccountResponse['data']['subaccount_code'])) {
-                $subaccountCode = $subaccountResponse['data']['subaccount_code'];
-
-                // Create Paystack split
-                $splitResponse = Http::withToken($paystackSecret)
-                    ->post('https://api.paystack.co/split', [
-                        'name' => "{$application->first_name} {$application->last_name} Split for Agent Application",
-                        'type' => 'percentage',
-                        'currency' => 'NGN',
-                        'subaccounts' => [
-                            [
-                                'subaccount' => $subaccountCode,
-                                'share' => 40, // percentage share
-                            ],
-                            [
-                                'subaccount' => 'ACCT_0hqs8sol7eyn3a3',
-                                'share' => 60, // percentage share
-                            ]
-                        ],
-                    ]);
-
-                if ($splitResponse->successful() && isset($splitResponse['data']['split_code'])) {
-                    $splitCode = $splitResponse['data']['split_code'];
-
-                    // Save split code to application
-                    $application->update([
-                        'split_code' => $splitCode,
-                    ]);
-                }
-            }
-
-            // Send confirmation email
+            // Send confirmation email to applicant
             $subject = 'Agent Application Received';
             $content = [
                 'title' => 'Hi ' . $application->first_name . ',',
                 'body' => "
-                We've received your Agent Application and it’s currently under review.<br><br>
-                <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
-                <strong>Email:</strong> {$application->email}<br>
-                <strong>Phone:</strong> {$application->phone}<br>
-                <strong>State:</strong> {$application->state->name}<br>
-                <strong>LGA:</strong> {$application->lga->name}<br><br>
-                Once approved, you’ll receive your unique referral code via email.
-            ",
+            We've received your Agent Application and it’s currently under review.<br><br>
+            <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
+            <strong>Email:</strong> {$application->email}<br>
+            <strong>Phone:</strong> {$application->phone}<br>
+            <strong>State:</strong> {$application->state->name}<br>
+            <strong>LGA:</strong> {$application->lga->name}<br><br>
+            Once approved, you’ll receive your unique referral code via email.
+        ",
                 'footer' => 'Warm regards,<br>Offa University Admissions Team',
             ];
 
@@ -181,22 +140,21 @@ class GeneralController extends Controller
             $adminContent = [
                 'title' => 'New Agent Application Received',
                 'body' => "
-                A new agent application has been submitted.<br><br>
-                <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
-                <strong>Email:</strong> {$application->email}<br>
-                <strong>Phone:</strong> {$application->phone}<br>
-                <strong>Bank:</strong> {$application->bank_name}<br>
-                <strong>Account Name:</strong> {$application->account_name}<br>
-                <strong>Account Number:</strong> {$application->account_number}<br>
-                <strong>Split Code:</strong> {$application->split_code}<br><br>
-                You can review and approve this application from the admin dashboard.
-            ",
+            A new agent application has been submitted.<br><br>
+            <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
+            <strong>Email:</strong> {$application->email}<br>
+            <strong>Phone:</strong> {$application->phone}<br>
+            <strong>Bank:</strong> {$application->bank_name}<br>
+            <strong>Account Name:</strong> {$application->account_name}<br>
+            <strong>Account Number:</strong> {$application->account_number}<br>
+            You can review and approve this application from the admin dashboard.
+        ",
                 'footer' => '— Automated Notification from Offa University Website',
             ];
 
             Mail::to($adminEmail)->send(new GeneralMail($adminSubject, $adminContent, false));
 
-            return redirect()->back()->with('success', 'Your application has been submitted successfully! A confirmation email has been sent to you.');
+            return redirect()->back()->with('success', 'Your application has been submitted successfully! Your unique referral code will be emailed to you once your application is approved.');
         } catch (\Exception $e) {
             Log::error('Agent Application Error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'An error occurred while submitting your application. Please try again later.');
