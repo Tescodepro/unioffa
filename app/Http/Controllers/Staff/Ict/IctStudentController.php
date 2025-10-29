@@ -116,7 +116,7 @@ class IctStudentController extends Controller
     public function create()
     {
         $departments = Department::with('faculty')->orderBy('department_name')->get();
-        $campuses = Campus::where('status', '1')->get();
+        $campuses = Campus::all();
         return view('staff.ict.students.create', compact('departments', 'campuses'));
     }
     //Store single student
