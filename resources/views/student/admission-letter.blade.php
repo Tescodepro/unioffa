@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>Admission Letter</title>
@@ -13,12 +14,12 @@
             line-height: 1.4;
             color: #000;
         }
-        
+
         .letterhead {
             width: 100%;
             display: block;
         }
-        
+
         .footer {
             position: fixed;
             bottom: 0;
@@ -26,7 +27,7 @@
             width: 100%;
             display: block;
         }
-        
+
         .watermark {
             position: fixed;
             top: 30%;
@@ -35,23 +36,23 @@
             opacity: 0.06;
             z-index: -1;
         }
-        
+
         .content {
             padding: 15px 30px 30px 30px;
             position: relative;
             z-index: 1;
         }
-        
+
         .student-info {
             margin: 20px 0;
             line-height: 1.5;
         }
-        
+
         .student-info span {
             display: block;
             margin-bottom: 3px;
         }
-        
+
         h4 {
             text-align: center;
             text-decoration: underline;
@@ -59,85 +60,86 @@
             font-weight: bold;
             font-size: 15pt;
         }
-        
+
         p {
             text-align: justify;
             margin: 12px 0;
             line-height: 1.4;
         }
-        
+
         ol {
             margin: 15px 0;
             padding-left: 20px;
         }
-        
+
         ol li {
             margin: 10px 0;
             text-align: justify;
             line-height: 1.4;
         }
-        
+
         ul {
             margin: 8px 0;
             padding-left: 18px;
         }
-        
+
         ul li {
             margin: 5px 0;
             line-height: 1.3;
         }
-        
+
         .signature-block {
             margin-top: 35px;
             text-align: left;
             page-break-inside: avoid;
         }
-        
+
         .signature-block img {
             width: 180px;
             display: block;
             margin-left: 0;
             margin-right: auto;
         }
-        
+
         .signature-name {
             margin-top: 10px;
             margin-bottom: 5px;
             font-weight: bold;
             font-size: 14pt;
         }
-        
+
         .signature-title {
             margin-top: 0;
             font-style: italic;
             font-size: 13pt;
         }
-        
+
         strong {
             font-weight: bold;
         }
-        
+
         /* Print styles */
         @media print {
             body {
                 font-size: 12pt;
             }
-            
+
             .content {
                 padding: 10px 50px 100px 50px;
             }
-            
+
             .signature-block {
                 margin-top: 10px;
             }
         }
-        
+
         @page {
             margin: 0;
             size: A4;
         }
     </style>
 </head>
+
 <body>
 
     @php
@@ -161,11 +163,12 @@
         <h4>OFFER OF PROVISIONAL ADMISSION FOR {{ $student->admission_session }}</h4>
 
         <p>
-            Consequent upon your application, you are hereby offered provisional admission into the 
-            University for a {{ ucfirst($durationInWords) }} ({{ $duration->admission_duration }}) year Programme leading to the award of 
+            Consequent upon your application, you are hereby offered provisional admission into the
+            University for a {{ ucfirst($durationInWords) }} ({{ $duration->admission_duration }}) year Programme
+            leading to the award of
 
             <strong>
-                @if($department->qualification == 'B.Ed' || $department->qualification == 'BEd')
+                @if ($department->qualification == 'B.Ed' || $department->qualification == 'BEd')
                     Bachelor of Education
                 @else
                     Bachelor of Science
@@ -181,28 +184,37 @@
             <li>On arrival, present the following:
                 <ul>
                     @if ($student->programme != 'TOPUP')
-                        <li>The Originals of your certificates</li>
-                        <li>Authentic JAMB Result slip</li>
-                        <li>Authentic JAMB Admission Letter</li>
+                        @if ($student->entry_mode == 'DE')
+                            <li>Original certificate(s) of A'Level result or its equivalent.</li>
+                            <li>Original certificate(s) of O'Level with at least five (5) credit passes, including
+                                English Language and Mathematics.</li>
+                        @else
+                            <li>Original copies of your certificates.</li>
+                            <li>Authentic JAMB result slip.</li>
+                            <li>Authentic JAMB admission letter.</li>
+                        @endif
                     @elseif($student->programme == 'TOPUP')
-                        <li>Original certificate(s) of National Youth Service Corps (NYSC) discharge or exemption certificate</li>
-                        <li>Original certificate(s) of HND , OND or Bachelor Degree(s) in the relevant field</li>
-                        <li>Original certificate(s) of Olevel with at least five (5) credit passes including English Language and Mathematics</li>
+                        <li>Original certificate of National Youth Service Corps (NYSC) discharge or exemption
+                            certificate.</li>
+                        <li>Original certificate(s) of HND, OND, or Bachelor's degree in the relevant field.</li>
+                        <li>Original certificate(s) of O'Level with at least five (5) credit passes, including English
+                            Language and Mathematics.</li>
                     @endif
-                    <li>Original Birth Certificate or statutory declaration of age</li>
-                    <li>Four copies of your recent passport-size photographs</li>
+                    <li>Original birth certificate or statutory declaration of age.</li>
+                    <li>Four (4) copies of your recent passport-size photographs.</li>
                 </ul>
+
             </li>
             <li>
-                The University has the right to withdraw your admission if it is discovered at any time 
+                The University has the right to withdraw your admission if it is discovered at any time
                 that you do not possess the entry requirement upon which the admission was granted.
             </li>
             <li>
-                The University shall also withdraw your admission if it is discovered at any time that 
+                The University shall also withdraw your admission if it is discovered at any time that
                 you are involved in any unwholesome behavior or gross misconduct.
             </li>
             <li>
-                You are to present a letter of attestation from a reputable person that you will be of 
+                You are to present a letter of attestation from a reputable person that you will be of
                 good behavior during your studentship.
             </li>
         </ol>
@@ -211,7 +223,8 @@
 
         <!-- Signature Block -->
         <div class="signature-block">
-            <img src="{{ public_path('portal_assets/img/users/signature.png') }}" alt="Registrar's Signature" style="height: 20px;">
+            <img src="{{ public_path('portal_assets/img/users/signature.png') }}" alt="Registrar's Signature"
+                style="height: 20px;">
             <p class="signature-name">Mr. Salaudeen OYEWALE</p>
             <p class="signature-title">Ag. Registrar</p>
         </div>
@@ -221,4 +234,5 @@
     <img src="{{ public_path('portal_assets/img/users/letter_head_footer.png') }}" class="footer">
 
 </body>
+
 </html>
