@@ -319,6 +319,7 @@ class IctStudentController extends Controller
             'last_name'  => $request->last_name,
             'email'      => $request->email,
             'phone'      => $request->phone,
+            'username'   => $request->matric_no,
         ]);
 
         // Update student details

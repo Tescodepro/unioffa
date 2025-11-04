@@ -161,33 +161,32 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-    const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
 
-    document.querySelectorAll('.editUserBtn').forEach(button => {
-        button.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const firstName = this.dataset.first_name;
-            const middleName = this.dataset.middle_name;
-            const lastName = this.dataset.last_name;
-            const email = this.dataset.email;
-            const phone = this.dataset.phone;
+            document.querySelectorAll('.editUserBtn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const firstName = this.dataset.first_name;
+                    const middleName = this.dataset.middle_name;
+                    const lastName = this.dataset.last_name;
+                    const email = this.dataset.email;
+                    const phone = this.dataset.phone;
 
-            // Fill input fields
-            document.getElementById('first_name').value = firstName;
-            document.getElementById('middle_name').value = middleName;
-            document.getElementById('last_name').value = lastName;
-            document.getElementById('email').value = email;
-            document.getElementById('phone').value = phone;
+                    // Fill input fields
+                    document.getElementById('first_name').value = firstName;
+                    document.getElementById('middle_name').value = middleName;
+                    document.getElementById('last_name').value = lastName;
+                    document.getElementById('email').value = email;
+                    document.getElementById('phone').value = phone;
 
-            // Generate base route (using dummy id=0)
-            const routeTemplate = @json(route('ict.staff.users.update', ['id' => 0]));
-            const form = document.getElementById('editUserForm');
-            form.action = routeTemplate.replace('/0', '/' + id);
+                    // Generate base route (using dummy id=0)
+                    const routeTemplate = @json(route('ict.staff.users.update', ['id' => 0]));
+                    const form = document.getElementById('editUserForm');
+                    form.action = routeTemplate.replace('/0', '/' + id);
 
-            editModal.show();
+                    editModal.show();
+                });
+            });
         });
-    });
-});
-
     </script>
 @endpush
