@@ -298,8 +298,6 @@ Thank you for your interest in partnering with the University of Offa.",
         return back()->with('success', 'Agent status updated successfully.');
     }
 
-
-
     private function generateUniqueCode()
     {
         do {
