@@ -86,6 +86,19 @@
                             </li>
                         </ul>
                     </li>
+                    {{--User management for ICT staff only --}}
+                    <li class="{{ request()->is('staff/ict/users*') ? 'open' : '' }}">
+                        <h6 class="submenu-hdr"><span>User Management</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('ict.staff.users.index') }}"
+                                    class="{{ request()->routeIs('ict.staff.users.index') ? 'active' : '' }}">
+                                    <i class="ti ti-users"></i>
+                                    <span>All Users</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
 
                 @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor', 'ict']))

@@ -343,4 +343,58 @@ class IctStudentController extends Controller
     {
         return UserType::where('name', $name)->value('id');
     }
+
+    public function getAllUsers(Request $request)
+    {
+        // Get filter inputs
+        $search = $request->input('search');
+        $email = $request->input('email');
+        $phone = $request->input('phone');
+        $username = $request->input('username');
+        $userTypeId = $request->input('user_type_id');
+
+        // Query with filters
+        $users = User::with('userType')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%$search%")
+                        ->orWhere('middle_name', 'like', "%$search%")
+                        ->orWhere('last_name', 'like', "%$search%")
+                        ->orWhere('email', 'like', "%$search%")
+                        ->orWhere('phone', 'like', "%$search%")
+                        ->orWhere('username', 'like', "%$search%");
+                });
+            })
+            ->when($email, fn($q) => $q->where('email', 'like', "%$email%"))
+            ->when($phone, fn($q) => $q->where('phone', 'like', "%$phone%"))
+            ->when($username, fn($q) => $q->where('username', 'like', "%$username%"))
+            ->when($userTypeId, fn($q) => $q->where('user_type_id', $userTypeId))
+            ->paginate(20);
+
+        $userTypes = \App\Models\UserType::orderBy('name')->get();
+
+        return view('staff.ict.users.listofusers', compact('users', 'userTypes'));
+    }
+
+    public function updateUsers(Request $request, $id)
+    {
+        $request->validate([
+            'first_name'   => 'required|string|max:255',
+            'middle_name'  => 'nullable|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email,' . $id,
+            'phone'        => 'nullable|string|max:20',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->update([
+            'first_name'   => $request->first_name,
+            'middle_name'  => $request->middle_name,
+            'last_name'    => $request->last_name,
+            'email'        => $request->email,
+            'phone'        => $request->phone,
+        ]);
+
+        return back()->with('success', 'User updated successfully.');
+    }
 }

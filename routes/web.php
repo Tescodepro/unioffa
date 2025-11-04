@@ -31,7 +31,6 @@ Route::controller(GeneralController::class)->group(function () {
     Route::post('/submit-agent-application', 'submitAgentApplication')->name('agent.application.submit');
     Route::get('/lgas/{state_id}', 'getLgas')->name('lgas.by.state');
     Route::get('/scholarship-application', 'scholarshipApplication')->name('scholarship.application');
-
 });
 
 // ====== Application Routes ======= //
@@ -179,6 +178,10 @@ Route::prefix('staff')->group(function () {
             Route::get('/students/bulk', 'bulkUploadForm')->name('ict.students.bulk');
             Route::post('/students/bulk', 'bulkUpload')->name('ict.students.bulk.upload');
             Route::get('/students/bulk/template', 'downloadTemplate')->name('ict.students.bulk.template');
+
+            // User CRUD
+            Route::get('/users',  'getAllUsers')->name('ict.staff.users.index');
+            Route::post('users/{id}',  'updateUsers')->name('ict.staff.users.update');
         });
     });
 });
