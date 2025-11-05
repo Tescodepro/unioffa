@@ -237,6 +237,10 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'No active session found.');
         }
         $student = $user->student;
+        if($student->entry_mode = 'DE')
+        {
+            $student->level = 100;
+        }
         // ✅ 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
             ->where('session', $currentSession) // session must always match
