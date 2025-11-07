@@ -9,6 +9,7 @@ use App\Models\Faculty;
 use App\Models\User;
 use App\Models\UserType;
 use App\Models\Campus;
+use App\Services\UniqueIdService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -336,8 +337,16 @@ class IctStudentController extends Controller
 
     public function destroy(Student $student)
     {
+        $uniqueIdService = new UniqueIdService();
+        $uniqueId = $uniqueIdService->generate('applicant');
         $student->delete();
-        // $student->user->delete();
+
+        $userType = UserType::where('name', 'applicant')->firstOrFail();
+        // update users->username 
+        $user = $student->user;
+        $user->username = $uniqueId;
+        $user->user_type_id = $userType->id;
+        $user->save();
         return back()->with('success', 'Student deleted successfully.');
     }
 
