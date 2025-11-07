@@ -237,7 +237,7 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'No active session found.');
         }
         $student = $user->student;
-        if($student->entry_mode == 'DE' AND $student->level == 200 AND $student->admission_session == $currentSession)
+        if(($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER' ) AND $student->level == 200 AND $student->admission_session == $currentSession)
         {
             $student->level = 100;
         }
