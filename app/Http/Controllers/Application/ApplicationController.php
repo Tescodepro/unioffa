@@ -77,11 +77,8 @@ class ApplicationController extends Controller
             ],
         ]);
 
-
         $uniqueId = $uniqueIdService->generate('applicant');
-
         DB::beginTransaction();
-
         try {
             // Create the user but keep inside transaction
             $user = User::create([
@@ -98,9 +95,42 @@ class ApplicationController extends Controller
                 'referee_code' => $request->referee_code,
             ]);
 
+            // GET referee agent if any using referral code
+            if ($request->referee_code) {
+                $agentApplication = DB::table('agent_applications')
+                    ->where('unique_code', $request->referee_code)
+                    ->where('status', 'approved')
+                    ->first();
+
+                if ($agentApplication) {
+                    // Send notification email to the agent
+                    $to = $agentApplication->email; // assuming 'email' column exists in agent_applications
+
+                    $subject = 'Referral Notification - New Applicant Registration';
+
+                    $content = [
+                        'title' => 'Hello ' . $agentApplication->first_name . ',',
+                        'body' => 'A new applicant has registered using your referral code (' . $request->referee_code . ').<br><br>' .
+                            '<strong>Registration Details:</strong><br>' .
+                            '- Applicant Name: ' . $user->first_name . ' ' . $user->last_name . '<br>' .
+                            '- Applicant Email: ' . $user->email . '<br>' .
+                            '- Date: ' . now()->format('Y-m-d H:i:s') . '<br>' .
+                            '- IP Address: ' . request()->ip() . '<br><br>' .
+                            'Thank you for referring applicants to Offa University. Keep up the great work!',
+                        'footer' => 'Warm regards,<br>Offa University Team',
+                    ];
+
+                    Mail::to($to)->send(new GeneralMail($subject, $content, false));
+
+                    // Log referral for records
+                    Log::info("Referral: User {$user->email} registered with referral code {$request->referee_code}, referred by Agent ID {$agentApplication->id}");
+                }
+            }
+
+
+
             // Try sending email
             Mail::to($user->email)->send(new ApplicantRegisteredMail($user, $uniqueId));
-
             // If no exception thrown, log success
             Log::info("📧 Mail sent successfully to {$user->email} with registration no: {$uniqueId}");
 
