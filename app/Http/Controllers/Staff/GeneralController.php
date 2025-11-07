@@ -264,7 +264,7 @@ class GeneralController extends Controller
 
                     // Save both codes
                     $agent->split_code = $splitResponse['data']['split_code'];
-                    $agent->subaccount_code = $subaccountCode;
+                    // $agent->subaccount_code = $subaccountCode;
                 } catch (\Exception $e) {
                     // Rollback approval if Paystack setup failed
                     $agent->status = $previousStatus;
