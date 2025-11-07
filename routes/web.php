@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\CourseRegistrationController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\{PaymentController, NewsController};
 use App\Http\Controllers\Staff\AuthController as StaffAuthController;
 use App\Http\Controllers\Staff\GeneralController as AdminGeneralController;
 use App\Http\Controllers\Staff\{BursaryController, PaymentSettingController};
@@ -183,6 +183,8 @@ Route::prefix('staff')->group(function () {
             Route::get('/users',  'getAllUsers')->name('ict.staff.users.index');
             Route::post('/users', 'storeUsers');
             Route::post('users/{id}',  'updateUsers')->name('ict.staff.users.update');
+
+            Route::resource('news', NewsController::class);
 
         });
     });
