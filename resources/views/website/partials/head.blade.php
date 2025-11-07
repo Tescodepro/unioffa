@@ -9,11 +9,12 @@
     <title> {{$title}} &amp;  {{ config('app.name') }}   </title>
     <!-- favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/logo/logo.jpeg') }}">
-    <!-- css -->
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/css/all-fontawesome.min.css">
-    <link rel="stylesheet" href="assets/css/animate.min.css">
-    <link rel="stylesheet" href="assets/css/magnific-popup.min.css">
-    <link rel="stylesheet" href="assets/css/owl.carousel.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+
+<link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/all-fontawesome.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/animate.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/magnific-popup.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+
 </head>

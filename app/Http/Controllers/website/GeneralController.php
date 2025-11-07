@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\GeneralMail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\News;
 
 
 
@@ -21,9 +22,9 @@ class GeneralController extends Controller
     {
         $title = 'Home';
         $events = [];
-        $blogs = [];
+        $news = News::latest()->take(3)->get();
 
-        return view('website.home', compact('title', 'events', 'blogs'));
+        return view('website.home', compact('title', 'events', 'news'));
     }
 
     public function contact()

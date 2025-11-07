@@ -2,38 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\News;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\News;
 
 class NewsController extends Controller
 {
     public function index()
     {
         $news = News::latest()->get();
-        return view('news.index', compact('news'));
+        return view('staff.ict.news', compact('news'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required',
+            'title' => 'required|unique:news,title',
             'short_title' => 'required',
-            'slug' => 'required|unique:news,slug',
             'content' => 'required',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
         ]);
 
+        $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('news', 'public');
+        }
+
         News::create([
-            'title' => $request->title,
+            'title'       => $request->title,
             'short_title' => $request->short_title,
-            'slug' => Str::slug($request->slug),
-            'image' => $request->image ?? null,
-            'content' => $request->content,
-            'is_active' => $request->has('is_active'),
+            'slug'        => Str::slug($request->slug ?? $request->title),
+            'image'       => $imagePath,
+            'content'     => $request->content,
+            'is_active'   => $request->has('is_active'),
         ]);
 
         return back()->with('success', 'News added successfully.');
     }
+
 
     public function update(Request $request, $id)
     {
@@ -64,5 +71,12 @@ class NewsController extends Controller
         $news->delete();
 
         return back()->with('success', 'News deleted successfully.');
+    }
+
+    public function show(News $news)
+    {
+        $title = $news->title;
+        $latest = News::where('id', '!=', $news->id)->latest()->take(5)->get();
+        return view('website.news-details', compact('news', 'latest', 'title'));
     }
 }

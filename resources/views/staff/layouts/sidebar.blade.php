@@ -100,6 +100,21 @@
                         </ul>
                     </li>
                 @endif
+                @if (in_array(auth()->user()->userType->name, ['ict']))
+                    <!-- STUDENT MANAGEMENT -->
+                    <li class="{{ request()->is('staff/ict/news*') ? 'open' : '' }}">
+                        <h6 class="submenu-hdr"><span>Website Management</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('news.index') }}"
+                                    class="{{ request()->routeIs('news.index') ? 'active' : '' }}">
+                                    <i class="ti ti-users"></i>
+                                    <span>News</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
 
                 @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor', 'ict']))
                     <!-- TRANSACTIONS bursary.transactions.create-->

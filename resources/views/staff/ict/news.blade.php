@@ -3,9 +3,7 @@
 @section('title', 'Manage News')
 
 @section('content')
-<div id="global-loader">
-    <div class="page-loader"></div>
-</div>
+<div id="global-loader"><div class="page-loader"></div></div>
 
 <div class="main-wrapper">
     @include('staff.layouts.header')
@@ -32,6 +30,7 @@
                     <table class="table table-striped align-middle">
                         <thead>
                             <tr>
+                                <th>Image</th>
                                 <th>Title</th>
                                 <th>Short Title</th>
                                 <th>Slug</th>
@@ -42,6 +41,13 @@
                         <tbody>
                             @forelse($news as $item)
                             <tr>
+                                <td>
+                                    @if($item->image)
+                                        <img src="{{ asset('storage/'.$item->image) }}" width="55" class="rounded">
+                                    @else
+                                        <span class="text-muted">No Image</span>
+                                    @endif
+                                </td>
                                 <td>{{ $item->title }}</td>
                                 <td>{{ $item->short_title }}</td>
                                 <td>{{ $item->slug }}</td>
@@ -58,7 +64,8 @@
                                         data-title="{{ $item->title }}"
                                         data-short_title="{{ $item->short_title }}"
                                         data-slug="{{ $item->slug }}"
-                                        data-content="{{ $item->content }}"
+                                        data-content="{{ htmlspecialchars($item->content) }}"
+                                        data-image="{{ $item->image }}"
                                         data-status="{{ $item->is_active }}">
                                         <i class="ti ti-edit"></i>
                                     </button>
@@ -66,7 +73,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">No news yet</td>
+                                <td colspan="6" class="text-center text-muted py-4">No news yet</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -78,10 +85,11 @@
     </div>
 </div>
 
+
 {{-- ADD NEWS MODAL --}}
 <div class="modal fade" id="addNewsModal">
     <div class="modal-dialog modal-lg">
-        <form method="POST" action="{{ route('news.store') }}" onsubmit="syncContent('add')">
+        <form method="POST" action="{{ route('news.store') }}" enctype="multipart/form-data" onsubmit="syncContent('add')">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
@@ -90,6 +98,7 @@
                 </div>
 
                 <div class="modal-body">
+
                     <div class="mb-3">
                         <label class="form-label">Title</label>
                         <input type="text" name="title" class="form-control" required>
@@ -106,9 +115,21 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">Upload Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*" required>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Content</label>
-                        <div id="addEditor" contenteditable="true" class="form-control" 
-                             style="height:150px; overflow:auto;"></div>
+
+                        <div class="border p-2 mb-2 rounded bg-light">
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('bold')"><b>B</b></button>
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('italic')"><i>I</i></button>
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('insertOrderedList')">OL</button>
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('insertUnorderedList')">UL</button>
+                        </div>
+
+                        <div id="addEditor" contenteditable="true" class="form-control" style="min-height:150px;"></div>
                         <input type="hidden" name="content" id="addContentInput">
                     </div>
 
@@ -116,6 +137,7 @@
                         <input type="checkbox" name="is_active" class="form-check-input" checked>
                         <label class="form-check-label">Active</label>
                     </div>
+
                 </div>
 
                 <div class="modal-footer">
@@ -127,12 +149,14 @@
     </div>
 </div>
 
+
 {{-- EDIT NEWS MODAL --}}
 <div class="modal fade" id="editNewsModal">
     <div class="modal-dialog modal-lg">
-        <form method="POST" id="editNewsForm" onsubmit="syncContent('edit')">
+        <form method="POST" id="editNewsForm" enctype="multipart/form-data" onsubmit="syncContent('edit')">
             @csrf
             @method('PUT')
+
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Edit News</h5>
@@ -140,6 +164,7 @@
                 </div>
 
                 <div class="modal-body">
+
                     <div class="mb-3">
                         <label class="form-label">Title</label>
                         <input type="text" name="title" id="edit_title" class="form-control" required>
@@ -156,9 +181,26 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">Current Image</label><br>
+                        <img id="editImagePreview" src="" width="80" class="rounded mb-2 d-none">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Change Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Content</label>
-                        <div id="editEditor" contenteditable="true" class="form-control" 
-                             style="height:150px; overflow:auto;"></div>
+
+                        <div class="border p-2 mb-2 rounded bg-light">
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('bold')"><b>B</b></button>
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('italic')"><i>I</i></button>
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('insertOrderedList')">OL</button>
+                            <button type="button" class="btn btn-sm btn-light" onclick="formatDoc('insertUnorderedList')">UL</button>
+                        </div>
+
+                        <div id="editEditor" contenteditable="true" class="form-control" style="min-height:150px;"></div>
                         <input type="hidden" name="content" id="editContentInput">
                     </div>
 
@@ -166,6 +208,7 @@
                         <input type="checkbox" name="is_active" id="edit_status" class="form-check-input">
                         <label class="form-check-label">Active</label>
                     </div>
+
                 </div>
 
                 <div class="modal-footer">
@@ -179,11 +222,17 @@
 
 @endsection
 
+
+
 @push('scripts')
 <script>
+    function formatDoc(cmd) {
+        document.execCommand(cmd, false, null);
+    }
+
     function syncContent(type) {
-        const editor = document.getElementById(type + 'Editor');
-        document.getElementById(type + 'ContentInput').value = editor.innerHTML;
+        document.getElementById(type + 'ContentInput').value =
+            document.getElementById(type + 'Editor').innerHTML;
     }
 
     document.querySelectorAll('.editNewsBtn').forEach(btn => {
@@ -196,7 +245,16 @@
             editEditor.innerHTML = btn.dataset.content;
             edit_status.checked = btn.dataset.status == 1;
 
-            editNewsForm.action = `/news/${btn.dataset.id}`;
+            if (btn.dataset.image) {
+                editImagePreview.src = `/storage/${btn.dataset.image}`;
+                editImagePreview.classList.remove('d-none');
+            } else {
+                editImagePreview.classList.add('d-none');
+            }
+
+            // editNewsForm.action = `news/${btn.dataset.id}`;
+            editNewsForm.action = `{{ route('news.update', ':id') }}`.replace(':id', btn.dataset.id);
+
             m.show();
         }
     });
