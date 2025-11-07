@@ -13,16 +13,19 @@
 
         <div class="page-wrapper">
             <div class="content">
-
+                @include('layouts.flash-message')
                 <!-- Header -->
                 <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                     <div>
                         <h3 class="page-title mb-1">List of Users</h3>
                         <p class="text-muted mb-0">View, filter, and manage all user accounts.</p>
                     </div>
-                    @include('layouts.flash-message')
+                    <div>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="ti ti-plus"></i> Add User
+                        </button>
+                    </div>
                 </div>
-
                 <!-- Filter Form -->
                 <form method="GET" action="{{ route('ict.staff.users.index') }}" class="mb-3">
                     <div class="row g-2">
@@ -80,10 +83,12 @@
                                         <td>{{ $user->userType->name ?? '—' }}</td>
                                         <td class="text-end">
                                             <button class="btn btn-sm btn-outline-primary me-1 editUserBtn"
-                                                data-id="{{ $user->id }}" data-first_name="{{ $user->first_name }}"
+                                                data-id="{{ $user->id }}" data-username="{{ $user->username }}"
+                                                data-first_name="{{ $user->first_name }}"
                                                 data-middle_name="{{ $user->middle_name }}"
                                                 data-last_name="{{ $user->last_name }}" data-email="{{ $user->email }}"
-                                                data-phone="{{ $user->phone }}">
+                                                data-phone="{{ $user->phone }}"
+                                                data-user_type_id="{{ $user->user_type_id }}">
                                                 <i class="ti ti-edit"></i>
                                             </button>
                                         </td>
@@ -121,6 +126,10 @@
 
                     <div class="modal-body">
                         <input type="hidden" id="edit_user_id" name="user_id">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" id="username" class="form-control" required>
+                        </div>
 
                         <div class="mb-3">
                             <label class="form-label">First Name</label>
@@ -146,6 +155,17 @@
                             <label class="form-label">Phone</label>
                             <input type="text" name="phone" id="phone" class="form-control">
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">User Type</label>
+                            <select name="user_type_id" id="user_type_id" class="form-select" required>
+                                <option value="">Select User Type</option>
+                                @foreach ($userTypes as $type)
+                                    <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                     </div>
 
                     <div class="modal-footer">
@@ -156,6 +176,71 @@
             </form>
         </div>
     </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" action="{{ route('ict.staff.users.index') }}">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="first_name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">User Type</label>
+                            <select name="user_type_id" class="form-select" required>
+                                <option value="">Select User Type</option>
+                                @foreach ($userTypes as $type)
+                                    <option value="{{ $type->id }}">{{ $type->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add User</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
 @endsection
 
 @push('scripts')
@@ -166,20 +251,24 @@
             document.querySelectorAll('.editUserBtn').forEach(button => {
                 button.addEventListener('click', function() {
                     const id = this.dataset.id;
+                    const username = this.dataset.username;
                     const firstName = this.dataset.first_name;
                     const middleName = this.dataset.middle_name;
                     const lastName = this.dataset.last_name;
                     const email = this.dataset.email;
                     const phone = this.dataset.phone;
+                    const userTypeId = this.dataset.user_type_id;
 
                     // Fill input fields
+                    document.getElementById('username').value = username;
                     document.getElementById('first_name').value = firstName;
                     document.getElementById('middle_name').value = middleName;
                     document.getElementById('last_name').value = lastName;
                     document.getElementById('email').value = email;
                     document.getElementById('phone').value = phone;
+                    document.getElementById('user_type_id').value = userTypeId;
 
-                    // Generate base route (using dummy id=0)
+                    // Set form action
                     const routeTemplate = @json(route('ict.staff.users.update', ['id' => 0]));
                     const form = document.getElementById('editUserForm');
                     form.action = routeTemplate.replace('/0', '/' + id);

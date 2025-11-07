@@ -380,22 +380,54 @@ class IctStudentController extends Controller
     public function updateUsers(Request $request, $id)
     {
         $request->validate([
+            'username'     => 'required|string|max:255|unique:users,username,' . $id,
             'first_name'   => 'required|string|max:255',
             'middle_name'  => 'nullable|string|max:255',
             'last_name'    => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email,' . $id,
             'phone'        => 'nullable|string|max:20',
+            'user_type_id' => 'required|exists:user_types,id',
         ]);
 
         $user = User::findOrFail($id);
+
         $user->update([
+            'username'     => $request->username,
             'first_name'   => $request->first_name,
             'middle_name'  => $request->middle_name,
             'last_name'    => $request->last_name,
             'email'        => $request->email,
             'phone'        => $request->phone,
+            'user_type_id' => $request->user_type_id,
         ]);
 
         return back()->with('success', 'User updated successfully.');
+    }
+
+    public function storeUsers(Request $request)
+    {
+        $request->validate([
+            'username'     => 'required|string|max:255|unique:users,username',
+            'first_name'   => 'required|string|max:255',
+            'middle_name'  => 'nullable|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'email'        => 'required|email|unique:users,email',
+            'phone'        => 'nullable|string|max:20|unique:users,phone',
+            'user_type_id' => 'required|exists:user_types,id',
+        ]);
+
+        User::create([
+            'username'     => $request->username,
+            'first_name'   => $request->first_name,
+            'middle_name'  => $request->middle_name,
+            'last_name'    => $request->last_name,
+            'email'        => $request->email,
+            'phone'        => $request->phone,
+            'user_type_id' => $request->user_type_id,
+            // you can also set a default password if needed:
+            'password'     => bcrypt('password123'),
+        ]);
+
+        return back()->with('success', 'User added successfully.');
     }
 }

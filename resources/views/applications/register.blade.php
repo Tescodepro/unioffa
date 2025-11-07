@@ -13,22 +13,28 @@
         <div class="login-area py-120">
             <div class="container">
                 <div class="row align-items-center">
-                    
+
                     <!-- Left side: Instructions -->
                     <div class="col-lg-5 mb-4 mb-lg-0">
                         <div class="p-4">
                             <h2 class="mb-3">Welcome to {{ config('app.name') }} Application Portal</h2>
                             <p class="lead">
-                                Create your account to start your application process and access all features of the portal.
+                                Create your account to start your application process and access all features of the
+                                portal.
                             </p>
                             <ul class="list-unstyled mt-3">
-                                <li><i class="fas fa-check-circle text-success me-2"></i> Quick and easy registration</li>
-                                <li><i class="fas fa-check-circle text-success me-2"></i> Select your preferred <strong>Campus</strong></li>
-                                <li><i class="fas fa-check-circle text-success me-2"></i> Manage your applications anytime</li>
-                                <li><i class="fas fa-check-circle text-success me-2"></i> Stay updated with admission notices</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Quick and easy registration
+                                </li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Select your preferred
+                                    <strong>Campus</strong>
+                                </li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Manage your applications
+                                    anytime</li>
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Stay updated with admission
+                                    notices</li>
                             </ul>
                             <p class="mt-4">
-                                Already have an account? 
+                                Already have an account?
                                 <a href="{{ route('application.login') }}">Login here</a>.
                             </p>
                         </div>
@@ -39,7 +45,8 @@
                     <div class="col-lg-7">
                         <div class="login-form shadow-lg p-4 rounded">
                             <div class="login-header text-center mb-4">
-                                <img src="{{ asset('assets/img/logo/logo.svg') }}" alt="{{ config('app.name') }}" class="mb-3" style="max-width: 120px;">
+                                <img src="{{ asset('assets/img/logo/logo.svg') }}" alt="{{ config('app.name') }}"
+                                    class="mb-3" style="max-width: 120px;">
                                 <h4>Application Portal</h4>
                                 <p>Create your account here.</p>
                             </div>
@@ -51,7 +58,9 @@
 
                                 <div class="form-group mb-3">
                                     <label for="first_name">First Name <code>*</code></label>
-                                    <input id="first_name" name="first_name" type="text" class="form-control @error('first_name') is-invalid @enderror" value="{{ old('first_name') }}" required>
+                                    <input id="first_name" name="first_name" type="text"
+                                        class="form-control @error('first_name') is-invalid @enderror"
+                                        value="{{ old('first_name') }}" required>
                                     @error('first_name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -59,7 +68,9 @@
 
                                 <div class="form-group mb-3">
                                     <label for="last_name">Last Name <code>*</code></label>
-                                    <input id="last_name" name="last_name" type="text" class="form-control @error('last_name') is-invalid @enderror" value="{{ old('last_name') }}" required>
+                                    <input id="last_name" name="last_name" type="text"
+                                        class="form-control @error('last_name') is-invalid @enderror"
+                                        value="{{ old('last_name') }}" required>
                                     @error('last_name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -67,7 +78,9 @@
 
                                 <div class="form-group mb-3">
                                     <label for="middle_name">Middle Name</label>
-                                    <input id="middle_name" name="middle_name" type="text" class="form-control @error('middle_name') is-invalid @enderror" value="{{ old('middle_name') }}">
+                                    <input id="middle_name" name="middle_name" type="text"
+                                        class="form-control @error('middle_name') is-invalid @enderror"
+                                        value="{{ old('middle_name') }}">
                                     @error('middle_name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -75,7 +88,9 @@
 
                                 <div class="form-group mb-3">
                                     <label for="email">Email <code>*</code></label>
-                                    <input id="email" name="email" type="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required>
+                                    <input id="email" name="email" type="email"
+                                        class="form-control @error('email') is-invalid @enderror"
+                                        value="{{ old('email') }}" required>
                                     @error('email')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -83,8 +98,8 @@
 
                                 <div class="form-group mb-3">
                                     <label for="phone">Phone <code>*</code></label>
-                                    <input id="phone" name="phone" type="text" 
-                                        class="form-control @error('phone') is-invalid @enderror" 
+                                    <input id="phone" name="phone" type="text"
+                                        class="form-control @error('phone') is-invalid @enderror"
                                         value="{{ old('phone') }}" required>
                                     @error('phone')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -94,11 +109,12 @@
                                 <!-- Campus Dropdown -->
                                 <div class="form-group mb-3">
                                     <label for="center">Center <code>*</code></label>
-                                    <select id="center" name="center" 
-                                            class="form-control @error('center') is-invalid @enderror" required>
+                                    <select id="center" name="center"
+                                        class="form-control @error('center') is-invalid @enderror" required>
                                         <option value=""> Select Campus </option>
-                                        @foreach($campuses as $campus)
-                                            <option value="{{ $campus->id }}" {{ old('center') == $campus->id ? 'selected' : '' }}>
+                                        @foreach ($campuses as $campus)
+                                            <option value="{{ $campus->id }}"
+                                                {{ old('center') == $campus->id ? 'selected' : '' }}>
                                                 {{ $campus->name }}
                                             </option>
                                         @endforeach
@@ -110,7 +126,7 @@
 
                                 {{-- Refeer code input field --}}
                                 <div class="form-group mb-3">
-                                    <label for="referee_code">Referee Code (Optional)</label>
+                                    <label for="referee_code">referral Code (Optional)</label>
                                     <input id="referee_code" name="referee_code" type="text"
                                         class="form-control @error('referee_code') is-invalid @enderror"
                                         value="{{ old('referee_code') }}">
@@ -121,7 +137,8 @@
 
                                 <div class="form-group mb-3">
                                     <label for="password">Password <code>*</code></label>
-                                    <input id="password" name="password" type="password" class="form-control @error('password') is-invalid @enderror" required>
+                                    <input id="password" name="password" type="password"
+                                        class="form-control @error('password') is-invalid @enderror" required>
                                     @error('password')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -129,7 +146,8 @@
 
                                 <div class="form-group mb-3">
                                     <label for="password_confirmation">Password Again <code>*</code></label>
-                                    <input id="password_confirmation" name="password_confirmation" type="password" class="form-control" required>
+                                    <input id="password_confirmation" name="password_confirmation" type="password"
+                                        class="form-control" required>
                                 </div>
 
                                 <button type="submit" class="theme-btn w-100">
@@ -155,6 +173,25 @@
     <!-- scroll-top end -->
     <!-- js -->
     @include('applications.partials.js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const ref = urlParams.get('referral'); // e.g. ?refeerre=ABC123
+
+            // If a referee code exists in the URL
+            if (ref) {
+                const input = document.getElementById('referee_code');
+                if (input) {
+                    input.value = ref;
+                    input.readOnly = true; // make the field uneditable
+                    input.style.backgroundColor = '#f8f9fa'; // optional subtle gray to show it’s locked
+                }
+            }
+        });
+    </script>
+
+
 </body>
 
 </html>

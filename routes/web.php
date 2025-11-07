@@ -181,7 +181,9 @@ Route::prefix('staff')->group(function () {
 
             // User CRUD
             Route::get('/users',  'getAllUsers')->name('ict.staff.users.index');
+            Route::post('/users', 'storeUsers');
             Route::post('users/{id}',  'updateUsers')->name('ict.staff.users.update');
+
         });
     });
 });
