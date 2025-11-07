@@ -28,6 +28,9 @@ class UserTypeMiddleware
                 case 'registrar':
                 case 'vice-chancellor':
                 case 'ict':
+                case 'dean':
+                case 'hod':
+                case 'lecturer':
                     $redirectRoute = route('staff.login');
                     break;
                 default:

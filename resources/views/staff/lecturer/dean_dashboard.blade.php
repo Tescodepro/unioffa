@@ -21,7 +21,6 @@
     <!-- Page Wrapper -->
     <div class="page-wrapper">
         <div class="content">
-
             <!-- Page Header -->
             <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                 <div class="my-auto mb-2">

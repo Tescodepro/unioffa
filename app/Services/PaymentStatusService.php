@@ -40,6 +40,7 @@ class PaymentStatusService
                 $q->whereNull('matric_number')
                     ->orWhere('matric_number', $student->matric_number);
             })
+            ->whereNotIn('payment_type', ['accommodation', 'maintenance']) // 🚫 exclude these
             ->get();
 
         if ($paymentSettings->isEmpty()) {
@@ -59,6 +60,15 @@ class PaymentStatusService
             $txns = $transactions->get($payment->payment_type, collect());
             $amountPaid = $txns->sum('amount');
             $balance = max($payment->amount - $amountPaid, 0);
+
+            // Skip tuition if paid up to or beyond 56%
+            if (
+                $payment->payment_type === 'tuition' &&
+                $payment->amount > 0 &&
+                (($amountPaid / $payment->amount) * 100) >= 56
+            ) {
+                continue;
+            }
 
             $data = [
                 'payment_type'   => $payment->payment_type,
