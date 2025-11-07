@@ -345,6 +345,7 @@ class IctStudentController extends Controller
         // update users->username 
         $user = $student->user;
         $user->username = $uniqueId;
+        $user->registration_no = $uniqueId;
         $user->user_type_id = $userType->id;
         $user->save();
         return back()->with('success', 'Student deleted successfully.');

@@ -93,7 +93,7 @@ class PaymentController extends Controller
         }
         // Prepare gateway data
 
-        // dd($split_code);
+        dd($split_code);
         $data = [
             'amount' => $request->amount,
             'email' => $user->email,
