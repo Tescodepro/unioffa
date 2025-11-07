@@ -16,6 +16,10 @@ class PaymentStatusService
      */
     public function getStatus($student, string $session): array
     {
+        if(($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER')  AND ($student->level == 200 OR $student->level == 300)  AND $student->admission_session == $session)
+        {
+            $student->level = 100;
+        }
         $paymentSettings = PaymentSetting::query()
             ->where('student_type', $student->programme)
             ->whereJsonContains('level', (int) $student->level)
