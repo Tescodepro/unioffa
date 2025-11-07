@@ -337,6 +337,7 @@ class IctStudentController extends Controller
     public function destroy(Student $student)
     {
         $student->delete();
+        $student->user->delete();
         return back()->with('success', 'Student deleted successfully.');
     }
 
