@@ -642,6 +642,9 @@
 
                                 <div class="blog-item-img">
                                     <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}">
+                                    @if($item->image)
+                                        <img src="{{ asset('storage/'.$item->image) }}" width="55" class="rounded">
+                                    @else
                                 </div>
 
                                 <div class="blog-item-info">
