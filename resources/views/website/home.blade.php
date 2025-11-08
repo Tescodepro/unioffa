@@ -642,9 +642,9 @@
 
                                 <div class="blog-item-img">
                                     <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}">
-                                    @if($item->image)
+                                    {{-- @if($item->image)
                                         <img src="{{ asset('storage/'.$item->image) }}" width="55" class="rounded" alt="lll">
-                                    @endif
+                                    @endif --}}
                                 </div>
 
                                 <div class="blog-item-info">
