@@ -42,7 +42,7 @@ class AuthController extends Controller
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
-            Offa University Security Team',
+            Offa University Team',
             ];
 
             // Mail::to($to)->send(new GeneralMail($subject, $content, false));
