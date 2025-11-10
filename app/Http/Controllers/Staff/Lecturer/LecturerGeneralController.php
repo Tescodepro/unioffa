@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\Staff;
 use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
