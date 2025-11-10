@@ -36,8 +36,8 @@ class CourseRegistrationController extends Controller
 
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
-            ->where('session_id', activeSession()->id ?? null)
-            ->where('semester_id', activeSemester()->id ?? null)
+            ->where('session', activeSession()->name ?? null)
+            ->where('semester', activeSemester()->name ?? null)
             ->get();
 
         // Check payment status and update course registrations accordingly
@@ -65,8 +65,8 @@ class CourseRegistrationController extends Controller
             // Prevent duplicate registration
             $exists = CourseRegistration::where('student_id', $student->id)
                 ->where('course_id', $course->id)
-                ->where('session_id', activeSession()->id)
-                ->where('semester_id', activeSemester()->id)
+                ->where('session', activeSession()->name)
+                ->where('semester', activeSemester()->name)
                 ->exists();
 
             if (! $exists) {
@@ -76,8 +76,8 @@ class CourseRegistrationController extends Controller
                     'course_code' => $course->course_code,
                     'course_title' => $course->course_title,
                     'course_unit' => $course->course_unit,
-                    'session_id' => activeSession()->id,
-                    'semester_id' => activeSemester()->id,
+                    'session' => activeSession()->name,
+                    'semester' => activeSemester()->name,
                     'status' => 'pending',
                 ]);
             }
@@ -109,8 +109,8 @@ class CourseRegistrationController extends Controller
 
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
-            ->where('session_id', activeSession()->id ?? null)
-            ->where('semester_id', activeSemester()->id ?? null)
+            ->where('session', activeSession()->name ?? null)
+            ->where('semester', activeSemester()->name ?? null)
             ->get();
 
         $pdf = Pdf::loadView('student.course-registration-printable', [

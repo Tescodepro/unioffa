@@ -26,6 +26,9 @@ class Course extends Model
         'level',
         'semester',
         'active_for_register',
+        'other_departments',
+        'created_at',
+        'updated_at',
     ];
 
     // 🔹 Auto-generate UUID on create
@@ -50,5 +53,10 @@ class Course extends Model
     public function getFullNameAttribute()
     {
         return "{$this->course_code} - {$this->course_title}";
+    }
+
+    public function lecturers()
+    {
+        return $this->belongsToMany(User::class, 'course_user');
     }
 }

@@ -41,7 +41,6 @@ class NewsController extends Controller
         return back()->with('success', 'News added successfully.');
     }
 
-
     public function update(Request $request, $id)
     {
         $news = News::findOrFail($id);
@@ -64,7 +63,7 @@ class NewsController extends Controller
 
         return back()->with('success', 'News updated successfully.');
     }
-
+    
     public function destroy($id)
     {
         $news = News::findOrFail($id);

@@ -18,6 +18,13 @@
                                 class="avatar avatar-md img-fluid rounded" alt="Profile">
                             <span class="text-dark ms-2 fw-normal">University of Offa</span>
                         </a>
+                    @elseif(auth()->user()->userType->name === 'dean')
+                        <a href="{{ route('lecturer.dean.dashboard') }}"
+                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
+                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
+                                class="avatar avatar-md img-fluid rounded" alt="Profile">
+                            <span class="text-dark ms-2 fw-normal">University of Offa</span>
+                        </a>
                     @elseif(auth()->user()->userType->name === 'ict')
                         <a href="{{ route('ict.dashboard') }}"
                             class="d-flex align-items-center border bg-white rounded p-2 mb-4">
@@ -26,6 +33,7 @@
                             <span class="text-dark ms-2 fw-normal">University of Offa</span>
                         </a>
                     @endif
+
                 </li>
             </ul>
 
@@ -53,11 +61,67 @@
                                     <i class="ti ti-layout-dashboard"></i>
                                     <span>Dashboard</span>
                                 </a>
+                            @elseif(auth()->user()->userType->name === 'dean')
+                                <a href="{{ route('lecturer.dean.dashboard') }}"
+                                    class="{{ request()->routeIs('lecturer.dean.dashboard') ? 'active' : '' }}">
+                                    <i class="ti ti-layout-dashboard"></i>
+                                    <span>Dashboard</span>
+                                </a>
                             @endif
                         </li>
                     </ul>
                 </li>
 
+                <!-- DEAN ONLY MENUS -->
+                @if (in_array(auth()->user()->userType->name, ['dean']))
+                <!-- COURSE MANAGEMENT -->
+                <li class="{{ request()->is('staff/dean/*') ? 'open' : '' }}">
+                    <h6 class="submenu-hdr"><span>Course Management</span></h6>
+                    <ul>
+                        <li>
+                            <a href="{{ route('staff.courses.index') }}"
+                                class="{{ request()->routeIs('staff.courses.index') ? 'active' : '' }}">
+                                <i class="ti ti-building"></i>
+                                <span>Courses</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('staff.course.assignments') }}"
+                                class="{{ request()->routeIs('staff.course.assignments') ? 'active' : '' }}">
+                                <i class="ti ti-book"></i>
+                                <span>Course Assignments</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {{-- RESULT MANAGEMENT  --}}
+                <li class="{{ request()->is('staff/dean/results*') ? 'open' : '' }}">
+                    <h6 class="submenu-hdr"><span>Result Management</span></h6>
+                    <ul>
+                        <li>
+                            <a href="{{ route('staff.results.upload') }}"
+                                class="{{ request()->routeIs('staff.results.upload') ? 'active' : '' }}">
+                                <i class="ti ti-file-upload"></i>
+                                <span>Upload Results</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {{-- Staff --}}
+                <li class="{{ request()->is('staff/dean/staff*') ? 'open' : '' }}">
+                    <h6 class="submenu-hdr"><span>Staff Management</span></h6>
+                    <ul>
+                        <li>
+                            <a href="{{ route('staff.index') }}"
+                                class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
+                                <i class="ti ti-users"></i>
+                                <span>All Staff</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
+                <!-- ICT AND ADMINISTRATOR ONLY MENUS -->
                 @if (in_array(auth()->user()->userType->name, ['ict', 'administrator']))
                     <!-- STUDENT MANAGEMENT -->
                     <li class="{{ request()->is('staff/ict/students*') ? 'open' : '' }}">

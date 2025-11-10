@@ -57,6 +57,7 @@ class UserSeeder extends Seeder
             'username' => 'DEAN',
             'password' => 'dean@Unioffa123',
         ]);
+
         $this->createAccount('hod', [
             'first_name' => 'Testing hod',
             'last_name' => 'testing',
@@ -65,6 +66,7 @@ class UserSeeder extends Seeder
             'username' => 'hod',
             'password' => 'hod@Unioffa123',
         ]);
+        
         $this->createAccount('lecturer', [
             'first_name' => 'Testing lecturer',
             'last_name' => 'testing',

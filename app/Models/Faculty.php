@@ -36,6 +36,11 @@ class Faculty extends Model
         return $this->hasMany(Department::class);
     }
 
+    public function staff()
+    {
+        return $this->hasOne(\App\Models\Staff::class);
+    }
+
     // app/Models/Faculty.php
     public function students()
     {

@@ -59,6 +59,8 @@ class AuthController extends Controller
                     return redirect()->route('burser.dashboard')->with('success', "Welcome $name");
                 case 'ict':
                     return redirect()->route('ict.dashboard')->with('success', "Welcome $name");
+                case 'dean':
+                    return redirect()->route('lecturer.dean.dashboard')->with('success', "Welcome $name");
                 default:
                     Auth::logout();
                     return redirect()->route('staff.login')->with('error', 'Unauthorized access.');

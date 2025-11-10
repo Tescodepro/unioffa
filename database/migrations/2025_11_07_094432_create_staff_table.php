@@ -16,14 +16,7 @@ return new class extends Migration
             $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
             $table->foreignUuid('faculty_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('department_id')->nullable()->constrained()->onDelete('set null');
-
             $table->string('staff_no')->unique()->nullable();
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('other_name')->nullable();
-            $table->string('email')->unique();
-            $table->string('phone')->nullable();
-            $table->string('designation')->nullable(); // Dean, HOD, Lecturer, etc.
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->date('date_of_employment')->nullable();
             $table->timestamps();

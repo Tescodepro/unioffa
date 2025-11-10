@@ -70,7 +70,6 @@ class User extends Authenticatable
         return $typeName === $types;
     }
 
-
     public function admissionList()
     {
         return $this->hasOne(AdmissionList::class);
@@ -101,6 +100,7 @@ class User extends Authenticatable
     {
         return $this->hasOne(CourseOfStudy::class, 'user_id');
     }
+
     public function applicationSetting()
     {
         return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');
@@ -119,6 +119,31 @@ class User extends Authenticatable
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function staff()
+    {
+        return $this->hasOne(\App\Models\Staff::class, 'user_id', 'id');
+    }
+
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'course_user');
+    }
+
+    public function isAssignedToCourse($courseId)
+    {
+        return $this->courses()->where('course_id', $courseId)->exists();
+    }
+
+    public function hasRole($roleName)
+    {
+        return $this->userType->name === $roleName;
+    }
+
+    public function hasAnyRole(array $roleNames)
+    {
+        return in_array($this->userType->name, $roleNames);
     }
 
     /**

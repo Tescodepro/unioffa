@@ -2,16 +2,21 @@
 
 use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\CourseRegistrationController;
-use App\Http\Controllers\{PaymentController, NewsController};
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Staff\AuthController as StaffAuthController;
+use App\Http\Controllers\Staff\BursaryController;
 use App\Http\Controllers\Staff\GeneralController as AdminGeneralController;
-use App\Http\Controllers\Staff\{BursaryController, PaymentSettingController};
+use App\Http\Controllers\Staff\Ict\IctStudentController;
+use App\Http\Controllers\Staff\Lecturer\LecturerGeneralController;
+use App\Http\Controllers\Staff\PaymentSettingController;
+use App\Http\Controllers\Staff\Lecturer\CourseController;
+use App\Http\Controllers\Staff\Lecturer\ResultController;
 use App\Http\Controllers\Student\AuthController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
 use Faker\Provider\ar_EG\Payment;
 use Illuminate\Support\Facades\Route;
-use App\Services\HostelAssignmentService;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,7 +66,7 @@ Route::prefix('admission')->group(function () {
         Route::post('/forgot-password', 'postForgotPassword')->name('password.email');
         Route::get('/password/update-otp', 'showUpdateWithOtp')->name('password.otp.update');
         Route::post('/password/update-otp', 'updateWithOtp');
-        Route::get('/application/{id}/download',  'downloadApplicantDetails')->name('applicant.printout.download')->middleware('auth');
+        Route::get('/application/{id}/download', 'downloadApplicantDetails')->name('applicant.printout.download')->middleware('auth');
     });
 });
 
@@ -97,8 +102,8 @@ Route::prefix('students')->group(function () {
             Route::post('/profile', 'updateProfile')->name('students.profile.update');
             Route::post('/change-password', 'changePassword')->name('students.change.password');
             Route::get('/admission-letter', 'downloadAdmissionLetter')->name('students.admission.letter');
-            Route::get('/hostel',  'hostelIndex')->name('students.hostel.index');
-            Route::post('/hostel',  'hostelApply');
+            Route::get('/hostel', 'hostelIndex')->name('students.hostel.index');
+            Route::post('/hostel', 'hostelApply');
         });
 
         Route::controller(CourseRegistrationController::class)->group(function () {
@@ -133,22 +138,21 @@ Route::prefix('staff')->group(function () {
             Route::controller(BursaryController::class)->group(function () {
                 Route::get('/dashboard', 'dashboard')->name('burser.dashboard');
                 Route::get('/transactions', 'transactions')->name('bursary.transactions');
-                Route::get('/transactions/export/{format}',  'exportTransactions')->name('bursary.transactions.export');
-                Route::get('/transactions/verify/{id}',  'verifySingle')->name('bursary.transactions.verify');
+                Route::get('/transactions/export/{format}', 'exportTransactions')->name('bursary.transactions.export');
+                Route::get('/transactions/verify/{id}', 'verifySingle')->name('bursary.transactions.verify');
                 Route::get('/verify-payment', 'verifyPaymentForm')->name('bursary.verify.form');
                 Route::post('/verify-payment', 'verifyPaymentAction')->name('bursary.verify.action');
                 Route::get('/transactions/{id}/verify', 'verifySingle')->name('bursary.transactions.verify');
 
-                Route::get('/transactions/create',  'createManual')->name('bursary.transactions.create');
-                Route::post('/transactions/store',  'storeManual')->name('bursary.transactions.store');
-                Route::put('/transactions/update/{transaction}',  'updateManual')->name('bursary.transactions.update');
-                Route::delete('/transactions/destroy/{transaction}',  'destroyManual')->name('bursary.transactions.destroy');
+                Route::get('/transactions/create', 'createManual')->name('bursary.transactions.create');
+                Route::post('/transactions/store', 'storeManual')->name('bursary.transactions.store');
+                Route::put('/transactions/update/{transaction}', 'updateManual')->name('bursary.transactions.update');
+                Route::delete('/transactions/destroy/{transaction}', 'destroyManual')->name('bursary.transactions.destroy');
 
                 Route::get('/reports/faculty', 'reportByFaculty')->name('bursary.reports.faculty');
                 Route::get('/reports/department', 'reportByDepartment')->name('bursary.reports.department');
                 Route::get('/reports/level', 'reportByLevel')->name('bursary.reports.level');
                 Route::get('/reports/student', 'reportByStudent')->name('bursary.reports.student');
-
 
                 // Exports
                 Route::get('/reports/{type}/export/{format}', 'export')->name('bursary.reports.export');
@@ -164,8 +168,48 @@ Route::prefix('staff')->group(function () {
         });
     });
 
+    Route::middleware('user.type:dean')->group(function () {
+        Route::prefix('dean')->group(function () {
+            // Dean general dashboard
+            Route::controller(LecturerGeneralController::class)->group(function () {
+                Route::get('/dashboard', 'dean_dashboard')->name('lecturer.dean.dashboard');
+                Route::get('/department/{department}/students', 'department_students')->name('dean.department.students');
+
+                // Staff management
+                Route::get('/staff', 'listStaff')->name('staff.index');
+                Route::post('/staff', 'addStaff')->name('staff.store');
+                Route::put('/staff/{staff}', 'updateStaff')->name('staff.update');
+                Route::delete('/staff/{staff}', 'destroyStaff')->name('staff.destroy');
+
+                // Course assignment management
+                Route::get('staff/course-assignments', 'courseAssignments')->name('staff.course.assignments');
+                Route::post('staff/course-assignments', 'assignCourse')->name('staff.course.assign');
+                Route::delete('staff/course-assignments/{id}', 'deleteAssignment')->name('staff.course.assign.delete');
+
+            });
+
+            // Dean course management
+            Route::controller(CourseController::class)->group(function () {
+                Route::get('/courses', 'index_course')->name('staff.courses.index');
+                Route::post('/courses', 'store')->name('staff.courses.store');
+                Route::put('/courses/{course}', 'update')->name('staff.courses.update');
+                Route::delete('/courses/{course}', 'destroy')->name('staff.courses.destroy');
+            });
+
+            // Dean result management
+            // Route::prefix('staff')->name('staff.')->middleware(['auth'])->group(function () {
+                Route::get('results/upload', [ResultController::class, 'uploadPage'])->name('staff.results.upload');
+                Route::post('results/upload', [ResultController::class, 'processUpload'])->name('staff.results.process');
+                Route::get('results/download-template/{courseId}', [ResultController::class, 'downloadTemplate'])->name('staff.results.template');
+                Route::get('results/download', [ResultController::class, 'downloadSheet'])->name('staff.results.download');
+
+            // });
+
+        });
+    });
+
     Route::prefix('ict')->middleware('user.type:ict')->group(function () {
-        Route::controller(App\Http\Controllers\Staff\Ict\IctStudentController::class)->group(function () {
+        Route::controller(IctStudentController::class)->group(function () {
             Route::get('/dashboard', 'dashboard')->name('ict.dashboard');
             // Student CRUD
             Route::get('/students', 'index')->name('ict.students.index');
@@ -180,10 +224,9 @@ Route::prefix('staff')->group(function () {
             Route::get('/students/bulk/template', 'downloadTemplate')->name('ict.students.bulk.template');
 
             // User CRUD
-            Route::get('/users',  'getAllUsers')->name('ict.staff.users.index');
+            Route::get('/users', 'getAllUsers')->name('ict.staff.users.index');
             Route::post('/users', 'storeUsers');
-            Route::post('users/{id}',  'updateUsers')->name('ict.staff.users.update');
-
+            Route::post('users/{id}', 'updateUsers')->name('ict.staff.users.update');
             Route::resource('news', NewsController::class);
 
         });
