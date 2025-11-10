@@ -225,6 +225,7 @@ class LecturerGeneralController extends Controller
             'faculty_id' => 'required|exists:faculties,id',
             'department_id' => 'required|exists:departments,id',
             'status' => 'required|in:active,inactive',
+            'user_type_id' => 'required|exists:user_types,id',
         ]);
 
         // Update user info
@@ -233,6 +234,7 @@ class LecturerGeneralController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'phone' => $request->phone,
+            'user_type_id' => $request->user_type_id,
         ]);
 
         // Update staff info

@@ -50,8 +50,11 @@
                                             <select name="semester" id="download_semester"
                                                 class="form-select form-select-sm select2" required>
                                                 <option value="">Select Semester</option>
+                                                @php
+                                                    var_dump($semesters);
+                                                @endphp
                                                 @foreach ($semesters as $semester)
-                                                    <option value="{{ $semester->name }}">{{ $semester->name }}</option>
+                                                    <option value="{{ $semester->code }}">{{ $semester->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>

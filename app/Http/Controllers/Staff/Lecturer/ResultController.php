@@ -33,8 +33,7 @@ class ResultController extends Controller
             $semesters = AcademicSemester::where(function ($query) use ($user) {
                 $query->where('status_upload_result', '1')
                     ->orWhereJsonContains('lecturar_ids', (string) $user->id);
-            })
-                ->where('status', 'active') // Optional: only show active semesters
+            }) // Optional: only show active semesters
                 ->orderBy('name')
                 ->get();
         } else {

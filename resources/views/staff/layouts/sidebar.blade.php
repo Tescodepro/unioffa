@@ -67,6 +67,12 @@
                                     <i class="ti ti-layout-dashboard"></i>
                                     <span>Dashboard</span>
                                 </a>
+                            @elseif(in_array(auth()->user()->userType->name, ['lecturer','hod']))
+                                <a href="{{ route('lecturer.dashboard') }}"
+                                    class="{{ request()->routeIs('lecturer.dean.dashboard') ? 'active' : '' }}">
+                                    <i class="ti ti-layout-dashboard"></i>
+                                    <span>Dashboard</span>
+                                </a>
                             @endif
                         </li>
                     </ul>
