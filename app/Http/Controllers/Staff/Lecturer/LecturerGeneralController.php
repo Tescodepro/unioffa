@@ -181,7 +181,7 @@ class LecturerGeneralController extends Controller
 
         <strong>Important:</strong> Please login and change your password immediately for security reasons.<br><br>
 
-        Login URL: <a href="'.route('login').'">'.route('login').'</a>',
+        Login URL: <a href="'.route('staff.login').'">'.route('staff.login').'</a>',
                 'footer' => 'Welcome to the team!<br>Offa University Administration',
             ];
 
