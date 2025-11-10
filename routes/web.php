@@ -173,6 +173,7 @@ Route::prefix('staff')->group(function () {
             // Dean general dashboard
             Route::controller(LecturerGeneralController::class)->group(function () {
                 Route::get('/dashboard', 'dean_dashboard')->name('lecturer.dean.dashboard');
+                Route::get('/lecturer/dashboard', 'lecturer_dashboard')->name('lecturer.dashboard');
                 Route::get('/department/{department}/students', 'department_students')->name('dean.department.students');
 
                 // Staff management

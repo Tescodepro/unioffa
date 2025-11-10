@@ -37,6 +37,52 @@ class LecturerGeneralController extends Controller
         return view('staff.lecturer.dean_dashboard', compact('staff', 'user', 'faculty', 'departments'));
     }
 
+    public function lecturer_dashboard()
+    {
+        // 1️⃣ Get the logged-in staff
+        $staff = auth()->user()->staff;
+
+        if (! $staff) {
+            abort(403, 'Staff record not found for this user.');
+        }
+
+        // 2️⃣ Get department and faculty info
+        $department = Department::find($staff->department_id);
+        $faculty = Faculty::find($staff->faculty_id);
+
+        // 3️⃣ Get courses assigned to this lecturer
+        $courses = auth()->user()->courses()
+            ->orderBy('course_code')
+            ->get();
+
+        // 4️⃣ Get total number of students in the lecturer's department grouped by level
+        $studentsByLevel = \App\Models\Student::where('department_id', $staff->department_id)
+            ->select('level', \DB::raw('count(*) as student_count'))
+            ->groupBy('level')
+            ->orderBy('level')
+            ->get();
+
+        // 5️⃣ Get total students in department
+        $totalStudents = \App\Models\Student::where('department_id', $staff->department_id)->count();
+
+        // 6️⃣ Get total assigned courses
+        $totalCourses = $courses->count();
+
+        // 7️⃣ Get user info
+        $user = auth()->user();
+
+        return view('staff.lecturer.lecturer_dashboard', compact(
+            'staff',
+            'user',
+            'department',
+            'faculty',
+            'courses',
+            'studentsByLevel',
+            'totalStudents',
+            'totalCourses'
+        ));
+    }
+
     public function department_students($departmentId)
     {
         $department = Department::with('students')->findOrFail($departmentId);

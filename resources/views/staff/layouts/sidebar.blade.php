@@ -73,53 +73,55 @@
                 </li>
 
                 <!-- DEAN ONLY MENUS -->
-                @if (in_array(auth()->user()->userType->name, ['dean']))
-                <!-- COURSE MANAGEMENT -->
-                <li class="{{ request()->is('staff/dean/*') ? 'open' : '' }}">
-                    <h6 class="submenu-hdr"><span>Course Management</span></h6>
-                    <ul>
-                        <li>
-                            <a href="{{ route('staff.courses.index') }}"
-                                class="{{ request()->routeIs('staff.courses.index') ? 'active' : '' }}">
-                                <i class="ti ti-building"></i>
-                                <span>Courses</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('staff.course.assignments') }}"
-                                class="{{ request()->routeIs('staff.course.assignments') ? 'active' : '' }}">
-                                <i class="ti ti-book"></i>
-                                <span>Course Assignments</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                {{-- RESULT MANAGEMENT  --}}
-                <li class="{{ request()->is('staff/dean/results*') ? 'open' : '' }}">
-                    <h6 class="submenu-hdr"><span>Result Management</span></h6>
-                    <ul>
-                        <li>
-                            <a href="{{ route('staff.results.upload') }}"
-                                class="{{ request()->routeIs('staff.results.upload') ? 'active' : '' }}">
-                                <i class="ti ti-file-upload"></i>
-                                <span>Upload Results</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                {{-- Staff --}}
-                <li class="{{ request()->is('staff/dean/staff*') ? 'open' : '' }}">
-                    <h6 class="submenu-hdr"><span>Staff Management</span></h6>
-                    <ul>
-                        <li>
-                            <a href="{{ route('staff.index') }}"
-                                class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
-                                <i class="ti ti-users"></i>
-                                <span>All Staff</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'lecturer']))
+                    {{-- RESULT MANAGEMENT  --}}
+                    <li class="{{ request()->is('staff/dean/results*') ? 'open' : '' }}">
+                        <h6 class="submenu-hdr"><span>Result Management</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('staff.results.upload') }}"
+                                    class="{{ request()->routeIs('staff.results.upload') ? 'active' : '' }}">
+                                    <i class="ti ti-file-upload"></i>
+                                    <span>Upload Results</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+                @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'ict']))
+                    {{-- Staff --}}
+                    <li class="{{ request()->is('staff/dean/staff*') ? 'open' : '' }}">
+                        <h6 class="submenu-hdr"><span>Staff Management</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('staff.index') }}"
+                                    class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
+                                    <i class="ti ti-users"></i>
+                                    <span>All Staff</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- COURSE MANAGEMENT -->
+                    <li class="{{ request()->is('staff/dean/*') ? 'open' : '' }}">
+                        <h6 class="submenu-hdr"><span>Course Management</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('staff.courses.index') }}"
+                                    class="{{ request()->routeIs('staff.courses.index') ? 'active' : '' }}">
+                                    <i class="ti ti-building"></i>
+                                    <span>Courses</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('staff.course.assignments') }}"
+                                    class="{{ request()->routeIs('staff.course.assignments') ? 'active' : '' }}">
+                                    <i class="ti ti-book"></i>
+                                    <span>Course Assignments</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 @endif
                 <!-- ICT AND ADMINISTRATOR ONLY MENUS -->
                 @if (in_array(auth()->user()->userType->name, ['ict', 'administrator']))
@@ -150,7 +152,7 @@
                             </li>
                         </ul>
                     </li>
-                    {{--User management for ICT staff only --}}
+                    {{-- User management for ICT staff only --}}
                     <li class="{{ request()->is('staff/ict/users*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>User Management</span></h6>
                         <ul>
@@ -236,7 +238,7 @@
                     </li>
                 @endif
 
-                @if (in_array(auth()->user()->userType->name, [ 'vice-chancellor']))
+                @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
                     <!-- PAYMENTS -->
                     <li class="{{ request()->is('staff/bursary/payment-settings*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>Agents</span></h6>
