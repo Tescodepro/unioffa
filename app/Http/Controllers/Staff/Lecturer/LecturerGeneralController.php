@@ -9,7 +9,6 @@ use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\Staff;
 use App\Models\User;
-use App\Models\UserType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -131,67 +130,84 @@ class LecturerGeneralController extends Controller
             return redirect()->back()->withErrors(['error' => 'A staff member with this email or phone number already exists.']);
         }
 
-        $staff_no = 'STAFF'.rand(1000, 9999);
-        $defaultPassword = 'password123'; // Store in variable for email
-
-        // Create User
-        $user = User::create([
-            'id' => Str::uuid(),
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'username' => strtolower($request->username),
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => bcrypt($defaultPassword),
-            'user_type_id' => $request->user_type_id,
-        ]);
-
-        // Create Staff
-        $staff = Staff::create([
-            'id' => Str::uuid(),
-            'user_id' => $user->id,
-            'faculty_id' => $request->faculty_id,
-            'department_id' => $request->department_id,
-            'staff_no' => $staff_no,
-            'status' => $request->status,
-        ]);
-
-        // Get faculty and department names
-        $faculty = Faculty::find($request->faculty_id);
-        $department = Department::find($request->department_id);
-        $userType = UserType::find($request->user_type_id);
-
-        // ✅ Send welcome email to the new staff member
         try {
-            $to = $user->email;
-            $subject = 'Welcome to Offa University - Staff Account Created';
+            // ✅ Start database transaction
+            DB::beginTransaction();
 
-            $content = [
-                'title' => 'Hello '.$user->first_name.' '.$user->last_name.',',
-                'body' => 'Your staff account has been successfully created at Offa University.<br><br>
+            $staff_no = 'STAFF'.rand(1000, 9999);
+            $defaultPassword = 'password123'; // Store in variable for email
 
-        <strong>Your Account Details:</strong><br>  
-        - Staff No: <strong>'.$staff_no.'</strong><br>  
-        - Username: <strong>'.$user->username.'</strong><br>  
-        - Email: <strong>'.$user->email.'</strong><br>  
-        - Temporary Password: <strong>'.$defaultPassword.'</strong><br>  
-        - Role: <strong>'.ucfirst($userType->name ?? 'Staff').'</strong><br>  
-        - Faculty: <strong>'.($faculty->faculty_name ?? 'N/A').'</strong><br>  
-        - Department: <strong>'.($department->department_name ?? 'N/A').'</strong><br><br>
+            // Create User
+            $user = User::create([
+                'id' => Str::uuid(),
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'username' => strtolower($request->username),
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => bcrypt($defaultPassword),
+                'user_type_id' => $request->user_type_id,
+            ]);
 
-        <strong>Important:</strong> Please login and change your password immediately for security reasons.<br><br>
+            // Create Staff
+            $staff = Staff::create([
+                'id' => Str::uuid(),
+                'user_id' => $user->id,
+                'faculty_id' => $request->faculty_id,
+                'department_id' => $request->department_id,
+                'staff_no' => $staff_no,
+                'status' => $request->status,
+            ]);
 
-        Login URL: <a href="'.route('staff.login').'">'.route('staff.login').'</a>',
-                'footer' => 'Welcome to the team!<br>Offa University Administration',
-            ];
+            // Get faculty and department names
+            $faculty = Faculty::find($request->faculty_id);
+            $department = Department::find($request->department_id);
+            $userType = UserType::find($request->user_type_id);
 
-            Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            // ✅ Commit transaction - all database operations successful
+            DB::commit();
+
+            // ✅ Send welcome email to the new staff member (after commit)
+            try {
+                $to = $user->email;
+                $subject = 'Welcome to Offa University - Staff Account Created';
+
+                $content = [
+                    'title' => 'Hello '.$user->first_name.' '.$user->last_name.',',
+                    'body' => 'Your staff account has been successfully created at Offa University.<br><br>
+
+            <strong>Your Account Details:</strong><br>  
+            - Staff No: <strong>'.$staff_no.'</strong><br>  
+            - Username: <strong>'.$user->username.'</strong><br>  
+            - Email: <strong>'.$user->email.'</strong><br>  
+            - Temporary Password: <strong>'.$defaultPassword.'</strong><br>  
+            - Role: <strong>'.ucfirst($userType->name ?? 'Staff').'</strong><br>  
+            - Faculty: <strong>'.($faculty->faculty_name ?? 'N/A').'</strong><br>  
+            - Department: <strong>'.($department->department_name ?? 'N/A').'</strong><br><br>
+
+            <strong>Important:</strong> Please login and change your password immediately for security reasons.<br><br>
+
+            Login URL: <a href="'.route('staff.login').'">'.route('staff.login').'</a>',
+                    'footer' => 'Welcome to the team!<br>Offa University Administration',
+                ];
+
+                Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            } catch (\Exception $e) {
+                // Log the error but don't fail the staff creation
+                \Log::error('Failed to send welcome email to staff: '.$e->getMessage());
+            }
+
+            return redirect()->back()->with('success', 'Staff added successfully. Login credentials have been sent to their email.');
+
         } catch (\Exception $e) {
-            // Log the error but don't fail the staff creation
-            \Log::error('Failed to send welcome email to staff: '.$e->getMessage());
-        }
+            // ✅ Rollback transaction on any error
+            DB::rollBack();
 
-        return redirect()->back()->with('success', 'Staff added successfully. Login credentials have been sent to their email.');
+            // Log the error
+            \Log::error('Failed to create staff: '.$e->getMessage());
+
+            return redirect()->back()->withErrors(['error' => 'Failed to create staff account. Please try again.'])->withInput();
+        }
     }
 
     public function updateStaff(Request $request, $id)
