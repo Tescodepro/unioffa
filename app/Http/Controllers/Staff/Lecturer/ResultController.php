@@ -213,4 +213,163 @@ class ResultController extends Controller
         // Export and download
         return Excel::download(new \App\Exports\ArrayExport($data, $headings), "{$course->course_code}_result_sheet.xlsx");
     }
+
+    public function approveResults(Request $request) {}
+
+    public function viewuploadReport(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('lecture')) {
+            $courses = $user->courses()->orderBy('course_title')->get();
+            $sessions = AcademicSession::where(function ($q) use ($user) {
+                $q->where('status_upload_result', '1')
+                    ->orWhereJsonContains('lecturar_ids', (string) $user->id);
+            })->orderBy('name', 'desc')->get();
+
+            $semesters = AcademicSemester::where(function ($q) use ($user) {
+                $q->where('status_upload_result', '1')
+                    ->orWhereJsonContains('lecturar_ids', (string) $user->id);
+            })->orderBy('name')->get();
+        } else {
+            $courses = Course::orderBy('course_title')->get();
+            $sessions = AcademicSession::orderBy('name', 'desc')->get();
+            $semesters = AcademicSemester::orderBy('name')->get();
+        }
+
+        // If user submitted the form, fetch results too
+        $results = collect();
+        $course = null;
+
+        if ($request->has(['course_id', 'session', 'semester'])) {
+            $request->validate([
+                'course_id' => 'required|uuid|exists:courses,id',
+                'session' => 'required|string',
+                'semester' => 'required|string',
+            ]);
+
+            $course = Course::find($request->course_id);
+
+            $results = Result::where([
+                'course_id' => $course->id,
+                'session' => $request->session,
+                'semester' => $request->semester,
+                'uploaded_by' => $user->id,
+            ])->orderBy('matric_no')->get();
+        }
+
+        return view('staff.lecturer.results.view-uploaded', compact(
+            'courses', 'sessions', 'semesters', 'results', 'course'
+        ));
+    }
+
+    public function viewUploadedResults(Request $request)
+    {
+        $request->validate([
+            'course_id' => 'required|uuid|exists:courses,id',
+            'session' => 'required|string',
+            'semester' => 'required|string',
+        ]);
+
+        $course = Course::findOrFail($request->course_id);
+        $user = auth()->user();
+
+        if ($user->hasRole('lecturer')) {
+            $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
+            if (! $isAssigned) {
+                return back()->with('error', 'You are not allowed to view results for this course.');
+            }
+        }
+
+        $results = Result::where([
+            'course_id' => $course->id,
+            'session' => $request->session,
+            'semester' => $request->semester,
+            'uploaded_by' => $user->id,
+        ])->orderBy('matric_no')->get();
+
+        if ($results->isEmpty()) {
+            return back()->with('error', 'No uploaded results found for your selection.');
+        }
+
+        return view('staff.lecturer.results.view-uploaded', compact('course', 'results'));
+    }
+
+    public function downloadResults(Request $request)
+    {
+        // Validate input
+        $request->validate([
+            'course_id' => 'required|uuid|exists:courses,id',
+            'session' => 'required|string',
+            'semester' => 'required|string',
+        ]);
+
+        try {
+            $course = Course::findOrFail($request->course_id);
+            $user = auth()->user();
+
+            // ✅ Check if lecturer is authorized to download results for this course
+            if ($user->hasRole('lecturer')) {
+                $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
+
+                if (! $isAssigned) {
+                    return redirect()->back()->with('error', 'You are not authorized to download results for this course.');
+                }
+            }
+
+            // ✅ Fetch results uploaded by current user for the specified course, session, and semester
+            $results = Result::where([
+                'course_id' => $course->id,
+                'session' => $request->session,
+                'semester' => $request->semester,
+                'uploaded_by' => $user->id, // ✅ Only results uploaded by current user
+            ])
+                ->orderBy('matric_no')
+                ->get();
+
+            // Check if results exist
+            if ($results->isEmpty()) {
+                return redirect()->back()->with('error', 'No results found that you uploaded for the selected course, session, and semester.');
+            }
+
+            // ✅ Prepare data for Excel export
+            $data = [];
+
+            // Add header row
+            $headings = ['Matric No', 'CA', 'Examination', 'Total', 'Grade', 'Remark', 'Status'];
+
+            // Add data rows
+            foreach ($results as $result) {
+                $data[] = [
+                    $result->matric_no,
+                    $result->ca,
+                    $result->exam,
+                    $result->total,
+                    $result->grade,
+                    $result->remark,
+                    ucfirst($result->status), // Show status (pending, approved, rejected)
+                ];
+            }
+
+            // ✅ Generate filename
+            $filename = sprintf(
+                '%s_%s_%s_%s_MyResults.xlsx',
+                $course->course_code,
+                str_replace('/', '-', $request->session),
+                $request->semester,
+                now()->format('Y-m-d_His')
+            );
+
+            // ✅ Export to Excel
+            return Excel::download(
+                new \App\Exports\ArrayExport($data, $headings),
+                $filename
+            );
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to download results: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'Failed to download results. Please try again.');
+        }
+    }
 }

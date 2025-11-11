@@ -92,6 +92,15 @@
                                 </a>
                             </li>
                         </ul>
+                        <ul>
+                            <li>
+                                <a href="{{ route('results.viewUploaded') }}"
+                                    class="{{ request()->routeIs('results.viewUploaded') ? 'active' : '' }}">
+                                    <i class="ti ti-file-text"></i>
+                                    <span>View Uploaded Results</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 @endif
                 @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'ict']))

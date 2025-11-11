@@ -8,10 +8,10 @@ use App\Http\Controllers\Staff\AuthController as StaffAuthController;
 use App\Http\Controllers\Staff\BursaryController;
 use App\Http\Controllers\Staff\GeneralController as AdminGeneralController;
 use App\Http\Controllers\Staff\Ict\IctStudentController;
-use App\Http\Controllers\Staff\Lecturer\LecturerGeneralController;
-use App\Http\Controllers\Staff\PaymentSettingController;
 use App\Http\Controllers\Staff\Lecturer\CourseController;
+use App\Http\Controllers\Staff\Lecturer\LecturerGeneralController;
 use App\Http\Controllers\Staff\Lecturer\ResultController;
+use App\Http\Controllers\Staff\PaymentSettingController;
 use App\Http\Controllers\Student\AuthController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
@@ -198,13 +198,12 @@ Route::prefix('staff')->group(function () {
             });
 
             // Dean result management
-            // Route::prefix('staff')->name('staff.')->middleware(['auth'])->group(function () {
-                Route::get('results/upload', [ResultController::class, 'uploadPage'])->name('staff.results.upload');
-                Route::post('results/upload', [ResultController::class, 'processUpload'])->name('staff.results.process');
-                Route::get('results/download-template/{courseId}', [ResultController::class, 'downloadTemplate'])->name('staff.results.template');
-                Route::get('results/download', [ResultController::class, 'downloadSheet'])->name('staff.results.download');
-
-            // });
+            Route::get('results/upload', [ResultController::class, 'uploadPage'])->name('staff.results.upload');
+            Route::post('results/upload', [ResultController::class, 'processUpload'])->name('staff.results.process');
+            Route::get('results/download-template/{courseId}', [ResultController::class, 'downloadTemplate'])->name('staff.results.template');
+            Route::get('results/download', [ResultController::class, 'downloadSheet'])->name('staff.results.download');
+            Route::get('/results/view-uploaded', [ResultController::class, 'viewuploadReport'])->name('results.viewUploaded');
+            Route::get('/results/download-uploaded-results', [ResultController::class, 'downloadResults'])->name('results.download');
 
         });
     });
