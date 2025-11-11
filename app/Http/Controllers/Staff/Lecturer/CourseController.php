@@ -34,7 +34,7 @@ class CourseController extends Controller
         ]);
 
         $validated['id'] = (string) Str::uuid();
-        $validated['other_departments'] = $request->other_departments ?? [];
+        // $validated['other_departments'] = $request->other_departments ?? [];
 
         Course::create($validated);
 
