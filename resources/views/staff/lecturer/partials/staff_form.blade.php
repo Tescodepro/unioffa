@@ -68,7 +68,7 @@
         <label for="user_type_id" class="form-label">User Type</label>
         <select id="user_type_id" name="user_type_id" class="form-select form-select-sm" required>
             <option value="">Select User Type</option>
-            @foreach(\App\Models\UserType::whereIn('name', ['hod','lecturer','dean'])->get() as $type)
+            @foreach(\App\Models\UserType::whereIn('name', ['dean','hod','lecturer','dean'])->get() as $type)
                 <option value="{{ $type->id }}" 
                     {{ isset($staff) && $staff->user->user_type_id == $type->id ? 'selected' : '' }}>
                     {{ $type->name }}
