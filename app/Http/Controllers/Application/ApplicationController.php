@@ -193,7 +193,7 @@ class ApplicationController extends Controller
             Offa University Team',
             ];
 
-            Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            // Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
             return redirect()->intended(route('application.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }
