@@ -45,7 +45,7 @@ class AuthController extends Controller
             Offa University Team',
             ];
 
-            // Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
             // 🔹 Check user type and redirect to correct dashboard
             switch ($user->userType->name) {
