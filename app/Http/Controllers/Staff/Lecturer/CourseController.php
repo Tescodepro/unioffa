@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Staff\Lecturer;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Department;
-use App\Models\Staff;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -16,6 +14,7 @@ class CourseController extends Controller
     {
         $courses = Course::with('department')->orderBy('course_code')->get();
         $departments = Department::all();
+
         return view('staff.courses.index', compact('courses', 'departments'));
     }
 
@@ -28,15 +27,28 @@ class CourseController extends Controller
             'course_status' => 'nullable|string|max:255',
             'department_id' => 'required|exists:departments,id',
             'other_departments' => 'nullable|array',
+            'other_departments.*' => 'exists:departments,id',
             'level' => 'required|integer',
-            'semester' => 'required|string',
+            'semester' => 'required|in:1st,2nd,3rd,4th,5th,6th',
             'active_for_register' => 'required|boolean',
         ]);
 
-        $validated['id'] = (string) Str::uuid();
-        // $validated['other_departments'] = $request->other_departments ?? [];
+        $course = new Course;
+        $course->id = Str::uuid()->toString();
+        $course->course_title = $validated['course_title'];
+        $course->course_code = $validated['course_code'];
+        $course->course_unit = $validated['course_unit'];
+        $course->course_status = $validated['course_status'] ?? null;
+        $course->department_id = $validated['department_id'];
 
-        Course::create($validated);
+        // Ensure it's always a clean array for JSON storage
+        $course->other_departments = $validated['other_departments'] ?? [];
+
+        $course->level = $validated['level'];
+        $course->semester = $validated['semester'];
+        $course->active_for_register = $validated['active_for_register'];
+
+        $course->save();
 
         return redirect()->back()->with('success', 'Course added successfully.');
     }
@@ -47,7 +59,7 @@ class CourseController extends Controller
 
         $validated = $request->validate([
             'course_title' => 'required|string|max:255',
-            'course_code' => 'required|string|max:50|unique:courses,course_code,' . $id,
+            'course_code' => 'required|string|max:50|unique:courses,course_code,'.$id,
             'course_unit' => 'required|integer|min:1|max:6',
             'course_status' => 'nullable|string|max:255',
             'department_id' => 'required|exists:departments,id',
@@ -71,6 +83,4 @@ class CourseController extends Controller
 
         return redirect()->back()->with('success', 'Course deleted successfully.');
     }
-
-    
 }

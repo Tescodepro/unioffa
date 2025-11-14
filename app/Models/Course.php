@@ -31,6 +31,10 @@ class Course extends Model
         'updated_at',
     ];
 
+    protected $casts = [
+        'other_departments' => 'array',
+    ];
+
     // 🔹 Auto-generate UUID on create
     protected static function boot()
     {
