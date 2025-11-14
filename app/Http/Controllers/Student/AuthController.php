@@ -104,7 +104,7 @@ class AuthController extends Controller
         Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
         return redirect()->route('students.auth.change-password')
-            ->with('success', 'OTP has been sent to your email.');
+            ->with('success', "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp .");
     }
 
     public function verifyOtpIndex()
