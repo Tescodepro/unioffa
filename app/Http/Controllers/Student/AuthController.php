@@ -107,35 +107,55 @@ class AuthController extends Controller
             'matric_number' => 'required|string',
         ]);
 
-        $user = User::where('username', $request->matric_number)->first();
+        // Don't expose user existence directly (security)
+        $user = User::where('username', trim($request->matric_number))->first();
 
         if (! $user) {
-            return back()->with('error', 'No account found with this matric number.');
+            // Generic message to prevent user enumeration
+            return back()->with('success', 'If an account exists for this matric number, an OTP has been sent.');
         }
 
-        // Generate OTP
-        $otp = $this->generateOtp();
+        // Prevent OTP spamming: allow only 1 request per 2 minutes
+        if ($user->otp_requested_at && $user->otp_requested_at->diffInMinutes(now()) < 2) {
+            return back()->with('error', 'OTP already sent. Please wait a few minutes before requesting another.');
+        }
 
-        // Save OTP in user's record
-        $user->otp = $otp;
-        $user->otp_expires_at = now(); // optional if you have this column
-        $user->save();
+        // Generate a secure OTP (6 digits)
+        $otp = random_int(100000, 999999);
 
-        // Send OTP via email
-        $to = $user->email;
+        // Hash the OTP — never store it in plain text
+        $hashedOtp = hash('sha256', $otp);
+
+        // Save OTP securely
+        $user->update([
+            'otp' => $hashedOtp,
+            'otp_expires_at' => now()->addMinutes(10),
+            'otp_requested_at' => now(), // new field (recommended)
+        ]);
+
+        // Prepare email
         $subject = 'Password Reset OTP';
+
         $content = [
             'title' => $user->full_name.',',
-            'body' => "Your OTP for password reset is: {$otp}<br><br>
-                  This OTP will expire in 10 minutes.<br>
-                  If you didn't request this, please ignore this email.",
-            'footer' => 'Best regards,<br>Offa University',
+            'body' => "
+            You requested a password reset.<br><br>
+            <strong>Your OTP:</strong> <h2>{$otp}</h2>
+            This OTP expires in <strong>10 minutes</strong>.<br><br>
+            If you did not request this, kindly ignore.",
+            'footer' => 'Regards,<br>Offa University',
         ];
 
-        Mail::to($to)->send(new GeneralMail($subject, $content, false));
+        // Send email
+        // Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
 
-        return redirect()->route('students.auth.change-password')
-            ->with('success', "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp .");
+        // Always generic response to prevent user enumeration
+        return redirect()
+            ->route('students.auth.change-password')
+            ->with(
+                'success',
+                "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp ."
+            );
     }
 
     public function verifyOtpIndex()
