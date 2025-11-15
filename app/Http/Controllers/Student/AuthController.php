@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Mail\GeneralMail;
+use App\Models\Campus;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use App\Models\{AcademicSemester, User};
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -20,49 +20,80 @@ class AuthController extends Controller
 
     public function loginAction(Request $request)
     {
+        // Validate login input
         $credentials = $request->validate([
             'email_matric_no' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        // Decide which column to use
-        $fieldType = filter_var($credentials['email_matric_no'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        // Determine whether user is logging in with email or matric/username
+        $fieldType = filter_var($credentials['email_matric_no'], FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'username';
 
-        // Build proper credentials array
         $authCredentials = [
             $fieldType => $credentials['email_matric_no'],
             'password' => $credentials['password'],
         ];
 
-        if (Auth::attempt($authCredentials)) {
-
-            if (in_array(Auth::user()->center_id, ['927755cd-4f58-48d8-8e46-d293956457a2', '2b82858c-e671-4deb-80c8-9c2abc196429', 'aa2cd785-f53a-485f-b654-cc41c42895c0'])) {
-                return back()->with('error', 'Kindly check back on 7 days time');
-            }
-
-            $request->session()->regenerate();
-
-            $to = Auth::user()->email;
-            $subject = 'Login Notification';
-            $content = [
-                'title' => Auth::user()->full_name . ',',
-                'body' => 'We noticed a login to your Offa University account.<br><br>
-
-            Details:<br>  
-            - Date: ' . now()->format('Y-m-d H:i:s') . '<br>  
-            - IP Address: ' . request()->ip() . ' <br><br>
-
-            If this was you, no action is required. If not, please reset your password immediately.',
-                'footer' => 'Stay safe,  
-            Offa University Security Team',
-            ];
-
-            // Mail::to($to)->send(new GeneralMail($subject, $content, false));
-
-            return redirect()->intended(route('students.dashboard'))->with('success', 'You must be logged in.'); // or your home route
+        // Attempt Login
+        if (! Auth::attempt($authCredentials)) {
+            return back()->with('error', 'The provided credentials do not match our records.');
         }
 
-        return back()->with('error', 'The provided credentials do not match our records.');
+        // Retrieve authenticated user
+        $user = Auth::user();
+
+        // Ensure student relationship exists
+        if (! $user->student) {
+            Auth::logout();
+
+            return back()->with('error', 'Account is not linked to a student profile.');
+        }
+
+        // Blocked campus slugs
+        $blockedSlugs = [
+            'ilorin-campus',
+            'ogun-campus',
+            'igbeti-campus',
+        ];
+
+        // Fetch student's campus
+        $campus = Campus::find($user->student->center_id);
+
+        if ($campus && in_array($campus->slug, $blockedSlugs)) {
+            Auth::logout(); // Security: logout immediately
+
+            return back()->with('error', 'Kindly check back in 7 days time');
+        }
+
+        // Regenerate session to protect from fixation
+        $request->session()->regenerate();
+
+        // OPTIONAL: Send login notification email
+        /*
+        $to = $user->email;
+        $subject = 'Login Notification';
+
+        $content = [
+            'title' => $user->full_name . ',',
+            'body' => '
+                We noticed a login to your Offa University account.<br><br>
+                <strong>Details:</strong><br>
+                - Date: ' . now()->format('Y-m-d H:i:s') . '<br>
+                - IP Address: ' . request()->ip() . '<br><br>
+                If this was you, no action is required.
+                If not, please reset your password immediately.
+            ',
+            'footer' => 'Stay safe,<br>Offa University Security Team',
+        ];
+
+        Mail::to($to)->send(new GeneralMail($subject, $content, false));
+        */
+
+        return redirect()
+            ->intended(route('students.dashboard'))
+            ->with('success', 'Login successful.');
     }
 
     public function forgetPasswordIndex()
@@ -73,12 +104,12 @@ class AuthController extends Controller
     public function forgetPasswordAction(Request $request)
     {
         $validated = $request->validate([
-            'matric_number' => 'required|string'
+            'matric_number' => 'required|string',
         ]);
 
         $user = User::where('username', $request->matric_number)->first();
 
-        if (!$user) {
+        if (! $user) {
             return back()->with('error', 'No account found with this matric number.');
         }
 
@@ -94,11 +125,11 @@ class AuthController extends Controller
         $to = $user->email;
         $subject = 'Password Reset OTP';
         $content = [
-            'title' => $user->full_name . ',',
+            'title' => $user->full_name.',',
             'body' => "Your OTP for password reset is: {$otp}<br><br>
                   This OTP will expire in 10 minutes.<br>
                   If you didn't request this, please ignore this email.",
-            'footer' => 'Best regards,<br>Offa University'
+            'footer' => 'Best regards,<br>Offa University',
         ];
 
         Mail::to($to)->send(new GeneralMail($subject, $content, false));
@@ -116,13 +147,13 @@ class AuthController extends Controller
     {
         $request->validate([
             'otp' => 'required|numeric|digits:6',
-            'password' => 'required|string|min:8|confirmed'
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         // Find user by OTP
         $user = User::where('otp', $request->otp)->first();
 
-        if (!$user) {
+        if (! $user) {
             return back()->with('error', 'Invalid or expired OTP.');
         }
 
@@ -140,7 +171,6 @@ class AuthController extends Controller
         return redirect()->route('student.login')
             ->with('success', 'Password has been reset successfully. Please login with your new password.');
     }
-
 
     private function generateOtp()
     {
