@@ -48,23 +48,21 @@
                                 <td>{{ $course->department->department_name ?? 'N/A' }}</td>
 
                                 <!-- ✅ Other Departments Column -->
-                                <td>
-                            @if(!empty($course->other_departments))
-                                @php
-                                    $otherDeptIds = json_decode($course->other_departments, true) ?? [];
-                                    $otherDeptNames = \App\Models\Department::whereIn('id', $otherDeptIds)
-                                                        ->pluck('department_name')
-                                                        ->toArray();
-                                @endphp
-                                @if(count($otherDeptNames) > 0)
-                                    <span>{{ implode(', ', $otherDeptNames) }}</span>
-                                @else
-                                    <span class="text-muted">None</span>
-                                @endif
-                            @else
-                                <span class="text-muted">None</span>
-                            @endif
-                        </td>
+                               <td>
+                                    @php
+                                        $otherDeptIds = $course->other_departments ?? [];
+                                        $otherDeptNames = \App\Models\Department::whereIn('id', $otherDeptIds)
+                                                            ->pluck('department_name')
+                                                            ->toArray();
+                                    @endphp
+
+                                    @if(count($otherDeptNames) > 0)
+                                        <span>{{ implode(', ', $otherDeptNames) }}</span>
+                                    @else
+                                        <span class="text-muted">None</span>
+                                    @endif
+                                </td>
+
 
                                 <td>{{ $course->level }}</td>
                                 <td>

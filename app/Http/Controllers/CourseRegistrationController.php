@@ -20,10 +20,13 @@ class CourseRegistrationController extends Controller
         $level = $student->level;
 
         // Load available courses
-        // $courses = Course::where('department_id', $departmentId)
-        //     ->where('level', $level)
-        //     ->get();
-        $courses = Course::get();
+        $courses = Course::where('active_for_register', 1)
+            ->where('level', $level)
+            ->where(function ($query) use ($departmentId) {
+                $query->where('department_id', $departmentId)
+                    ->orWhereJsonContains('other_departments', $departmentId);
+            })
+            ->get();
 
         // Search filter for registered courses
         $query = CourseRegistration::where('student_id', $user->id);
@@ -45,7 +48,7 @@ class CourseRegistrationController extends Controller
         $payment_status = [
             'status' => $paymentStatusService->getStatus($student, activeSession()->name),
             'allCleared' => $paymentStatusService->hasClearedAll($student, activeSession()->name),
-            'outstanding' => $paymentStatusService->getTotalOutstanding($student, activeSession()->name)
+            'outstanding' => $paymentStatusService->getTotalOutstanding($student, activeSession()->name),
         ];
 
         return view('student.course-registration', compact('courses', 'registrations', 'registeredCourses', 'payment_status'));
