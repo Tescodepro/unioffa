@@ -39,17 +39,18 @@
     </div>
 
     <div class="col-md-6">
-        <label for="other_departments" class="form-label">Open to Other Departments (Optional)</label>
-        <select id="other_departments" name="other_departments[]" class="form-select" multiple>
-            @foreach (\App\Models\Department::all() as $dept)
-                <option value="{{ $dept->id }}" 
-                    @if(isset($course) && in_array($dept->id, json_decode($course->other_departments ?? '[]', true))) selected @endif>
-                    {{ $dept->department_name }}
-                </option>
-            @endforeach
-        </select>
-        <small class="text-muted">Hold CTRL (or CMD on Mac) to select multiple departments</small>
-    </div>
+    <label for="other_departments" class="form-label">Open to Other Departments (Optional)</label>
+    <select id="other_departments" name="other_departments[]" class="form-select" multiple>
+        @foreach (\App\Models\Department::all() as $dept)
+            <option value="{{ $dept->id }}" 
+                @if(isset($course) && in_array($dept->id, $course->other_departments ?? [])) selected @endif>
+                {{ $dept->department_name }}
+            </option>
+        @endforeach
+    </select>
+    <small class="text-muted">Hold CTRL (or CMD on Mac) to select multiple departments</small>
+</div>
+
 
     <!-- Level & Semester -->
     <div class="col-md-6">
