@@ -33,7 +33,7 @@ class AuthController extends Controller
 
         $authCredentials = [
             $fieldType => $credentials['email_matric_no'],
-            'otp' => $credentials['password'],
+            'password' => $credentials['password'],
         ];
 
         // Attempt Login
