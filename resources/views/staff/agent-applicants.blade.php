@@ -30,32 +30,61 @@
                                         <th>Account Details</th>
                                         <th>Status</th>
                                         <th>Unique Code</th>
+
+                                        {{-- NEW: referred users count --}}
+                                        <th>Referrals</th>
+
+                                        {{-- NEW: view referred users in modal --}}
+                                        <th>Referred Users</th>
+
                                         <th>Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     @forelse($agentApplications as $agent)
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
-                                            <td>{{ $agent->first_name }} {{ $agent->middle_name }} {{ $agent->last_name }}
-                                            </td>
+
+                                            <td>{{ $agent->first_name }} {{ $agent->middle_name }} {{ $agent->last_name }}</td>
+
                                             <td>{{ $agent->email }}</td>
+
                                             <td>{{ $agent->phone }}</td>
+
                                             <td>
                                                 <strong>Bank:</strong> {{ $agent->bank_name }}<br>
                                                 <strong>Name:</strong> {{ $agent->account_name }}<br>
                                                 <strong>No:</strong> {{ $agent->account_number }}
                                             </td>
+
                                             <td>
-                                                <span
-                                                    class="badge 
-                                                @if ($agent->status == 'pending') bg-warning text-dark 
-                                                @elseif($agent->status == 'approved') bg-success 
-                                                @else bg-danger @endif">
+                                                <span class="badge
+                                                    @if ($agent->status == 'pending') bg-warning text-dark
+                                                    @elseif($agent->status == 'approved') bg-success
+                                                    @else bg-danger @endif">
                                                     {{ ucfirst($agent->status) }}
                                                 </span>
                                             </td>
+
                                             <td>{{ $agent->unique_code ?? 'N/A' }}</td>
+
+                                            {{-- NEW: COUNT OF REFERRED USERS --}}
+                                            <td>
+                                                <span class="badge bg-info">
+                                                    {{ $agent->referred_users_count }}
+                                                </span>
+                                            </td>
+
+                                            {{-- NEW: MODAL BUTTON --}}
+                                            <td>
+                                                <button class="btn btn-info btn-sm"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#refModal{{ $agent->id }}">
+                                                    View
+                                                </button>
+                                            </td>
+
                                             <td>
                                                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                                     data-bs-target="#statusModal{{ $agent->id }}">
@@ -64,7 +93,7 @@
                                             </td>
                                         </tr>
 
-                                        <!-- Modal for this agent -->
+                                        {{-- STATUS MODAL --}}
                                         <div class="modal fade" id="statusModal{{ $agent->id }}" tabindex="-1"
                                             aria-labelledby="statusModalLabel{{ $agent->id }}" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered">
@@ -75,13 +104,10 @@
                                                         <input type="hidden" name="agent_id" value="{{ $agent->id }}">
 
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title"
-                                                                id="statusModalLabel{{ $agent->id }}">
-                                                                Change Status for {{ $agent->first_name }}
-                                                                {{ $agent->last_name }}
+                                                            <h5 class="modal-title" id="statusModalLabel{{ $agent->id }}">
+                                                                Change Status for {{ $agent->first_name }} {{ $agent->last_name }}
                                                             </h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                aria-label="Close"></button>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                         </div>
 
                                                         <div class="modal-body">
@@ -89,19 +115,11 @@
                                                                 <label class="form-label">Select New Status</label>
                                                                 <select name="status" class="form-select" required>
                                                                     @if ($agent->status == 'approved')
-                                                                        <option value="approved"
-                                                                            {{ $agent->status == 'approved' ? 'selected' : '' }}>
-                                                                            Approved</option>
+                                                                        <option value="approved" selected>Approved</option>
                                                                     @else
-                                                                        <option value="pending"
-                                                                            {{ $agent->status == 'pending' ? 'selected' : '' }}>
-                                                                            Pending</option>
-                                                                        <option value="approved"
-                                                                            {{ $agent->status == 'approved' ? 'selected' : '' }}>
-                                                                            Approved</option>
-                                                                        <option value="rejected"
-                                                                            {{ $agent->status == 'rejected' ? 'selected' : '' }}>
-                                                                            Declined</option>
+                                                                        <option value="pending" {{ $agent->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                                                        <option value="approved" {{ $agent->status == 'approved' ? 'selected' : '' }}>Approved</option>
+                                                                        <option value="rejected" {{ $agent->status == 'rejected' ? 'selected' : '' }}>Declined</option>
                                                                     @endif
                                                                 </select>
                                                             </div>
@@ -110,16 +128,55 @@
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary"
                                                                 data-bs-dismiss="modal">Cancel</button>
-                                                            <button type="submit" class="btn btn-primary">Save
-                                                                Changes</button>
+                                                            <button type="submit" class="btn btn-primary">Save Changes</button>
                                                         </div>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {{-- NEW: REFERRAL USERS MODAL --}}
+                                        <div class="modal fade" id="refModal{{ $agent->id }}" tabindex="-1"
+                                            aria-labelledby="refModalLabel{{ $agent->id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                <div class="modal-content">
+
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">
+                                                            Users Referred By {{ $agent->first_name }} {{ $agent->last_name }}
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+
+                                                    <div class="modal-body">
+                                                        @if($agent->referredUsers->count() > 0)
+                                                            <ul class="list-group">
+                                                                @foreach($agent->referredUsers as $user)
+                                                                    <li class="list-group-item">
+                                                                        <strong>{{ $user->first_name }} {{ $user->last_name }}</strong><br>
+                                                                        <small>{{ $user->email }}</small><br>
+                                                                        <small>{{ $user->phone }}</small>
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        @else
+                                                            <p class="text-muted">No users have used this referral code.</p>
+                                                        @endif
+                                                    </div>
+
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            Close
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted p-4">
+                                            <td colspan="10" class="text-center text-muted p-4">
                                                 No agent applications found.
                                             </td>
                                         </tr>
@@ -136,16 +193,13 @@
 @endsection
 
 @section('scripts')
-    <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 
-    <!-- jQuery and DataTables JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
-    <!-- Export Buttons -->
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -159,9 +213,7 @@
             $('#agentTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-                order: [
-                    [0, 'asc']
-                ],
+                order: [[0, 'asc']],
                 pageLength: 10
             });
         });

@@ -43,6 +43,11 @@ class AgentApplication extends Model
         return $this->belongsTo(Lga::class);
     }
 
+    public function referredUsers()
+    {
+        return $this->hasMany(User::class, 'referee_code', 'unique_code');
+    }
+
     /**
      * Get the full name of the applicant.
      */
@@ -51,10 +56,10 @@ class AgentApplication extends Model
         $name = $this->first_name;
 
         if ($this->middle_name) {
-            $name .= ' ' . $this->middle_name;
+            $name .= ' '.$this->middle_name;
         }
 
-        $name .= ' ' . $this->last_name;
+        $name .= ' '.$this->last_name;
 
         return $name;
     }

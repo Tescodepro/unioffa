@@ -58,7 +58,6 @@ class GeneralController extends Controller
             // Handle network/API failure gracefully
             $banks = collect();
         }
-
         return view('website.application-form', compact('title', 'states', 'lgas', 'banks'));
     }
     public function submitAgentApplication(Request $request)

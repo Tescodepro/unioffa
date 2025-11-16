@@ -5,17 +5,17 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use App\Mail\GeneralMail;
 use App\Models\AdmissionList;
+use App\Models\AgentApplication;
 use App\Models\ApplicationSetting;
 use App\Models\Campus;
 use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\User;
 use App\Models\UserApplications;
-use App\Models\AgentApplication;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class GeneralController extends Controller
 {
@@ -36,8 +36,8 @@ class GeneralController extends Controller
         // Applicants per campus (with count)
         $campusApplicants = Campus::withCount([
             'users as applicant_count' => function ($q) {
-                $q->whereHas('userType', fn($q2) => $q2->where('name', 'applicant'))
-                    ->whereHas('applications', fn($q3) => $q3->whereNotNull('submitted_by'));
+                $q->whereHas('userType', fn ($q2) => $q2->where('name', 'applicant'))
+                    ->whereHas('applications', fn ($q3) => $q3->whereNotNull('submitted_by'));
             },
         ])->get();
 
@@ -54,7 +54,7 @@ class GeneralController extends Controller
             ->count();
 
         // Query students with filters
-        $students = User::whereHas('userType', fn($q) => $q->where('name', 'applicant'))
+        $students = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
             ->with([
                 'applications.applicationSetting',
                 'transactions',
@@ -63,16 +63,16 @@ class GeneralController extends Controller
                 'courseOfStudy.firstDepartment',   // <-- Add this
                 'courseOfStudy.secondDepartment',  // <-- And this
             ])
-            ->when($selectedCampusId, fn($q) => $q->where('campus_id', $selectedCampusId))
+            ->when($selectedCampusId, fn ($q) => $q->where('campus_id', $selectedCampusId))
             ->when($selectedApplicationId, function ($q) use ($selectedApplicationId) {
-                $q->whereHas('applications', fn($qa) => $qa->where('application_setting_id', $selectedApplicationId));
+                $q->whereHas('applications', fn ($qa) => $qa->where('application_setting_id', $selectedApplicationId));
             })
             ->get()
             ->map(function ($user) {
                 return (object) [
                     'id' => $user->id,
                     'registration_no' => $user->registration_no,
-                    'full_name' => $user->first_name . ' ' . $user->last_name,
+                    'full_name' => $user->first_name.' '.$user->last_name,
                     'email' => $user->email,
                     'application_type' => optional($user->applications->first()?->applicationSetting)->name,
                     'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
@@ -89,6 +89,7 @@ class GeneralController extends Controller
 
         $departments = Department::all();
         $faculties = Faculty::all();
+
         return view('staff.admin_dashboard', compact(
             'sessions',
             'selectedSession',
@@ -129,8 +130,8 @@ class GeneralController extends Controller
         $subject = 'Offer of Admission - Offa University';
 
         $content = [
-            'title' => 'Dear ' . $user->full_name . ',',
-            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study ' . ($department->department_name ?? 'your chosen course') . '. for the ' . $user_application->academic_session . ' academic session admission. log in to your portal for further information',
+            'title' => 'Dear '.$user->full_name.',',
+            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study '.($department->department_name ?? 'your chosen course').'. for the '.$user_application->academic_session.' academic session admission. log in to your portal for further information',
             'footer' => '',
         ];
 
@@ -203,7 +204,8 @@ class GeneralController extends Controller
 
     public function showAgentDetail()
     {
-        $agentApplications = AgentApplication::all();
+        $agentApplications = AgentApplication::withCount('referredUsers')->get();
+
         return view('staff.agent-applicants', compact('agentApplications'));
     }
 
@@ -216,12 +218,12 @@ class GeneralController extends Controller
 
         if ($request->status === 'approved') {
             // Generate unique code if not already assigned
-            if (!$agent->unique_code) {
+            if (! $agent->unique_code) {
                 $agent->unique_code = $this->generateUniqueCode();
             }
 
             // Only create Paystack subaccount & split if not already done
-            if (!$agent->split_code) {
+            if (! $agent->split_code) {
                 try {
                     $paystackSecret = env('PAYSTACK_AUTH_KEY');
 
@@ -234,7 +236,7 @@ class GeneralController extends Controller
                             'percentage_charge' => 100,
                         ]);
 
-                    if (!$subaccountResponse->successful() || !isset($subaccountResponse['data']['subaccount_code'])) {
+                    if (! $subaccountResponse->successful() || ! isset($subaccountResponse['data']['subaccount_code'])) {
                         throw new \Exception('Failed to create Paystack subaccount');
                     }
 
@@ -258,7 +260,7 @@ class GeneralController extends Controller
                             ],
                         ]);
 
-                    if (!$splitResponse->successful() || !isset($splitResponse['data']['split_code'])) {
+                    if (! $splitResponse->successful() || ! isset($splitResponse['data']['split_code'])) {
                         throw new \Exception('Failed to create Paystack split');
                     }
 
@@ -270,7 +272,8 @@ class GeneralController extends Controller
                     $agent->status = $previousStatus;
                     $agent->save();
 
-                    Log::error('Paystack setup failed for Agent ID ' . $agent->id . ': ' . $e->getMessage());
+                    Log::error('Paystack setup failed for Agent ID '.$agent->id.': '.$e->getMessage());
+
                     return back()->with('error', 'Approval failed because Paystack setup could not be completed. Please try again later.');
                 }
             }
@@ -281,18 +284,18 @@ class GeneralController extends Controller
         // Send status update email
         $subject = 'Agent Application Status Update';
         $content = [
-            'title' => 'Hello ' . $agent->first_name . ',',
+            'title' => 'Hello '.$agent->first_name.',',
             'body' => "
 We are writing to inform you that your application status has been updated to '{$request->status}'. 
-" . ($agent->unique_code ? "Your unique agent code is: {$agent->unique_code}.<br><br>" : "") . "
-Thank you for your interest in partnering with the University of Offa.",
+".($agent->unique_code ? "Your unique agent code is: {$agent->unique_code}.<br><br>" : '').'
+Thank you for your interest in partnering with the University of Offa.',
             'footer' => 'Warm regards,<br>University of Offa Admissions Team',
         ];
 
         try {
             Mail::to($agent->email)->send(new GeneralMail($subject, $content, false));
         } catch (\Exception $e) {
-            Log::warning('Failed to send agent status email to ' . $agent->email . ': ' . $e->getMessage());
+            Log::warning('Failed to send agent status email to '.$agent->email.': '.$e->getMessage());
         }
 
         return back()->with('success', 'Agent status updated successfully.');
