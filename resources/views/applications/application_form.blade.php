@@ -230,7 +230,7 @@
                                                         <div class="col-md-6 mb-3">
                                                             <label class="form-label">Examination Year *</label>
                                                             <input type="number" class="form-control" name="olevel_year" 
-                                                                min="1010" max="{{ date('Y') }}" 
+                                                         max="{{ date('Y') }}" 
                                                                 value="{{ old('olevel_year', $olevel->exam_year ?? '') }}" required>
                                                         </div>
                                                     </div>
