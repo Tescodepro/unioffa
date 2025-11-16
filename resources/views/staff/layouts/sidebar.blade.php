@@ -226,7 +226,7 @@
                                     <span>Verify Payment</span>
                                 </a>
                             </li>
-                            @if (in_array(auth()->user()->userType->name, ['bursary']))
+                            @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
                                 <li>
                                     <a href="{{ route('bursary.transactions.create') }}"
                                         class="{{ request()->routeIs('bursary.transactions.create') ? 'active' : '' }}">

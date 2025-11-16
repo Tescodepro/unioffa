@@ -66,9 +66,12 @@
                             <div class="col-md-6">
                                 <label class="form-label">Payment Status</label>
                                 <select name="payment_status" class="form-select" required>
-                                    <option value="1">Successful</option>
+                                    
                                     <option value="0">Pending</option>
+                                    @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
                                     <option value="2">Failed</option>
+                                    <option value="1">Successful</option>
+                                    @endif
                                 </select>
                             </div>
 
@@ -126,10 +129,12 @@
                                                 @endif
                                             </td>
                                             <td>
+                                                @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
                                                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
                                                     data-bs-target="#editModal{{ $txn->id }}">
                                                     <i class="ti ti-edit"></i>
                                                 </button>
+                                                @endif
                                                 <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
                                                     data-bs-target="#deleteModal{{ $txn->id }}">
                                                     <i class="ti ti-trash"></i>
