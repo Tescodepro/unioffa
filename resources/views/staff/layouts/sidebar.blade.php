@@ -67,7 +67,7 @@
                                     <i class="ti ti-layout-dashboard"></i>
                                     <span>Dashboard</span>
                                 </a>
-                            @elseif(in_array(auth()->user()->userType->name, ['lecturer','hod']))
+                            @elseif(in_array(auth()->user()->userType->name, ['lecturer', 'hod']))
                                 <a href="{{ route('lecturer.dashboard') }}"
                                     class="{{ request()->routeIs('lecturer.dean.dashboard') ? 'active' : '' }}">
                                     <i class="ti ti-layout-dashboard"></i>
@@ -203,6 +203,15 @@
                         class="{{ request()->is('staff/bursary/transactions*') || request()->is('staff/bursary/verify*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>Transactions</span></h6>
                         <ul>
+                            @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
+                                <li>
+                                    <a href="{{ route('burser.dashboard') }}"
+                                        class="{{ request()->routeIs('burser.dashboard') ? 'active' : '' }}">
+                                        <i class="ti ti-credit-card"></i>
+                                        <span>Payment Summary</span>
+                                    </a>
+                                </li>
+                            @endif
                             <li>
                                 <a href="{{ route('bursary.transactions') }}"
                                     class="{{ request()->routeIs('bursary.transactions') ? 'active' : '' }}">
