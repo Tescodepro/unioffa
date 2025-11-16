@@ -78,7 +78,7 @@
 
                                             {{-- NEW: MODAL BUTTON --}}
                                             <td>
-                                                <button class="btn btn-info btn-sm"
+                                                <button class="btn bg-success btn-sm"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#refModal{{ $agent->id }}">
                                                     View
