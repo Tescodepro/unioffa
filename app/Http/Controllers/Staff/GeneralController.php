@@ -74,6 +74,7 @@ class GeneralController extends Controller
                     'registration_no' => $user->registration_no,
                     'full_name' => $user->first_name.' '.$user->last_name,
                     'email' => $user->email,
+                    'phone' => $user->phone,
                     'application_type' => optional($user->applications->first()?->applicationSetting)->name,
                     'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
                     'application_id' => $user->applications->first()?->id,
