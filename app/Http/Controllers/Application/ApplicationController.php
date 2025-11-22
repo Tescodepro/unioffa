@@ -92,7 +92,7 @@ class ApplicationController extends Controller
                 'username' => $uniqueId,
                 'registration_no' => $uniqueId,
                 'user_type_id' => UserType::where('name', 'applicant')->first()->id,
-                'referee_code' => $request->referee_code,
+                'referee_code' => $request->filled('referee_code') ? $request->referee_code:'578EF5E5',
             ]);
 
             // GET referee agent if any using referral code
