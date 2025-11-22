@@ -262,7 +262,7 @@
                     </li>
                 @endif
 
-                @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
+                @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'ict']))
                     <!-- PAYMENTS -->
                     <li class="{{ request()->is('staff/bursary/payment-settings*') ? 'open' : '' }}">
                         <h6 class="submenu-hdr"><span>Agents</span></h6>

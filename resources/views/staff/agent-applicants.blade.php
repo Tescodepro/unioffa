@@ -46,7 +46,8 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
 
-                                            <td>{{ $agent->first_name }} {{ $agent->middle_name }} {{ $agent->last_name }}</td>
+                                            <td>{{ $agent->first_name }} {{ $agent->middle_name }} {{ $agent->last_name }}
+                                            </td>
 
                                             <td>{{ $agent->email }}</td>
 
@@ -59,7 +60,8 @@
                                             </td>
 
                                             <td>
-                                                <span class="badge
+                                                <span
+                                                    class="badge
                                                     @if ($agent->status == 'pending') bg-warning text-dark
                                                     @elseif($agent->status == 'approved') bg-success
                                                     @else bg-danger @endif">
@@ -78,18 +80,22 @@
 
                                             {{-- NEW: MODAL BUTTON --}}
                                             <td>
-                                                <button class="btn bg-success btn-sm"
-                                                    data-bs-toggle="modal"
+                                                <button class="btn bg-success btn-sm" data-bs-toggle="modal"
                                                     data-bs-target="#refModal{{ $agent->id }}">
                                                     View
                                                 </button>
                                             </td>
 
+
                                             <td>
-                                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                                                    data-bs-target="#statusModal{{ $agent->id }}">
-                                                    Change Status
-                                                </button>
+                                                @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
+                                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                                        data-bs-target="#statusModal{{ $agent->id }}">
+                                                        Change Status
+                                                    </button>
+                                                @else
+                                                    <span class="text-muted">N/A</span>
+                                                @endif
                                             </td>
                                         </tr>
 
@@ -104,10 +110,13 @@
                                                         <input type="hidden" name="agent_id" value="{{ $agent->id }}">
 
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title" id="statusModalLabel{{ $agent->id }}">
-                                                                Change Status for {{ $agent->first_name }} {{ $agent->last_name }}
+                                                            <h5 class="modal-title"
+                                                                id="statusModalLabel{{ $agent->id }}">
+                                                                Change Status for {{ $agent->first_name }}
+                                                                {{ $agent->last_name }}
                                                             </h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"></button>
                                                         </div>
 
                                                         <div class="modal-body">
@@ -117,9 +126,15 @@
                                                                     @if ($agent->status == 'approved')
                                                                         <option value="approved" selected>Approved</option>
                                                                     @else
-                                                                        <option value="pending" {{ $agent->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                                        <option value="approved" {{ $agent->status == 'approved' ? 'selected' : '' }}>Approved</option>
-                                                                        <option value="rejected" {{ $agent->status == 'rejected' ? 'selected' : '' }}>Declined</option>
+                                                                        <option value="pending"
+                                                                            {{ $agent->status == 'pending' ? 'selected' : '' }}>
+                                                                            Pending</option>
+                                                                        <option value="approved"
+                                                                            {{ $agent->status == 'approved' ? 'selected' : '' }}>
+                                                                            Approved</option>
+                                                                        <option value="rejected"
+                                                                            {{ $agent->status == 'rejected' ? 'selected' : '' }}>
+                                                                            Declined</option>
                                                                     @endif
                                                                 </select>
                                                             </div>
@@ -128,7 +143,8 @@
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary"
                                                                 data-bs-dismiss="modal">Cancel</button>
-                                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                            <button type="submit" class="btn btn-primary">Save
+                                                                Changes</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -143,17 +159,20 @@
 
                                                     <div class="modal-header">
                                                         <h5 class="modal-title">
-                                                            Users Referred By {{ $agent->first_name }} {{ $agent->last_name }}
+                                                            Users Referred By {{ $agent->first_name }}
+                                                            {{ $agent->last_name }}
                                                         </h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        <button type="button" class="btn-close"
+                                                            data-bs-dismiss="modal"></button>
                                                     </div>
 
                                                     <div class="modal-body">
-                                                        @if($agent->referredUsers->count() > 0)
+                                                        @if ($agent->referredUsers->count() > 0)
                                                             <ul class="list-group">
-                                                                @foreach($agent->referredUsers as $user)
+                                                                @foreach ($agent->referredUsers as $user)
                                                                     <li class="list-group-item">
-                                                                        <strong>{{ $user->first_name }} {{ $user->last_name }}</strong><br>
+                                                                        <strong>{{ $user->first_name }}
+                                                                            {{ $user->last_name }}</strong><br>
                                                                         <small>{{ $user->email }}</small><br>
                                                                         <small>{{ $user->phone }}</small>
                                                                     </li>
@@ -165,7 +184,8 @@
                                                     </div>
 
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">
                                                             Close
                                                         </button>
                                                     </div>
@@ -213,7 +233,9 @@
             $('#agentTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-                order: [[0, 'asc']],
+                order: [
+                    [0, 'asc']
+                ],
                 pageLength: 10
             });
         });
