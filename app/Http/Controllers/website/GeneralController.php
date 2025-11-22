@@ -62,7 +62,7 @@ class GeneralController extends Controller
     }
     public function submitAgentApplication(Request $request)
     {
-        // Validate input
+        // 1. Validate input
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
@@ -84,18 +84,21 @@ class GeneralController extends Controller
         }
 
         try {
-            // Prevent duplicates
+            // 2. Prevent duplicates
             if (AgentApplication::where('email', $request->email)->orWhere('phone', $request->phone)->exists()) {
                 return redirect()->back()->with('error', 'An account with this email or phone number already exists.');
             }
 
-            // Extract clean bank name and code
+            // 3. Extract clean bank name and code
+            // We use a robust regex to split "Bank Name (Code)"
+            // The regex looks for the LAST set of parentheses to identify the code
             $bankName = $request->bank_name;
-            preg_match('/(.*?)\s*\((.*?)\)/', $bankName, $matches);
-            $cleanBankName = $matches[1] ?? $bankName;
-            $bankCode = $matches[2] ?? null;
+            preg_match('/(.*)\s*\((.*)\)$/', $bankName, $matches);
 
-            // Create agent application (status: pending)
+            $cleanBankName = isset($matches[1]) ? trim($matches[1]) : $bankName;
+            $bankCode = isset($matches[2]) ? trim($matches[2]) : null;
+
+            // 4. Create agent application (status: pending)
             $application = AgentApplication::create([
                 'first_name' => $request->first_name,
                 'middle_name' => $request->middle_name,
@@ -111,56 +114,66 @@ class GeneralController extends Controller
                 'status' => 'pending',
             ]);
 
-            // Send confirmation email to applicant
-            $subject = 'Agent Application Received';
-            $content = [
-                'title' => 'Hi ' . $application->first_name . ',',
-                'body' => "
-            We've received your Agent Application and it’s currently under review.<br><br>
-            <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
-            <strong>Email:</strong> {$application->email}<br>
-            <strong>Phone:</strong> {$application->phone}<br>
-            <strong>State:</strong> {$application->state->name}<br>
-            <strong>LGA:</strong> {$application->lga->name}<br><br>
-            Once approved, you’ll receive your unique referral code via email.
-        ",
-                'footer' => 'Warm regards,<br>Offa University Admissions Team',
-            ];
+            // 5. Send confirmation email to applicant
+            // We wrap this in a sub-try/catch so email failures don't stop the user from seeing "Success"
+            try {
+                $subject = 'Agent Application Received';
+                $content = [
+                    'title' => 'Hi ' . $application->first_name . ',',
+                    'body' => "
+                    We've received your Agent Application and it’s currently under review.<br><br>
+                    <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
+                    <strong>Email:</strong> {$application->email}<br>
+                    <strong>Phone:</strong> {$application->phone}<br>
+                    <strong>State:</strong> {$application->state->name}<br>
+                    <strong>LGA:</strong> {$application->lga->name}<br><br>
+                    Once approved, you’ll receive your unique referral code via email.
+                ",
+                    'footer' => 'Warm regards,<br>Offa University Admissions Team',
+                ];
 
-            Mail::to($application->email)->send(new GeneralMail($subject, $content, false));
-            if (Mail::failures()) {
-                Log::warning('Failed to send agent application confirmation email to ' . $application->email);
-            } else {
+                Mail::to($application->email)->send(new GeneralMail($subject, $content, false));
                 Log::info('Agent application confirmation email sent to ' . $application->email);
+
+            } catch (\Exception $e) {
+                // Log the error but continue execution
+                Log::warning('Failed to send agent application confirmation email to ' . $application->email . '. Error: ' . $e->getMessage());
             }
 
-            // Notify admin
-            $adminEmail = env('ADMIN_EMAIL', 'vc@unioffa.edu.ng');
-            $adminSubject = 'New Agent Application Submitted';
-            $adminContent = [
-                'title' => 'New Agent Application Received',
-                'body' => "
-            A new agent application has been submitted.<br><br>
-            <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
-            <strong>Email:</strong> {$application->email}<br>
-            <strong>Phone:</strong> {$application->phone}<br>
-            <strong>Bank:</strong> {$application->bank_name}<br>
-            <strong>Account Name:</strong> {$application->account_name}<br>
-            <strong>Account Number:</strong> {$application->account_number}<br>
-            You can review and approve this application from the admin dashboard.
-        ",
-                'footer' => '— Automated Notification from Offa University Website',
-            ];
+            // 6. Notify admin
+            try {
+                $adminEmail = env('ADMIN_EMAIL', 'vc@unioffa.edu.ng');
+                $adminSubject = 'New Agent Application Submitted';
+                $adminContent = [
+                    'title' => 'New Agent Application Received',
+                    'body' => "
+                    A new agent application has been submitted.<br><br>
+                    <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
+                    <strong>Email:</strong> {$application->email}<br>
+                    <strong>Phone:</strong> {$application->phone}<br>
+                    <strong>Bank:</strong> {$application->bank_name}<br>
+                    <strong>Account Name:</strong> {$application->account_name}<br>
+                    <strong>Account Number:</strong> {$application->account_number}<br>
+                    You can review and approve this application from the admin dashboard.
+                ",
+                    'footer' => '— Automated Notification from Offa University Website',
+                ];
 
-            Mail::to($adminEmail)->send(new GeneralMail($adminSubject, $adminContent, false));
+                Mail::to($adminEmail)->send(new GeneralMail($adminSubject, $adminContent, false));
 
+            } catch (\Exception $e) {
+                Log::error('Failed to send Admin Notification for Agent Application. Error: ' . $e->getMessage());
+            }
+
+            // 7. Return Success
             return redirect()->back()->with('success', 'Your application has been submitted successfully! Your unique referral code will be emailed to you once your application is approved.');
+
         } catch (\Exception $e) {
-            Log::error('Agent Application Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'An error occurred while submitting your application. Please try again later.');
+            // This catches database errors or critical logic failures
+            Log::error('Agent Application Critical Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', "An error occurred while submitting your application. Please try again later.");
         }
     }
-    // API endpoint for fetching LGAs by state
     public function getLgas($state_id)
     {
         $lgas = Lga::where('state_id', $state_id)->get();

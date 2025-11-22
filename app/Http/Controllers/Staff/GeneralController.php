@@ -220,7 +220,7 @@ class GeneralController extends Controller
 
         if ($request->status === 'approved') {
             // Generate unique code if not already assigned
-            if (! $agent->unique_code) {
+            if (!$agent->unique_code) {
                 $agent->unique_code = $this->generateUniqueCode();
             }
 
