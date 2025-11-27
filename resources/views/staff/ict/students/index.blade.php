@@ -62,6 +62,68 @@
                 </div>
             </div>
 
+            <!-- Filters -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form method="GET" class="row g-3" id="filterForm">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Department</label>
+                            <select name="department_id" class="form-select">
+                                <option value="">All Departments</option>
+                                @foreach($departments as $dept)
+                                    <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>
+                                        {{ $dept->department_name }} ({{ $dept->faculty->faculty_name ?? '' }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Level</label>
+                            <select name="level" class="form-select">
+                                <option value="">All Levels</option>
+                                @foreach([100,200,300,400,500] as $lvl)
+                                    <option value="{{ $lvl }}" {{ request('level') == $lvl ? 'selected' : '' }}>
+                                        {{ $lvl }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="Search by name" value="{{ request('name') }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Matric No</label>
+                            <input type="text" name="matric_no" class="form-control" placeholder="Search by matric no" value="{{ request('matric_no') }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="text" name="email" class="form-control" placeholder="Search by Email" value="{{ request('email') }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Phone Number</label>
+                            <input type="text" name="phone" class="form-control" placeholder="Search by phone number" value="{{ request('phone') }}">
+                        </div>
+
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="ti ti-search"></i>
+                            </button>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" id="resetFilters" class="btn btn-outline-secondary w-100">
+                                <i class="ti ti-refresh"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- DataTable -->
             <div class="card">
                 <div class="card-header">
@@ -211,6 +273,30 @@ $(document).ready(function() {
 
     // Remove default DataTable buttons from DOM and use custom ones
     table.buttons().container().addClass('d-none');
+
+    // Reset filters functionality
+    $('#resetFilters').on('click', function() {
+        $('#filterForm').find('select, input').val('');
+        $('#filterForm').submit();
+    });
+
+    // Apply server-side filter values to DataTable search
+    @if(request()->anyFilled(['name', 'matric_no', 'email', 'phone']))
+        // If any text filters are applied, search in DataTable
+        @if(request('name'))
+            table.column(1).search('{{ request('name') }}');
+        @endif
+        @if(request('matric_no'))
+            table.column(0).search('{{ request('matric_no') }}');
+        @endif
+        @if(request('email'))
+            table.column(6).search('{{ request('email') }}');
+        @endif
+        @if(request('phone'))
+            table.column(7).search('{{ request('phone') }}');
+        @endif
+        table.draw();
+    @endif
 });
 </script>
 
@@ -248,6 +334,13 @@ $(document).ready(function() {
     .dataTables_wrapper .dataTables_filter {
         float: none;
         text-align: left;
+    }
+    
+    /* Make filter form responsive */
+    #filterForm .col-md-3,
+    #filterForm .col-md-2,
+    #filterForm .col-md-1 {
+        margin-bottom: 1rem;
     }
 }
 </style>
