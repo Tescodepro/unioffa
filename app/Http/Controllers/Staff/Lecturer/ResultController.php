@@ -388,7 +388,7 @@ class ResultController extends Controller
     {
         return view('staff.lecturer.results.backlog-upload');
     }
-    public function backlogProcessUpload(Request $request)
+    public function processBacklogUpload(Request $request)
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:xls,xlsx']
