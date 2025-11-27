@@ -62,67 +62,24 @@
                 </div>
             </div>
 
-             <!-- Filters -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <form method="GET" class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Department</label>
-                            <select name="department_id" class="form-select">
-                                <option value="">All Departments</option>
-                                @foreach($departments as $dept)
-                                    <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>
-                                        {{ $dept->department_name }} ({{ $dept->faculty->faculty_name ?? '' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-2">
-                            <label class="form-label fw-semibold">Level</label>
-                            <select name="level" class="form-select">
-                                <option value="">All Levels</option>
-                                @foreach([100,200,300,400,500] as $lvl)
-                                    <option value="{{ $lvl }}" {{ request('level') == $lvl ? 'selected' : '' }}>
-                                        {{ $lvl }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Name</label>
-                            <input type="text" name="name" class="form-control" placeholder="Search by name" value="{{ request('name') }}">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Matric No</label>
-                            <input type="text" name="matric_no" class="form-control" placeholder="Search by matric no" value="{{ request('matric_no') }}">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input type="text" name="email" class="form-control" placeholder="Search by Email" value="{{ request('email') }}">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Phone Number</label>
-                            <input type="text" name="phone" class="form-control" placeholder="Search by phone number" value="{{ request('phone') }}">
-                        </div>
-
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button class="btn btn-primary w-100">
-                                <i class="ti ti-search"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Table -->
+            <!-- DataTable -->
             <div class="card">
-                <div class="card-body table-responsive">
-                    <table class="table table-striped align-middle">
+                <div class="card-header">
+                    <h5 class="card-title">Student Records</h5>
+                    <div class="card-actions">
+                        <button type="button" class="btn btn-success btn-sm" id="exportExcelBtn">
+                            <i class="ti ti-download"></i> Export Excel
+                        </button>
+                        <button type="button" class="btn btn-info btn-sm" id="exportPdfBtn">
+                            <i class="ti ti-download"></i> Export PDF
+                        </button>
+                        <button type="button" class="btn btn-warning btn-sm" id="printTableBtn">
+                            <i class="ti ti-printer"></i> Print
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table id="studentsTable" class="table table-striped align-middle" style="width:100%">
                         <thead>
                             <tr>
                                 <th>Matric No</th>
@@ -131,11 +88,13 @@
                                 <th>Programme</th>
                                 <th>Level</th>
                                 <th>Sex</th>
+                                <th>Email</th>
+                                <th>Phone</th>
                                 <th class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($students as $student)
+                            @foreach($students as $student)
                                 <tr>
                                     <td>{{ $student->matric_no }}</td>
                                     <td>{{ $student->user->first_name }} {{ $student->user->last_name }}</td>
@@ -143,32 +102,24 @@
                                     <td>{{ $student->programme }}</td>
                                     <td>{{ $student->level ?? '—' }}</td>
                                     <td>{{ ucfirst($student->sex ?? '—') }}</td>
+                                    <td>{{ $student->user->email ?? '—' }}</td>
+                                    <td>{{ $student->phone ?? '—' }}</td>
                                     <td class="text-end">
-                                        <a href="{{ route('ict.students.edit', $student->id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                        <a href="{{ route('ict.students.edit', $student->id) }}" class="btn btn-sm btn-outline-primary me-1" title="Edit">
                                             <i class="ti ti-edit"></i>
                                         </a>
                                         <form action="{{ route('ict.students.destroy', $student->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this student?')">
+                                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this student?')" title="Delete">
                                                 <i class="ti ti-trash"></i>
                                             </button>
                                         </form>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">No students found</td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
-
-                    @if($students->hasPages())
-                        <div class="card-footer d-flex justify-content-end">
-                            {{ $students->links('pagination::bootstrap-5') }}
-                        </div>
-                    @endif
                 </div>
             </div>
 
@@ -176,3 +127,128 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<!-- DataTables CSS & JS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    var table = $('#studentsTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: '<i class="ti ti-download"></i> Excel',
+                className: 'btn btn-success btn-sm',
+                title: 'Students Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                }
+            },
+            {
+                extend: 'pdf',
+                text: '<i class="ti ti-download"></i> PDF',
+                className: 'btn btn-info btn-sm',
+                title: 'Students Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                }
+            },
+            {
+                extend: 'print',
+                text: '<i class="ti ti-printer"></i> Print',
+                className: 'btn btn-warning btn-sm',
+                title: 'Students Data',
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                }
+            }
+        ],
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            zeroRecords: "No matching records found",
+            paginate: {
+                first: "First",
+                last: "Last",
+                next: "Next",
+                previous: "Previous"
+            }
+        },
+        responsive: true,
+        order: [[0, 'asc']],
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+    });
+
+    // Custom button handlers
+    $('#exportExcelBtn').on('click', function() {
+        table.button('.buttons-excel').trigger();
+    });
+
+    $('#exportPdfBtn').on('click', function() {
+        table.button('.buttons-pdf').trigger();
+    });
+
+    $('#printTableBtn').on('click', function() {
+        table.button('.buttons-print').trigger();
+    });
+
+    // Remove default DataTable buttons from DOM and use custom ones
+    table.buttons().container().addClass('d-none');
+});
+</script>
+
+<style>
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+    text-align: right;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .card-actions {
+        flex-direction: column;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .card-actions .btn {
+        width: 100%;
+    }
+    
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        float: none;
+        text-align: left;
+    }
+}
+</style>
+@endpush

@@ -379,13 +379,11 @@ class ResultController extends Controller
     }
 
     // upload backlog results
-
     public function downloadBacklogTemplate()
     {
         $path = public_path('templates/backlog_template.xlsx');
         return response()->download($path);
     }
-
     public function previewBacklogUpload(Request $request)
     {
         $request->validate([
@@ -423,13 +421,10 @@ class ResultController extends Controller
             'file_data' => $file_data,
         ]);
     }
-
     public function showBacklogUploadPage()
     {
         return view('staff.lecturer.results.backlog-upload');
     }
-
-
     public function processBacklogUpload(Request $request)
     {
         $request->validate([

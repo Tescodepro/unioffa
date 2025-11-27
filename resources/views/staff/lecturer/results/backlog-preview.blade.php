@@ -27,7 +27,7 @@
                                 Make sure all information is correct.
                             </p>
 
-                            <form action="{{ route('backlog.upload.process') }}" method="POST">
+                            <form action="{{ route('backlog.upload.process') }}" method="get">
                                 @csrf
                                 <input type="hidden" name="file_data" value="{{ $file_data }}">
 
