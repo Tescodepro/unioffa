@@ -101,6 +101,15 @@
                                 </a>
                             </li>
                         </ul>
+                        <ul>
+                            <li>
+                                <a href="{{ route('backlog.upload.page') }}"
+                                    class="{{ request()->routeIs('backlog.upload.page') ? 'active' : '' }}">
+                                    <i class="ti ti-file-text"></i>
+                                    <span>Upload Backlog Results</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 @endif
                 @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'ict']))
