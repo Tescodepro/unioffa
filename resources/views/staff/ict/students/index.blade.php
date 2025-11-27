@@ -1,17 +1,17 @@
 @extends('layouts.app')
-
 @section('title', 'Student Management')
-
+@push('styles')
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+@endpush
 @section('content')
 <div id="global-loader"><div class="page-loader"></div></div>
-
 <div class="main-wrapper">
     @include('staff.layouts.header')
     @include('staff.layouts.sidebar')
-
     <div class="page-wrapper">
         <div class="content">
-
             <!-- Header -->
             <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                 <div>
@@ -19,7 +19,7 @@
                     <p class="text-muted mb-0">View, edit, add, or delete student records</p>
                 </div>
                 @include('layouts.flash-message')
-                <div class="d-flex flex-wrap gap-2">
+                <div class="d-flex flex-wrap gap-2" id="export-buttons">
                     <a href="{{ route('ict.students.create') }}" class="btn btn-primary">
                         <i class="ti ti-user-plus"></i> Add Student
                     </a>
@@ -28,7 +28,6 @@
                     </a>
                 </div>
             </div>
-
             <!-- Statistics -->
             <div class="row mb-3">
                 <div class="col-md-6 col-6">
@@ -61,11 +60,10 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Filters -->
+             <!-- Filters -->
             <div class="card mb-3">
                 <div class="card-body">
-                    <form method="GET" class="row g-3" id="filterForm">
+                    <form method="GET" class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Department</label>
                             <select name="department_id" class="form-select">
@@ -77,7 +75,6 @@
                                 @endforeach
                             </select>
                         </div>
-
                         <div class="col-md-2">
                             <label class="form-label fw-semibold">Level</label>
                             <select name="level" class="form-select">
@@ -89,59 +86,34 @@
                                 @endforeach
                             </select>
                         </div>
-
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Name</label>
                             <input type="text" name="name" class="form-control" placeholder="Search by name" value="{{ request('name') }}">
                         </div>
-
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Matric No</label>
                             <input type="text" name="matric_no" class="form-control" placeholder="Search by matric no" value="{{ request('matric_no') }}">
                         </div>
-
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Email</label>
                             <input type="text" name="email" class="form-control" placeholder="Search by Email" value="{{ request('email') }}">
                         </div>
-
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Phone Number</label>
                             <input type="text" name="phone" class="form-control" placeholder="Search by phone number" value="{{ request('phone') }}">
                         </div>
-
                         <div class="col-md-1 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100">
+                            <button class="btn btn-primary w-100">
                                 <i class="ti ti-search"></i>
-                            </button>
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button type="button" id="resetFilters" class="btn btn-outline-secondary w-100">
-                                <i class="ti ti-refresh"></i>
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-
-            <!-- DataTable -->
+            <!-- Table -->
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Student Records</h5>
-                    <div class="card-actions">
-                        <button type="button" class="btn btn-success btn-sm" id="exportExcelBtn">
-                            <i class="ti ti-download"></i> Export Excel
-                        </button>
-                        <button type="button" class="btn btn-info btn-sm" id="exportPdfBtn">
-                            <i class="ti ti-download"></i> Export PDF
-                        </button>
-                        <button type="button" class="btn btn-warning btn-sm" id="printTableBtn">
-                            <i class="ti ti-printer"></i> Print
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <table id="studentsTable" class="table table-striped align-middle" style="width:100%">
+                <div class="card-body table-responsive">
+                    <table id="students-table" class="table table-striped align-middle">
                         <thead>
                             <tr>
                                 <th>Matric No</th>
@@ -150,13 +122,11 @@
                                 <th>Programme</th>
                                 <th>Level</th>
                                 <th>Sex</th>
-                                <th>Email</th>
-                                <th>Phone</th>
                                 <th class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($students as $student)
+                            @forelse($students as $student)
                                 <tr>
                                     <td>{{ $student->matric_no }}</td>
                                     <td>{{ $student->user->first_name }} {{ $student->user->last_name }}</td>
@@ -164,245 +134,120 @@
                                     <td>{{ $student->programme }}</td>
                                     <td>{{ $student->level ?? '—' }}</td>
                                     <td>{{ ucfirst($student->sex ?? '—') }}</td>
-                                    <td>{{ $student->user->email ?? '—' }}</td>
-                                    <td>{{ $student->phone ?? '—' }}</td>
                                     <td class="text-end">
-                                        <a href="{{ route('ict.students.edit', $student->id) }}" class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                                        <a href="{{ route('ict.students.edit', $student->id) }}" class="btn btn-sm btn-outline-primary me-1">
                                             <i class="ti ti-edit"></i>
                                         </a>
                                         <form action="{{ route('ict.students.destroy', $student->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this student?')" title="Delete">
+                                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this student?')">
                                                 <i class="ti ti-trash"></i>
                                             </button>
                                         </form>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">No students found</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                    @if($students->hasPages())
+                        <div class="card-footer d-flex justify-content-end">
+                            {{ $students->links('pagination::bootstrap-5') }}
+                        </div>
+                    @endif
                 </div>
             </div>
-
         </div>
     </div>
 </div>
-@endsection
-
 @push('scripts')
-<!-- DataTables CSS & JS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-
-<script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+<script type="text/javascript">
 $(document).ready(function() {
-    // Initialize DataTable with proper button configuration
-    var table = $('#studentsTable').DataTable({
-        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+    var table = $('#students-table').DataTable({
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+             '<"row"<"col-sm-12"tr>>' +
+             '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
         buttons: [
             {
                 extend: 'excel',
-                text: '<i class="ti ti-download me-1"></i> Excel',
-                className: 'btn-success',
-                title: 'Students Data - {{ now()->format("Y-m-d") }}',
+                text: 'Excel',
+                className: 'btn btn-success me-1',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7],
-                    orthogonal: 'export'
-                },
-                filename: function() {
-                    return 'students-data-' + new Date().toISOString().slice(0,10);
+                    columns: ':visible', // Exclude hidden columns if needed
+                    modifier: {
+                        page: 'current' // Export only current page; change to 'all' if you load all data
+                    }
+                }
+            },
+            {
+                extend: 'csv',
+                text: 'CSV',
+                className: 'btn btn-info me-1',
+                exportOptions: {
+                    columns: ':visible',
+                    modifier: {
+                        page: 'current'
+                    }
                 }
             },
             {
                 extend: 'pdf',
-                text: '<i class="ti ti-download me-1"></i> PDF',
-                className: 'btn-info',
-                title: 'Students Data - {{ now()->format("Y-m-d") }}',
+                text: 'PDF',
+                className: 'btn btn-danger me-1',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7],
-                    orthogonal: 'export'
-                },
-                filename: function() {
-                    return 'students-data-' + new Date().toISOString().slice(0,10);
-                },
-                customize: function (doc) {
-                    doc.content[1].table.widths = 
-                        Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+                    columns: ':visible',
+                    modifier: {
+                        page: 'current'
+                    }
                 }
             },
             {
                 extend: 'print',
-                text: '<i class="ti ti-printer me-1"></i> Print',
-                className: 'btn-warning',
-                title: 'Students Data - {{ now()->format("Y-m-d") }}',
+                text: 'Print',
+                className: 'btn btn-secondary',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7],
-                    orthogonal: 'export'
-                },
-                customize: function (win) {
-                    $(win.document.body)
-                        .css('font-size', '10pt')
-                        .prepend(
-                            '<div class="text-center mb-3"><h4>Student Records</h4><p>Generated on: {{ now()->format("F j, Y g:i A") }}</p></div>'
-                        );
-                    
-                    $(win.document.body).find('table')
-                        .addClass('compact')
-                        .css('font-size', 'inherit');
+                    columns: ':visible',
+                    modifier: {
+                        page: 'current'
+                    }
                 }
             }
         ],
-        language: {
-            search: "Search:",
-            lengthMenu: "Show _MENU_ entries",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)",
-            zeroRecords: "No matching records found",
-            paginate: {
-                first: "First",
-                last: "Last",
-                next: "Next",
-                previous: "Previous"
-            }
-        },
-        responsive: true,
-        order: [[0, 'asc']],
         pageLength: 25,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-        // Ensure data is properly formatted for export
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        responsive: true,
+        paging: false, // Disable DataTables pagination to avoid conflict with Laravel's server-side pagination
+        searching: true, // Enable client-side search (applies to current page only)
+        ordering: true,
+        info: false, // Hide info since Laravel handles total count
+        lengthChange: true,
+        order: [[1, 'asc']], // Default sort by name
+        language: {
+            search: "Search current page:",
+            lengthMenu: "Show _MENU_ entries"
+        },
         columnDefs: [
-            {
-                targets: [8], // Action column
-                orderable: false,
-                searchable: false
-            }
+            { orderable: false, targets: 6 } // Disable sorting on Action column
         ]
     });
 
-    // Custom button handlers - CORRECTED VERSION
-    $('#exportExcelBtn').on('click', function() {
-        table.button(0).trigger();
-    });
-
-    $('#exportPdfBtn').on('click', function() {
-        table.button(1).trigger();
-    });
-
-    $('#printTableBtn').on('click', function() {
-        table.button(2).trigger();
-    });
-
-    // Reset filters functionality
-    $('#resetFilters').on('click', function() {
-        $('#filterForm').find('select, input').val('');
-        $('#filterForm').submit();
-    });
-
-    // Apply server-side filter values to DataTable search
-    @if(request()->anyFilled(['name', 'matric_no', 'email', 'phone']))
-        // If any text filters are applied, search in DataTable
-        @if(request('name'))
-            table.column(1).search('{{ request('name') }}');
-        @endif
-        @if(request('matric_no'))
-            table.column(0).search('{{ request('matric_no') }}');
-        @endif
-        @if(request('email'))
-            table.column(6).search('{{ request('email') }}');
-        @endif
-        @if(request('phone'))
-            table.column(7).search('{{ request('phone') }}');
-        @endif
-        table.draw();
-    @endif
+    // Append buttons to the custom container near the Add Student button
+    table.buttons().container().appendTo('#export-buttons');
 });
-
-// Alternative simple export functions if DataTable buttons still don't work
-function exportToExcel() {
-    $('.buttons-excel').click();
-}
-
-function exportToPDF() {
-    $('.buttons-pdf').click();
-}
-
-function printTable() {
-    $('.buttons-print').click();
-}
 </script>
-
-<style>
-.dataTables_wrapper .dataTables_filter {
-    float: right;
-    text-align: right;
-}
-
-.dataTables_wrapper .dataTables_length {
-    float: left;
-}
-
-.dataTables_wrapper .dataTables_paginate {
-    float: right;
-}
-
-.card-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-/* Ensure buttons container is visible */
-.dt-buttons {
-    margin-bottom: 1rem;
-}
-
-.dt-buttons .btn {
-    margin-right: 0.5rem;
-}
-
-@media (max-width: 768px) {
-    .card-actions {
-        flex-direction: column;
-        width: 100%;
-        margin-top: 1rem;
-    }
-    
-    .card-actions .btn {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
-    
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter {
-        float: none;
-        text-align: left;
-    }
-    
-    /* Make filter form responsive */
-    #filterForm .col-md-3,
-    #filterForm .col-md-2,
-    #filterForm .col-md-1 {
-        margin-bottom: 1rem;
-    }
-    
-    .dt-buttons {
-        text-align: center;
-    }
-    
-    .dt-buttons .btn {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
-}
-</style>
 @endpush
+@endsection
