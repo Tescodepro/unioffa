@@ -8,8 +8,8 @@
     @include('staff.layouts.sidebar')
 
     <div class="page-wrapper">
-        <div class="content container py-4">
-
+        <div class="content">
+            <h3 class="mb-4"> Upload Backlogs Result </h3>
             <div class="row justify-content-center">
                 <div class="col-lg-8">
 
