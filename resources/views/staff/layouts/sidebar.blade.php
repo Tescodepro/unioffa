@@ -82,7 +82,10 @@
                 @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'lecturer']))
                     {{-- RESULT MANAGEMENT  --}}
                     <li class="{{ request()->is('staff/dean/results*') ? 'open' : '' }}">
-                        <h6 class="submenu-hdr"><span>Result Management</span></h6>
+                        <h6 class="submenu-hdr">
+                            <span>Result Management</span>
+                        </h6>
+
                         <ul>
                             <li>
                                 <a href="{{ route('staff.results.upload') }}"
@@ -91,8 +94,7 @@
                                     <span>Upload Results</span>
                                 </a>
                             </li>
-                        </ul>
-                        <ul>
+
                             <li>
                                 <a href="{{ route('results.viewUploaded') }}"
                                     class="{{ request()->routeIs('results.viewUploaded') ? 'active' : '' }}">
@@ -100,8 +102,7 @@
                                     <span>View Uploaded Results</span>
                                 </a>
                             </li>
-                        </ul>
-                        <ul>
+
                             <li>
                                 <a href="{{ route('backlog.upload.page') }}"
                                     class="{{ request()->routeIs('backlog.upload.page') ? 'active' : '' }}">
