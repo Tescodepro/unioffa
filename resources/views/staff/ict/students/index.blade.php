@@ -206,35 +206,59 @@
 
 <script>
 $(document).ready(function() {
-    // Initialize DataTable
+    // Initialize DataTable with proper button configuration
     var table = $('#studentsTable').DataTable({
-        dom: 'Bfrtip',
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
         buttons: [
             {
                 extend: 'excel',
-                text: '<i class="ti ti-download"></i> Excel',
-                className: 'btn btn-success btn-sm',
-                title: 'Students Data',
+                text: '<i class="ti ti-download me-1"></i> Excel',
+                className: 'btn-success',
+                title: 'Students Data - {{ now()->format("Y-m-d") }}',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                    orthogonal: 'export'
+                },
+                filename: function() {
+                    return 'students-data-' + new Date().toISOString().slice(0,10);
                 }
             },
             {
                 extend: 'pdf',
-                text: '<i class="ti ti-download"></i> PDF',
-                className: 'btn btn-info btn-sm',
-                title: 'Students Data',
+                text: '<i class="ti ti-download me-1"></i> PDF',
+                className: 'btn-info',
+                title: 'Students Data - {{ now()->format("Y-m-d") }}',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                    orthogonal: 'export'
+                },
+                filename: function() {
+                    return 'students-data-' + new Date().toISOString().slice(0,10);
+                },
+                customize: function (doc) {
+                    doc.content[1].table.widths = 
+                        Array(doc.content[1].table.body[0].length + 1).join('*').split('');
                 }
             },
             {
                 extend: 'print',
-                text: '<i class="ti ti-printer"></i> Print',
-                className: 'btn btn-warning btn-sm',
-                title: 'Students Data',
+                text: '<i class="ti ti-printer me-1"></i> Print',
+                className: 'btn-warning',
+                title: 'Students Data - {{ now()->format("Y-m-d") }}',
                 exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                    orthogonal: 'export'
+                },
+                customize: function (win) {
+                    $(win.document.body)
+                        .css('font-size', '10pt')
+                        .prepend(
+                            '<div class="text-center mb-3"><h4>Student Records</h4><p>Generated on: {{ now()->format("F j, Y g:i A") }}</p></div>'
+                        );
+                    
+                    $(win.document.body).find('table')
+                        .addClass('compact')
+                        .css('font-size', 'inherit');
                 }
             }
         ],
@@ -255,24 +279,29 @@ $(document).ready(function() {
         responsive: true,
         order: [[0, 'asc']],
         pageLength: 25,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]]
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        // Ensure data is properly formatted for export
+        columnDefs: [
+            {
+                targets: [8], // Action column
+                orderable: false,
+                searchable: false
+            }
+        ]
     });
 
-    // Custom button handlers
+    // Custom button handlers - CORRECTED VERSION
     $('#exportExcelBtn').on('click', function() {
-        table.button('.buttons-excel').trigger();
+        table.button(0).trigger();
     });
 
     $('#exportPdfBtn').on('click', function() {
-        table.button('.buttons-pdf').trigger();
+        table.button(1).trigger();
     });
 
     $('#printTableBtn').on('click', function() {
-        table.button('.buttons-print').trigger();
+        table.button(2).trigger();
     });
-
-    // Remove default DataTable buttons from DOM and use custom ones
-    table.buttons().container().addClass('d-none');
 
     // Reset filters functionality
     $('#resetFilters').on('click', function() {
@@ -298,6 +327,19 @@ $(document).ready(function() {
         table.draw();
     @endif
 });
+
+// Alternative simple export functions if DataTable buttons still don't work
+function exportToExcel() {
+    $('.buttons-excel').click();
+}
+
+function exportToPDF() {
+    $('.buttons-pdf').click();
+}
+
+function printTable() {
+    $('.buttons-print').click();
+}
 </script>
 
 <style>
@@ -319,6 +361,15 @@ $(document).ready(function() {
     gap: 0.5rem;
 }
 
+/* Ensure buttons container is visible */
+.dt-buttons {
+    margin-bottom: 1rem;
+}
+
+.dt-buttons .btn {
+    margin-right: 0.5rem;
+}
+
 @media (max-width: 768px) {
     .card-actions {
         flex-direction: column;
@@ -328,6 +379,7 @@ $(document).ready(function() {
     
     .card-actions .btn {
         width: 100%;
+        margin-bottom: 0.5rem;
     }
     
     .dataTables_wrapper .dataTables_length,
@@ -341,6 +393,15 @@ $(document).ready(function() {
     #filterForm .col-md-2,
     #filterForm .col-md-1 {
         margin-bottom: 1rem;
+    }
+    
+    .dt-buttons {
+        text-align: center;
+    }
+    
+    .dt-buttons .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
     }
 }
 </style>
