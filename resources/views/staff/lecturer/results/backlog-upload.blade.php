@@ -10,18 +10,15 @@
     <div class="page-wrapper">
         <div class="content">
             <h3 class="mb-4"> Upload Backlogs Result </h3>
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-
+            <div class="row g-4">
+                <div class="col-lg-12 mb-4">
                     <div class="card shadow-sm border-0 mb-4">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header bg-light">
                             <h4 class="mb-0">
                                 <i class="fa fa-upload me-2"></i> Backlog Result Upload
                             </h4>
                         </div>
-
                         <div class="card-body">
-
                             <p class="text-muted mb-3">
                                 Upload an Excel file containing backlog results. Make sure it follows the required template.
                             </p>
