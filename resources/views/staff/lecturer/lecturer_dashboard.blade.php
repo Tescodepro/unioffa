@@ -52,37 +52,7 @@
 
             <!-- Quick Stats Row -->
             <div class="row mb-4">
-                <div class="col-sm-6 col-xl-3 d-flex">
-                    <div class="card border-0 border-bottom border-primary flex-fill">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <span class="avatar avatar-md rounded bg-primary me-2">
-                                    <i class="ti ti-book fs-16"></i>
-                                </span>
-                                <div>
-                                    <h3 class="mb-0">{{ $totalCourses }}</h3>
-                                    <p class="mb-0 text-muted">Assigned Courses</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-xl-3 d-flex">
-                    <div class="card border-0 border-bottom border-success flex-fill">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <span class="avatar avatar-md rounded bg-success me-2">
-                                    <i class="ti ti-users fs-16"></i>
-                                </span>
-                                <div>
-                                    <h3 class="mb-0">{{ $totalStudents }}</h3>
-                                    <p class="mb-0 text-muted">Total Students</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
 
                 <div class="col-sm-6 col-xl-3 d-flex">
                     <div class="card border-0 border-bottom border-warning flex-fill">
@@ -110,6 +80,38 @@
                                 <div>
                                     <h6 class="mb-0">{{ $faculty->faculty_name ?? 'N/A' }}</h6>
                                     <p class="mb-0 text-muted">Faculty</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3 d-flex">
+                    <div class="card border-0 border-bottom border-primary flex-fill">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <span class="avatar avatar-md rounded bg-primary me-2">
+                                    <i class="ti ti-book fs-16"></i>
+                                </span>
+                                <div>
+                                    <h3 class="mb-0">{{ $totalCourses }}</h3>
+                                    <p class="mb-0 text-muted">Assigned Courses</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-xl-3 d-flex">
+                    <div class="card border-0 border-bottom border-success flex-fill">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <span class="avatar avatar-md rounded bg-success me-2">
+                                    <i class="ti ti-users fs-16"></i>
+                                </span>
+                                <div>
+                                    <h3 class="mb-0">{{ $totalStudents }}</h3>
+                                    <p class="mb-0 text-muted">Total Students</p>
                                 </div>
                             </div>
                         </div>

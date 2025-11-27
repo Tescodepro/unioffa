@@ -118,7 +118,7 @@ class BursaryController extends Controller
     }
     /**
      * Process verification from form input.
-     */
+    */
     public function verifyPaymentAction(Request $request)
     {
         $request->validate([
@@ -175,7 +175,7 @@ class BursaryController extends Controller
 
         return back()->with('success', 'Transaction verified successfully.');
     }
-    // 📘 REPORT BY FACULTY
+    //  REPORT BY FACULTY
     public function reportByFaculty()
     {
         $faculties = Faculty::with(['departments.students.user.transactions'])->get();
@@ -206,7 +206,7 @@ class BursaryController extends Controller
 
         return view('staff.bursary.reports.by_faculty', compact('data'));
     }
-    // 📘 REPORT BY DEPARTMENT
+    //  REPORT BY DEPARTMENT
     public function reportByDepartment()
     {
         $departments = Department::with(['students.user.transactions'])->get();
@@ -237,7 +237,7 @@ class BursaryController extends Controller
         return view('staff.bursary.reports.by_department', compact('data'));
     }
 
-    // 📘 REPORT BY LEVEL
+    //  REPORT BY LEVEL
     public function reportByLevel()
     {
         $levels = PaymentSetting::select('level')->distinct()->pluck('level');
@@ -265,7 +265,7 @@ class BursaryController extends Controller
         return view('staff.bursary.reports.by_level', compact('data'));
     }
 
-    // 📘 REPORT BY STUDENT
+    //  REPORT BY STUDENT
     public function reportByStudent()
     {
         $transactions = Transaction::with(['user.student.department.faculty'])
@@ -288,7 +288,7 @@ class BursaryController extends Controller
         return view('staff.bursary.reports.by_student', compact('data'));
     }
 
-    // 📘 EXPORT HANDLER
+    //  EXPORT HANDLER
     public function export($type, $format)
     {
         $fileName = "report_{$type}." . $format;
@@ -350,7 +350,7 @@ class BursaryController extends Controller
         $transaction->user_id = $user->id;
         $transaction->payment_type = $validated['payment_type'];
         $transaction->amount = $validated['amount'];
-        $transaction->payment_status = 1;
+        $transaction->payment_status = 0;
         $transaction->payment_method = 'manual';
         $transaction->session = $validated['session'];
         $transaction->description = 'manual upload by burser'; // optional column if you want to track

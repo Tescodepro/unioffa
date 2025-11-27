@@ -204,6 +204,19 @@ Route::prefix('staff')->group(function () {
             Route::get('results/download', [ResultController::class, 'downloadSheet'])->name('staff.results.download');
             Route::get('/results/view-uploaded', [ResultController::class, 'viewuploadReport'])->name('results.viewUploaded');
             Route::get('/results/download-uploaded-results', [ResultController::class, 'downloadResults'])->name('results.download');
+            Route::get('/backlog-upload', [ResultController::class, 'showBacklogUploadPage'])
+    ->name('backlog.upload.page');
+
+Route::post('/backlog-upload/preview', [ResultController::class, 'previewBacklogUpload'])
+    ->name('backlog.upload.preview');
+
+Route::post('/backlog-upload/process', [ResultController::class, 'processBacklogUpload'])
+    ->name('backlog.upload.process');
+    Route::get('/backlog-upload/template', [ResultController::class, 'downloadBacklogTemplate'])
+    ->name('backlog.upload.template');
+
+
+
 
         });
     });

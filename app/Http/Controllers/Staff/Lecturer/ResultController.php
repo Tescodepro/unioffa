@@ -57,7 +57,7 @@ class ResultController extends Controller
 
         $course = Course::findOrFail($request->course_id);
         $user = auth()->user();
-        if ($user->hasRole('lecturer') && ! $user->isAssignedToCourse($course->id)) {
+        if ($user->hasRole('lecturer') && !$user->isAssignedToCourse($course->id)) {
             return back()->with('error', 'You are not authorized to upload results for this course.');
         }
 
@@ -79,7 +79,7 @@ class ResultController extends Controller
             return array_combine($normalizedHeaders, $row);
         })->filter(function ($row) {
             // Skip empty rows
-            return ! empty(array_filter($row));
+            return !empty(array_filter($row));
         });
 
         // ✅ Initialize report
@@ -103,7 +103,7 @@ class ResultController extends Controller
 
             // 1️⃣ Validate student exists
             $student = Student::where('matric_no', $matric_no)->first();
-            if (! $student) {
+            if (!$student) {
                 $report['skipped_not_student'][] = "Matric No: {$matric_no} — not found in student records.";
 
                 continue;
@@ -117,7 +117,7 @@ class ResultController extends Controller
                 'semester' => $request->semester,
             ])->exists();
 
-            if (! $registered) {
+            if (!$registered) {
                 $report['skipped_not_registered'][] = "Matric No: {$matric_no} — did not register {$course->course_code} ({$course->course_title}) for {$request->semester} Semester, {$request->session} session.";
 
                 continue;
@@ -164,21 +164,21 @@ class ResultController extends Controller
 
                 $report['uploaded'][] = "Matric No: {$matric_no} — uploaded successfully.";
             } catch (\Exception $e) {
-                $report['errors'][] = "Matric No: {$matric_no} — error: ".$e->getMessage();
+                $report['errors'][] = "Matric No: {$matric_no} — error: " . $e->getMessage();
             }
         }
 
         // ✅ Build summary
         $summary = '
-    ✅ Uploaded: '.count($report['uploaded']).'
-    ❌ Not Students: '.count($report['skipped_not_student']).'
-    ⚠️ Not Registered: '.count($report['skipped_not_registered']).'
-    🧯 Errors: '.count($report['errors']);
+    ✅ Uploaded: ' . count($report['uploaded']) . '
+    ❌ Not Students: ' . count($report['skipped_not_student']) . '
+    ⚠️ Not Registered: ' . count($report['skipped_not_registered']) . '
+    🧯 Errors: ' . count($report['errors']);
 
         // ✅ Flash report to session (for detailed display)
         session()->flash('upload_report', $report);
 
-        return back()->with('success', 'Results processed successfully. '.$summary);
+        return back()->with('success', 'Results processed successfully. ' . $summary);
     }
 
     public function downloadSheet(Request $request)
@@ -214,7 +214,9 @@ class ResultController extends Controller
         return Excel::download(new \App\Exports\ArrayExport($data, $headings), "{$course->course_code}_result_sheet.xlsx");
     }
 
-    public function approveResults(Request $request) {}
+    public function approveResults(Request $request)
+    {
+    }
 
     public function viewuploadReport(Request $request)
     {
@@ -259,7 +261,11 @@ class ResultController extends Controller
         }
 
         return view('staff.lecturer.results.view-uploaded', compact(
-            'courses', 'sessions', 'semesters', 'results', 'course'
+            'courses',
+            'sessions',
+            'semesters',
+            'results',
+            'course'
         ));
     }
 
@@ -276,7 +282,7 @@ class ResultController extends Controller
 
         if ($user->hasRole('lecturer')) {
             $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
-            if (! $isAssigned) {
+            if (!$isAssigned) {
                 return back()->with('error', 'You are not allowed to view results for this course.');
             }
         }
@@ -294,7 +300,6 @@ class ResultController extends Controller
 
         return view('staff.lecturer.results.view-uploaded', compact('course', 'results'));
     }
-
     public function downloadResults(Request $request)
     {
         // Validate input
@@ -312,7 +317,7 @@ class ResultController extends Controller
             if ($user->hasRole('lecturer')) {
                 $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
 
-                if (! $isAssigned) {
+                if (!$isAssigned) {
                     return redirect()->back()->with('error', 'You are not authorized to download results for this course.');
                 }
             }
@@ -367,9 +372,167 @@ class ResultController extends Controller
             );
 
         } catch (\Exception $e) {
-            \Log::error('Failed to download results: '.$e->getMessage());
+            \Log::error('Failed to download results: ' . $e->getMessage());
 
             return redirect()->back()->with('error', 'Failed to download results. Please try again.');
         }
+    }
+
+    // upload backlog results
+
+    public function downloadBacklogTemplate()
+    {
+        $path = public_path('templates/backlog_template.xlsx');
+        return response()->download($path);
+    }
+
+    public function previewBacklogUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        // Create temp file with proper extension
+        $temp = tempnam(sys_get_temp_dir(), 'backlog_') . '.' . $request->file('file')->getClientOriginalExtension();
+        file_put_contents($temp, file_get_contents($request->file('file')));
+
+        // Read Excel safely
+        $rows = Excel::toArray([], $temp)[0];
+
+        // Clean up temp file
+        unlink($temp);
+
+        if (empty($rows)) {
+            return back()->with('error', 'The uploaded file is empty.');
+        }
+
+        // Normalize headers
+        $headers = array_shift($rows);
+        $normalizedHeaders = array_map(fn($h) => strtolower(str_replace(' ', '_', trim($h))), $headers);
+
+        $data = collect($rows)->map(fn($row) => array_combine($normalizedHeaders, $row))
+            ->filter(fn($row) => !empty(array_filter($row)))
+            ->values()
+            ->all();
+
+        // Encode original file as base64 to pass to process
+        $file_data = base64_encode(file_get_contents($request->file('file')));
+
+        return view('staff.lecturer.results.backlog-preview', [
+            'rows' => $data,
+            'file_data' => $file_data,
+        ]);
+    }
+
+    public function showBacklogUploadPage()
+    {
+        return view('staff.lecturer.results.backlog-upload');
+    }
+
+
+    public function processBacklogUpload(Request $request)
+    {
+        $request->validate([
+            'file_data' => 'required|string'
+        ]);
+
+        // Create temp file with .xlsx extension for Laravel Excel detection
+        $temp = tempnam(sys_get_temp_dir(), 'backlog_') . '.xlsx';
+        file_put_contents($temp, base64_decode($request->file_data));
+
+        $rows = Excel::toArray([], $temp)[0];
+
+        // Clean up temp file
+        unlink($temp);
+
+        if (empty($rows)) {
+            return back()->with('error', 'The uploaded file is empty.');
+        }
+
+        $headers = array_shift($rows);
+        $normalizedHeaders = array_map(fn($h) => strtolower(str_replace(' ', '_', trim($h))), $headers);
+
+        $data = collect($rows)->map(fn($row) => array_combine($normalizedHeaders, $row))
+            ->filter(fn($row) => !empty(array_filter($row)))
+            ->values();
+
+        $logs = [
+            'created' => [],
+            'updated' => [],
+            'skipped_score_invalid' => [],
+            'skipped_student_missing' => [],
+            'skipped_duplicate' => [],
+            'course_created' => [],
+        ];
+
+        foreach ($data as $row) {
+            $matric = trim($row['matric_no'] ?? '');
+            if (!$matric)
+                continue;
+
+            $student = Student::where('matric_no', $matric)->first();
+            if (!$student) {
+                $logs['skipped_student_missing'][] = $matric;
+                continue;
+            }
+
+            $score = floatval($row['total_score']);
+            if ($score < 0 || $score > 100) {
+                $logs['skipped_score_invalid'][] = "{$matric} | {$score}";
+                continue;
+            }
+
+            $courseCode = strtoupper($row['course_code']);
+            $course = Course::firstOrCreate(
+                ['course_code' => $courseCode],
+                [
+                    'course_title' => $row['course_title'] ?? 'Untitled Course',
+                    'course_unit' => $row['unit'] ?? 1,
+                ]
+            );
+            if ($course->wasRecentlyCreated) {
+                $logs['course_created'][] = $courseCode;
+            }
+
+            $exists = Result::where([
+                'student_id' => $student->id,
+                'course_id' => $course->id,
+                'session' => $row['session'],
+                'semester' => $row['semester'],
+            ])->exists();
+
+            if ($exists) {
+                $logs['skipped_duplicate'][] = "{$matric} | {$courseCode}";
+                continue;
+            }
+
+            $grade = $score >= 70 ? 'A'
+                : ($score >= 60 ? 'B'
+                    : ($score >= 50 ? 'C'
+                        : ($score >= 45 ? 'D' : 'F')));
+
+            Result::create([
+                'student_id' => $student->id,
+                'course_id' => $course->id,
+                'matric_no' => $student->matric_no,
+                'course_code' => $courseCode,
+                'course_title' => $row['course_title'] ?? $course->course_title,
+                'course_unit' => $row['unit'] ?? 1,
+                'course_status' => $row['course_status'] ?? 'Backlog',
+                'session' => $row['session'],
+                'semester' => $row['semester'],
+                'ca' => 0,
+                'exam' => $score,
+                'total' => $score,
+                'grade' => $grade,
+                'remark' => $grade == 'F' ? 'Fail' : 'Pass',
+                'uploaded_by' => auth()->id(),
+                'status' => 'pending',
+            ]);
+
+            $logs['created'][] = "{$matric} | {$courseCode}";
+        }
+
+        return back()->with('upload_logs', $logs)->with('success', 'Backlog upload completed.');
     }
 }
