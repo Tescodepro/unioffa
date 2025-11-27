@@ -91,7 +91,13 @@
                             <td>{{ $course->course->course_title }}</td>
                             <td>{{ $course->course->course_unit }}</td>
                             <td>{{ $course->course->course_status ?? 'N/A' }}</td>
-                            <td>{{ $course->course->semester }}</td>
+                            <td>
+                                    @if ($course->semester == '1st')
+                                        First Semester
+                                    @else
+                                        Second Semester
+                                    @endif
+                                </td>
                         </tr>
                     @empty
                         <tr>

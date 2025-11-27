@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Upload Backlog Result')
+@section('title', 'Upload Results')
 
 @section('content')
 <div class="main-wrapper">
@@ -9,18 +9,22 @@
 
     <div class="page-wrapper">
         <div class="content">
-            <h3 class="mb-4"> Upload Backlogs Result </h3>
+
+            <h3 class="mb-4">Upload Student Results</h3>
+
             <div class="row g-4">
-                <div class="col-lg-12 mb-4">
+                <div class="col-lg-12">
+
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-light">
                             <h4 class="mb-0">
-                                <i class="fa fa-upload me-2"></i> Backlog Result Upload
+                                <i class="fa fa-upload me-2"></i> Result Upload
                             </h4>
                         </div>
+
                         <div class="card-body">
                             <p class="text-muted mb-3">
-                                Upload an Excel file containing backlog results. Make sure it follows the required template.
+                                Upload an Excel file containing student results. Make sure it follows the required template.
                             </p>
 
                             <a href="{{ route('backlog.upload.template') }}" class="btn btn-outline-secondary w-100 mb-3">
@@ -31,7 +35,11 @@
                                 <div class="alert alert-danger">{{ session('error') }}</div>
                             @endif
 
-                            <form action="{{ route('backlog.upload.preview') }}" method="POST" enctype="multipart/form-data">
+                            @if (session('success'))
+                                <div class="alert alert-success">{{ session('success') }}</div>
+                            @endif
+
+                            <form action="{{ route('backlog.upload.process') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
 
                                 <div class="mb-3">
@@ -41,7 +49,7 @@
                                 </div>
 
                                 <button type="submit" class="btn btn-primary btn-lg w-100">
-                                    <i class="fa fa-eye me-1"></i> Preview Upload
+                                    <i class="fa fa-check me-1"></i> Upload Results
                                 </button>
                             </form>
 
@@ -61,7 +69,9 @@
 
                                 @foreach($log as $label => $items)
                                     @if(count($items))
-                                        <h6 class="text-secondary">{{ ucfirst(str_replace('_', ' ', $label)) }}</h6>
+                                        <h6 class="text-secondary">
+                                            {{ ucfirst(str_replace('_', ' ', $label)) }}
+                                        </h6>
                                         <ul class="mb-3">
                                             @foreach($items as $item)
                                                 <li>{{ $item }}</li>

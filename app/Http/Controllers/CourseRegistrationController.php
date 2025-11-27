@@ -114,7 +114,7 @@ class CourseRegistrationController extends Controller
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
             ->where('session', activeSession()->name ?? null)
-            ->where('semester', activeSemester()->name ?? null)
+            ->where('semester', activeSemester()->code ?? null)
             ->get();
 
         $pdf = Pdf::loadView('student.course-registration-printable', [
