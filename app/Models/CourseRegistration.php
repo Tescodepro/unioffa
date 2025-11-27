@@ -19,6 +19,8 @@ class CourseRegistration extends Model
         'session_id',
         'semester_id',
         'status',
+        'semester',
+        'session',
     ];
 
     public $incrementing = false;

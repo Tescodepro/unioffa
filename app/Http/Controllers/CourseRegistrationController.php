@@ -40,7 +40,7 @@ class CourseRegistrationController extends Controller
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
             ->where('session', activeSession()->name ?? null)
-            ->where('semester', activeSemester()->name ?? null)
+            ->where('semester', activeSemester()->code ?? null)
             ->get();
 
         // Check payment status and update course registrations accordingly
@@ -69,7 +69,7 @@ class CourseRegistrationController extends Controller
             $exists = CourseRegistration::where('student_id', $student->id)
                 ->where('course_id', $course->id)
                 ->where('session', activeSession()->name)
-                ->where('semester', activeSemester()->name)
+                ->where('semester', activeSemester()->code)
                 ->exists();
 
             if (! $exists) {
@@ -80,7 +80,7 @@ class CourseRegistrationController extends Controller
                     'course_title' => $course->course_title,
                     'course_unit' => $course->course_unit,
                     'session' => activeSession()->name,
-                    'semester' => activeSemester()->name,
+                    'semester' => activeSemester()->code,
                     'status' => 'pending',
                 ]);
             }
@@ -109,7 +109,7 @@ class CourseRegistrationController extends Controller
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with('department')->first();
-        dd( $user->id);
+        
 
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
