@@ -109,6 +109,7 @@ class CourseRegistrationController extends Controller
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with('department')->first();
+        dd( $user->id);
 
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
