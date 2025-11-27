@@ -54,7 +54,7 @@
             <div class="row mb-4">
                 
 
-                <div class="col-sm-6 col-xl-3 d-flex">
+                <div class="col-sm-6 col-xl-6 d-flex">
                     <div class="card border-0 border-bottom border-warning flex-fill">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -70,7 +70,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6 col-xl-3 d-flex">
+                <div class="col-sm-6 col-xl-6 d-flex">
                     <div class="card border-0 border-bottom border-info flex-fill">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -86,7 +86,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6 col-xl-3 d-flex">
+                <div class="col-sm-6 col-xl-6 d-flex">
                     <div class="card border-0 border-bottom border-primary flex-fill">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
@@ -102,7 +102,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6 col-xl-3 d-flex">
+                <div class="col-sm-6 col-xl-6 d-flex">
                     <div class="card border-0 border-bottom border-success flex-fill">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
