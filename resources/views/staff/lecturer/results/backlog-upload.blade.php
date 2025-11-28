@@ -56,25 +56,28 @@
                         </div>
                     </div>
 
-                    @if(session('upload_logs'))
+                   @if(session('upload_logs'))
                         <div class="card shadow-sm border-0 mt-4">
-                            <div class="card-header bg-info text-white">
+                            <div class="card-header bg-success text-white">
                                 <h5 class="mb-0">
-                                    <i class="fa fa-list me-2"></i> Upload Logs
+                                    <i class="fa fa-list-check me-2"></i> Result Upload Summary
                                 </h5>
                             </div>
 
                             <div class="card-body">
-                                @php $log = session('upload_logs'); @endphp
+                                @php $logs = session('upload_logs'); @endphp
 
-                                @foreach($log as $label => $items)
+                                @foreach($logs as $type => $items)
                                     @if(count($items))
-                                        <h6 class="text-secondary">
-                                            {{ ucfirst(str_replace('_', ' ', $label)) }}
+                                        <h6 class="text-muted mt-3 mb-2">
+                                            {{ ucfirst(str_replace('_', ' ', $type)) }}
+                                            <span class="badge bg-secondary ms-2">{{ count($items) }}</span>
                                         </h6>
-                                        <ul class="mb-3">
+                                        <ul class="list-group mb-2">
                                             @foreach($items as $item)
-                                                <li>{{ $item }}</li>
+                                                <li class="list-group-item py-1 px-2">
+                                                    {{ $item }}
+                                                </li>
                                             @endforeach
                                         </ul>
                                     @endif
@@ -82,6 +85,7 @@
                             </div>
                         </div>
                     @endif
+
 
                 </div>
             </div>

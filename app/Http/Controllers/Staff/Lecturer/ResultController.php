@@ -403,6 +403,7 @@ class ResultController extends Controller
 
             $logs = [
                 'saved_records' => [],
+                'updated_records' => [],
                 'missing_values' => [],
                 'invalid_rows' => [],
                 'general_errors' => []
@@ -411,10 +412,8 @@ class ResultController extends Controller
             foreach ($sheet as $index => $row) {
 
                 if ($index === 1) {
-                    continue;
+                    continue; // skip header
                 }
-
-                dd($index);
 
                 $matric = trim($row['A'] ?? '');
                 $courseCode = trim($row['B'] ?? '');
@@ -422,15 +421,28 @@ class ResultController extends Controller
                 $courseUnit = trim($row['D'] ?? '');
                 $session = trim($row['E'] ?? '');
                 $semester = trim($row['F'] ?? '');
-                $ca = trim($row['G'] ?? '');
-                $exam = trim($row['H'] ?? '');
 
-                if ($matric === '' || $courseCode === '' || $ca === '' || $exam === '') {
-                    $logs['missing_values'][] = "Row $index has missing required fields.";
+                // Safely convert CA and Exam to numbers
+                $ca = is_numeric(trim($row['G'] ?? '')) ? (float) trim($row['G']) : null;
+                $exam = is_numeric(trim($row['H'] ?? '')) ? (float) trim($row['H']) : null;
+
+
+                $missing = [];
+                if ($matric === '')
+                    $missing[] = 'Matric Number (Column A)';
+                if ($courseCode === '')
+                    $missing[] = 'Course Code (Column B)';
+                if ($ca === null)
+                    $missing[] = 'CA Score (Column G)';
+                if ($exam === null)
+                    $missing[] = 'Exam Score (Column H)';
+
+                if (!empty($missing)) {
+                    $logs['missing_values'][] = "Row $index is missing or invalid: " . implode(', ', $missing);
                     continue;
                 }
 
-                $student = User::where('matric_no', $matric)->first();
+                $student = User::where('username', $matric)->first();
                 $course = Course::where('course_code', $courseCode)->first();
 
                 if (!$student) {
@@ -444,40 +456,111 @@ class ResultController extends Controller
                 }
 
                 try {
-                    Result::create([
-                        'student_id' => $student->id,
-                        'matric_no' => $student->matric_no,
-                        'course_id' => $course->id,
-                        'course_code' => $course->course_code ?? $courseCode,
-                        'course_title' => $course->course_title ?? $courseTitle,
-                        'course_unit' => $course->course_unit ?? $courseUnit,
+                    $result = Result::updateOrCreate(
+                        [
+                            'student_id' => $student->id,
+                            'course_id' => $course->id,
+                            'session' => $session,
+                            'semester' => $semester
+                        ],
+                        [
+                            'matric_no' => $student->username,
+                            'course_code' => $course->course_code ?? $courseCode,
+                            'course_title' => $course->course_title ?? $courseTitle,
+                            'course_unit' => $course->course_unit ?? $courseUnit,
+                            'ca' => $ca,
+                            'exam' => $exam,
+                            'total' => $ca + $exam,
+                            'uploaded_by' => auth()->id(),
+                            'status' => 'pending'
+                        ]
+                    );
 
-                        'session' => $session,
-                        'semester' => $semester,
+                    if ($result->wasRecentlyCreated) {
+                        $logs['saved_records'][] = "✅ Row $index: Result for {$student->username} in {$course->course_code} has been successfully created.";
+                    } else {
+                        $logs['updated_records'][] = "✏️ Row $index: Result for {$student->username} in {$course->course_code} was updated with new scores (CA: {$ca}, Exam: {$exam}).";
+                    }
 
-                        'ca' => $ca,
-                        'exam' => $exam,
-                        'total' => $ca + $exam,
-
-                        'uploaded_by' => auth()->id(),
-                        'status' => 'pending',
-                    ]);
-
-                    $logs['saved_records'][] = "Row $index uploaded successfully.";
 
                 } catch (Throwable $e) {
-                    $logs['invalid_rows'][] = "Row $index failed to save.";
+                    $logs['invalid_rows'][] = "Row $index failed to save or update. Error: " . $e->getMessage();
                 }
             }
-
             session()->put('upload_logs', $logs);
 
-            return back()->with('success', 'Results uploaded successfully.');
+            return back()->with('success', 'Upload process completed. Check the logs for details.');
 
         } catch (Throwable $e) {
             return back()->with('error', 'Unable to read the file. Please check the format.');
         }
     }
 
+    public function viewTranscript(User $student)
+    {
+        // Load results with course details
+        $results = Result::where('student_id', $student->id)
+            ->with('course')
+            ->orderBy('session')
+            ->orderBy('semester')
+            ->get();
+
+        // Optional: group by session for a proper transcript layout
+        $resultsBySession = $results->groupBy('session');
+
+        return view('staff.lecturer.results.student-transcript', compact('student', 'resultsBySession'));
+    }
+
+    public function transcriptSearchPage()
+    {
+        return view('staff.lecturer.results.student-transcript');
+    }
+    public function searchTranscript(Request $request)
+    {
+        $request->validate([
+            'matric' => 'required|string'
+        ]);
+
+        $student = User::where('username', $request->matric)->first();
+
+        if (!$student) {
+            return back()->with('error', 'Student not found.');
+        }
+
+        $results = Result::where('student_id', $student->id)
+            ->with('course')
+            ->orderBy('session')
+            ->orderBy('semester')
+            ->get();
+
+        $resultsBySession = $results->groupBy('session');
+
+        return view('staff.lecturer.results.student-transcript', compact('student', 'resultsBySession'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'ca' => 'required|numeric|min:0',
+            'exam' => 'required|numeric|min:0'
+        ]);
+        $result = Result::findOrFail($id);
+
+        $result->ca = $request->ca;
+        $result->exam = $request->exam;
+        $result->total = $request->ca + $request->exam;
+        $result->status = 'pending';
+        $result->save();
+
+        return back()->with('success', 'Result updated successfully.');
+    }
+
+    public function destroy($id)
+    {
+        $result = Result::findOrFail($id);
+        $result->delete();
+
+        return back()->with('success', 'Result deleted successfully.');
+    }
 
 }

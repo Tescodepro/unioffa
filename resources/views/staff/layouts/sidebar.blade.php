@@ -110,6 +110,13 @@
                                     <span>Upload Backlog Results</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('transcript.search.page') }}"
+                                    class="{{ request()->routeIs('transcript.search.page') ? 'active' : '' }}">
+                                    <i class="ti ti-search"></i>
+                                    <span>View Transcript</span>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 @endif

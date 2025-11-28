@@ -207,6 +207,14 @@ Route::prefix('staff')->group(function () {
             Route::get('/backlog-upload', [ResultController::class, 'showBacklogUploadPage'])->name('backlog.upload.page');
             Route::post('/backlog-upload/process', [ResultController::class, 'processBacklogUpload'])->name('backlog.upload.process');
             Route::get('/backlog-upload/template', [ResultController::class, 'downloadBacklogTemplate'])->name('backlog.upload.template');
+            // Route::get('/transcript/{student}', [ResultController::class, 'viewTranscript'])->name('transcript.view');
+            Route::get('/transcript/result/view', [ResultController::class, 'searchTranscript'])->name('transcript.search');
+            Route::get('/transcript/search', [ResultController::class, 'transcriptSearchPage'])->name('transcript.search.page');
+            Route::put('/results/{id}', [ResultController::class, 'update'])->name('results.update');
+            Route::delete('/results/{id}', [ResultController::class, 'destroy'])->name('results.delete');
+
+
+
 
 
 
