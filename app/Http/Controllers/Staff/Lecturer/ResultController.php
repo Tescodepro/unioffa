@@ -383,7 +383,7 @@ class ResultController extends Controller
     // upload backlog results
     public function downloadBacklogTemplate()
     {
-        $path = public_path('templates/backlog_template.xlsx');
+        $path = public_path('templates/backlog_templateoffa.xlsx');
         return response()->download($path);
     }
     public function showBacklogUploadPage()
