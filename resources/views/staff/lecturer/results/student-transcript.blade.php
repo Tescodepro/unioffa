@@ -55,6 +55,7 @@
                                             <th>CA</th>
                                             <th>Exam</th>
                                             <th>Total</th>
+                                            <th>Status</th>
                                             <th style="width: 130px;">Action</th>
                                         </tr>
                                     </thead>
