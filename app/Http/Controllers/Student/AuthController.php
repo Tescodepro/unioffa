@@ -128,7 +128,7 @@ class AuthController extends Controller
 
         // Save OTP securely
         $user->update([
-            'otp' => $hashedOtp,
+            'otp' => $otp,
             'otp_expires_at' => now()->addMinutes(10),
             'otp_requested_at' => now(), // new field (recommended)
         ]);
