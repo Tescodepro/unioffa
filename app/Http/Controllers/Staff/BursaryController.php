@@ -26,26 +26,54 @@ class BursaryController extends Controller
         ];
 
         // Group transactions by payment_type
+        
         $paymentsByType = Transaction::select(
             'payment_type',
             DB::raw('COUNT(*) as total'),
             DB::raw('SUM(amount) as total_amount')
         )
             ->where('payment_status', '1')
+            ->where(function ($q) {
+                $q->where('payment_type', '!=', 'technical')
+                    ->orWhere(function ($tq) {
+                        $tq->where('payment_type', 'technical')
+                            ->whereNotBetween('created_at', ['2025-11-28', '2025-12-05'])
+                            ->whereNotBetween('created_at', ['2025-12-10', '2025-12-20']);
+                    });
+            })
             ->groupBy('payment_type')
             ->get();
 
-        // Latest 5 transactions
+
         $recentTransactions = Transaction::with('user')
+            ->where(function ($q) {
+                $q->where('payment_type', '!=', 'technical')
+                    ->orWhere(function ($tq) {
+                        $tq->where('payment_type', 'technical')
+                            ->whereNotBetween('created_at', ['2025-11-28', '2025-12-05'])
+                            ->whereNotBetween('created_at', ['2025-12-10', '2025-12-20']);
+                    });
+            })
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
+
 
         return view('staff.bursary.dashboard', compact('title', 'stats', 'paymentsByType', 'recentTransactions'));
     }
     public function transactions(Request $request)
     {
-        $query = Transaction::query()->with('user')->where('payment_status', 1);
+        $query = Transaction::query()
+        ->with('user')
+        ->where('payment_status', 1)
+        ->where(function ($q) {
+            $q->where('payment_type', '!=', 'technical')
+                ->orWhere(function ($tq) {
+                    $tq->where('payment_type', 'technical')
+                        ->whereNotBetween('created_at', ['2025-11-28', '2025-12-05'])
+                        ->whereNotBetween('created_at', ['2025-12-10', '2025-12-20']);
+                });
+        });
 
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
@@ -75,7 +103,17 @@ class BursaryController extends Controller
     }
     public function exportTransactions(Request $request, $format)
     {
-        $query = Transaction::with('user')->where('payment_status', 1);
+        $query = Transaction::query()
+        ->with('user')
+        ->where('payment_status', 1)
+        ->where(function ($q) {
+            $q->where('payment_type', '!=', 'technical')
+                ->orWhere(function ($tq) {
+                    $tq->where('payment_type', 'technical')
+                        ->whereNotBetween('created_at', ['2025-11-28', '2025-12-05'])
+                        ->whereNotBetween('created_at', ['2025-12-10', '2025-12-20']);
+                });
+        });
 
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
@@ -118,7 +156,7 @@ class BursaryController extends Controller
     }
     /**
      * Process verification from form input.
-    */
+     */
     public function verifyPaymentAction(Request $request)
     {
         $request->validate([
@@ -127,7 +165,7 @@ class BursaryController extends Controller
 
         $transaction = Transaction::where('refernce_number', $request->reference)->first();
 
-        if (! $transaction) {
+        if (!$transaction) {
             return back()->with('error', 'No transaction found for that reference number.');
         }
 
@@ -245,7 +283,8 @@ class BursaryController extends Controller
 
         foreach ($levels as $levelsJson) {
             $levelsArray = json_decode($levelsJson, true);
-            if (!is_array($levelsArray)) continue;
+            if (!is_array($levelsArray))
+                continue;
 
             foreach ($levelsArray as $level) {
                 $expected = PaymentSetting::whereJsonContains('level', $level)->sum('amount');

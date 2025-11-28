@@ -414,6 +414,8 @@ class ResultController extends Controller
                     continue;
                 }
 
+                dd($index);
+
                 $matric = trim($row['A'] ?? '');
                 $courseCode = trim($row['B'] ?? '');
                 $courseTitle = trim($row['C'] ?? '');
