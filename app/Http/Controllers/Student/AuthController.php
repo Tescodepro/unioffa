@@ -116,21 +116,18 @@ class AuthController extends Controller
         }
 
         // Prevent OTP spamming: allow only 1 request per 2 minutes
-        if ($user->otp_requested_at && $user->otp_requested_at->diffInMinutes(now()) < 2) {
-            return back()->with('error', 'OTP already sent. Please wait a few minutes before requesting another.');
-        }
+        // if ($user->otp_requested_at && $user->otp_requested_at->diffInMinutes(now()) < 2) {
+        //     return back()->with('error', 'OTP already sent. Please wait a few minutes before requesting another.');
+        // }
 
         // Generate a secure OTP (6 digits)
         $otp = random_int(100000, 999999);
 
-        // Hash the OTP — never store it in plain text
-        $hashedOtp = hash('sha256', $otp);
 
         // Save OTP securely
         $user->update([
             'otp' => $otp,
             'otp_expires_at' => now()->addMinutes(10),
-            'otp_requested_at' => now(), // new field (recommended)
         ]);
 
         // Prepare email
