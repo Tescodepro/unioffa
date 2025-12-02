@@ -259,6 +259,15 @@ class PaymentController extends Controller
                 'level' => '100',
                 'admission_session' => $user_application->academic_session,
             ];
+        } elseif ($applicationSetting->application_code == 'DIPLOMA') {
+            $studentData = [
+                'programme' => 'REGULAR',
+                'entry_mode' => 'DIPLOMA',
+                'level' => '100',
+                'admission_session' => $user_application->academic_session,
+            ];
+        } else {
+            return back()->with('error', 'Invalid application code for migration.');
         }
 
         // migrate to student table
