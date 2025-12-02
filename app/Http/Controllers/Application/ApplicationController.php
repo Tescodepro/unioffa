@@ -60,14 +60,14 @@ class ApplicationController extends Controller
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
     {
         $request->validate([
-            'first_name'    => 'required|string|max:255',
-            'last_name'     => 'required|string|max:255',
-            'middle_name'   => 'nullable|string|max:255',
-            'center'        => 'required|string|max:255',
-            'email'         => 'required|email|unique:users,email',
-            'phone'         => 'required|string|unique:users,phone',
-            'password'      => 'required|string|min:6|confirmed',
-            'referee_code'  => [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'center' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|string|unique:users,phone',
+            'password' => 'required|string|min:6|confirmed',
+            'referee_code' => [
                 'nullable',
                 'string',
                 'max:255',
@@ -92,7 +92,7 @@ class ApplicationController extends Controller
                 'username' => $uniqueId,
                 'registration_no' => $uniqueId,
                 'user_type_id' => UserType::where('name', 'applicant')->first()->id,
-                'referee_code' => $request->filled('referee_code') ? $request->referee_code:'578EF5E5',
+                'referee_code' => $request->filled('referee_code') ? $request->referee_code : '578EF5E5',
             ]);
 
             // GET referee agent if any using referral code
@@ -303,7 +303,7 @@ class ApplicationController extends Controller
             'application_setting_id' => 'required|exists:application_settings,id',
         ]);
 
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return redirect()->back()->with('error', 'Please login first');
         }
 
@@ -564,34 +564,38 @@ class ApplicationController extends Controller
             'jamb_type' => 'required|in:utme,direct_entry',
         ];
 
-        if ($request->jamb_type === 'utme') {
-            $rules['jamb_subjects'] = 'required|array|min:1|max:4';
-            $rules['jamb_subjects.*'] = 'required|string';
-            $rules['jamb_subject_scores'] = 'required|array|min:1|max:4';
-            $rules['jamb_subject_scores.*'] = 'required|integer|min:0|max:100';
-        } else {
-            $rules['score'] = 'required';
+        try {
+            if ($request->jamb_type === 'utme') {
+                $rules['jamb_subjects'] = 'required|array|min:1|max:4';
+                $rules['jamb_subjects.*'] = 'required|string';
+                $rules['jamb_subject_scores'] = 'required|array|min:1|max:4';
+                $rules['jamb_subject_scores.*'] = 'required|integer|min:0|max:100';
+            } else {
+                $rules['score'] = 'required';
+            }
+
+            $request->validate($rules);
+
+            $request->score = array_sum($request->jamb_subject_scores);
+
+            $data = [
+                'user_id' => Auth::id(),
+                'user_application_id' => $user_application_id,
+                'registration_number' => $request->registration_number,
+                'exam_year' => $request->exam_year,
+                'jamb_type' => $request->jamb_type,
+                'score' => $request->score,
+                'subjects' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subjects) : null,
+                'subject_scores' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subject_scores) : null,
+            ];
+
+            JambDetail::updateOrCreate(
+                ['user_application_id' => $user_application_id],
+                $data
+            );
+        } catch (Exception $th) {
+            return redirect()->back()->withErrors(['error' => 'An error occurred while saving JAMB details: ' . $th->getMessage()]);
         }
-
-        $request->validate($rules);
-
-        $request->score = array_sum($request->jamb_subject_scores);
-
-        $data = [
-            'user_id' => Auth::id(),
-            'user_application_id' => $user_application_id,
-            'registration_number' => $request->registration_number,
-            'exam_year' => $request->exam_year,
-            'jamb_type' => $request->jamb_type,
-            'score' => $request->score,
-            'subjects' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subjects) : null,
-            'subject_scores' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subject_scores) : null,
-        ];
-
-        JambDetail::updateOrCreate(
-            ['user_application_id' => $user_application_id],
-            $data
-        );
 
         return redirect()->back()->with('success', 'JAMB details saved successfully.');
     }
@@ -666,7 +670,7 @@ class ApplicationController extends Controller
             //  Find the user
             $user = User::where('email', $request->email)->first();
 
-            if (! $user) {
+            if (!$user) {
                 return back()->withErrors(['email' => 'No account found with that email address.']);
             }
 
@@ -729,14 +733,14 @@ class ApplicationController extends Controller
             ->where('otp_expires_at', '>', now())
             ->first();
 
-        if (! $otpRecord) {
+        if (!$otpRecord) {
             return back()->withErrors(['otp' => 'Invalid or expired OTP.']);
         }
 
         // Update user password
         $user = User::where('email', $otpRecord->email)->first();
 
-        if (! $user) {
+        if (!$user) {
             return back()->withErrors(['otp' => 'User not found.']);
         }
 

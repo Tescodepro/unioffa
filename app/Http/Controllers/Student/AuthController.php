@@ -115,20 +115,13 @@ class AuthController extends Controller
             return back()->with('success', 'If an account exists for this matric number, an OTP has been sent.');
         }
 
-        // Prevent OTP spamming: allow only 1 request per 2 minutes
-        // if ($user->otp_requested_at && $user->otp_requested_at->diffInMinutes(now()) < 2) {
-        //     return back()->with('error', 'OTP already sent. Please wait a few minutes before requesting another.');
-        // }
-
         // Generate a secure OTP (6 digits)
         $otp = random_int(100000, 999999);
 
-
         // Save OTP securely
-        $user->update([
-            'otp' => $otp,
-            'otp_expires_at' => now()->addMinutes(10),
-        ]);
+         $user->otp = $otp;
+            $user->otp_expires_at = now()->addMinutes(10); // OTP valid for 10 mins
+            $user->save();
 
         // Prepare email
         $subject = 'Password Reset OTP';
@@ -147,9 +140,7 @@ class AuthController extends Controller
         // Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
 
         // Always generic response to prevent user enumeration
-        return redirect()
-            ->route('students.auth.change-password')
-            ->with(
+        return redirect()->route('students.auth.change-password')->with(
                 'success',
                 "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp ."
             );
