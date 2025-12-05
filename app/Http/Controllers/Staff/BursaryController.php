@@ -171,6 +171,7 @@ class BursaryController extends Controller
 
         $verifier = new PaymentVerificationService();
         $verifyResponse = $verifier->verify($transaction->refernce_number);
+        dd($verifyResponse);
 
         // Update transaction info
         $transaction->refresh();

@@ -42,29 +42,21 @@
     @yield('content')
     <!-- jQuery -->
     <script src="{{asset('portal_assets/js/jquery-3.7.1.min.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
-
 	<!-- Feather Icon JS -->
 	<script src="{{asset('portal_assets/js/feather.min.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
-
 	<!-- Slimscroll JS -->
 	<script src="{{asset('portal_assets/js/jquery.slimscroll.min.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
-
 	<!-- Bootstrap Core JS -->
 	<script src="{{asset('portal_assets/js/bootstrap.bundle.min.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
-
 	<!-- Daterangepikcer JS -->
 	<script src="{{asset('portal_assets/js/moment.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
 	<script src="{{asset('portal_assets/plugins/daterangepicker/daterangepicker.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
-
 	<!-- Chart JS -->
 	<script src="{{asset('portal_assets/plugins/chartjs/chart.min.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
 	<script src="{{asset('portal_assets/plugins/chartjs/chart-data.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
-
 	<!-- Custom JS -->
 	<script src="{{asset('portal_assets/js/script.js')}}" type="ab7e4aa5e0d41a3929e45940-text/javascript"></script>
-
     <script src="{{ asset('portal_assets/js/rocket-loader.min.js') }}" data-cf-settings="ab7e4aa5e0d41a3929e45940-|49" defer ></script>
-    
     @stack('scripts') {{-- For page-specific JS --}}
 </body>
 </html>

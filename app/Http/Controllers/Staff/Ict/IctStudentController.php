@@ -20,6 +20,7 @@ use App\Imports\StudentsImport;
 use App\Exports\StudentsTemplateExport;
 use App\Mail\GeneralMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class IctStudentController extends Controller
 {
@@ -299,41 +300,58 @@ class IctStudentController extends Controller
         $departments = Department::with('faculty')->get();
         return view('staff.ict.students.edit', compact('student', 'departments'));
     }
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|max:255',
-            'matric_no'  => 'required|string|max:255',
-            'department_id' => 'required|uuid',
-            'programme'  => 'required|string|max:255',
-            'level'      => 'required|integer',
-            'sex'        => 'required|string',
-        ]);
+    
 
-        $student = Student::with('user')->findOrFail($id);
+public function update(Request $request, $id)
+{
+    $student = Student::with('user')->findOrFail($id);
 
-        // Update user details
-        $student->user->update([
-            'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'phone'      => $request->phone,
-            'username'   => $request->matric_no,
-        ]);
+    $request->validate([
+        'first_name' => 'required|string|max:255',
+        'last_name'  => 'required|string|max:255',
+        'email'      => [
+            'required',
+            'email',
+            'max:255',
+            Rule::unique('users', 'email')->ignore($student->user_id)
+        ],
+        'matric_no'  => [
+            'required',
+            'string',
+            'max:255',
+            // must not conflict with other students
+            Rule::unique('students', 'matric_no')->ignore($student->id),
+            // must not conflict with users.username
+            Rule::unique('users', 'username')->ignore($student->user_id)
+        ],
+        'department_id' => 'required|uuid',
+        'programme'  => 'required|string|max:255',
+        'level'      => 'required|integer',
+        'sex'        => 'required|string'
+    ]);
 
-        // Update student details
-        $student->update([
-            'matric_no'     => $request->matric_no,
-            'department_id' => $request->department_id,
-            'programme'     => $request->programme,
-            'level'         => $request->level,
-            'sex'           => $request->sex,
-        ]);
+    // Update user
+    $student->user->update([
+        'first_name' => $request->first_name,
+        'last_name'  => $request->last_name,
+        'email'      => $request->email,
+        'phone'      => $request->phone,
+        'username'   => $request->matric_no
+    ]);
 
-        return redirect()->route('ict.students.index')->with('success', 'Student updated successfully.');
-    }
+    // Update student
+    $student->update([
+        'matric_no'     => $request->matric_no,
+        'department_id' => $request->department_id,
+        'programme'     => $request->programme,
+        'level'         => $request->level,
+        'sex'           => $request->sex
+    ]);
+
+    return redirect()->route('ict.students.index')
+        ->with('success', 'Student updated successfully.');
+}
+
 
     public function destroy(Student $student)
     {
