@@ -216,7 +216,7 @@ class ApplicationController extends Controller
 
         $recentTransactions = Transaction::where('user_id', Auth::id())
             ->latest()
-            ->take(5)
+            ->take(15)
             ->get();
 
         $verifier = new PaymentVerificationService();
@@ -239,7 +239,7 @@ class ApplicationController extends Controller
                     ->where('academic_session', $txn->session)
                     ->whereNotNull('submitted_by')
                     ->exists();
-
+                // dd($hasSubmittedApplication);
                 if ($hasSubmittedApplication) {
                     $studentMigration = new StudentMigrationService();
                     $newStudent = $studentMigration->migrate(Auth::id());
