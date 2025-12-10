@@ -126,6 +126,19 @@ class User extends Authenticatable
         return $this->hasOne(\App\Models\Staff::class, 'user_id', 'id');
     }
 
+    // In App/Models/User.php
+
+    public function results()
+    {
+        // usage: hasMany(RelatedModel, ForeignKeyOnResult, LocalKeyOnUser)
+        return $this->hasMany(Result::class, 'matric_no', 'username');
+    }
+
+    public function studentProfile()
+    {
+        return $this->hasOne(Student::class, 'user_id');
+    }
+
     public function courses()
     {
         return $this->belongsToMany(Course::class, 'course_user');

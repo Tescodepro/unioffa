@@ -6,7 +6,6 @@
     <div class="main-wrapper">
         @include('staff.layouts.header')
         @include('staff.layouts.sidebar')
-
         <div class="page-wrapper">
             <div class="content">
                 <h3 class="mb-4">Student Transcript</h3>
