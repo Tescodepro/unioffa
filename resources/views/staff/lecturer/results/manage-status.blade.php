@@ -153,6 +153,11 @@
                                                         data-bs-target="#statusModal{{ str_replace('/', '', $row->matric_no) }}">
                                                         <i class="fa fa-edit"></i>
                                                     </button>
+                                                    {{-- Link to individual transcript --}}
+                                                    <a href="{{ route('transcript.search', ['matric' => $student->username]) }}" 
+                                                       class="btn btn-sm btn-info text-white">
+                                                       <i class="fa fa-eye"></i> View
+                                                    </a>
                                                 </td>
                                             </tr>
                                         @endforeach
