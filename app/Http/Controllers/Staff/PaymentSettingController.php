@@ -66,65 +66,64 @@ class PaymentSettingController extends Controller
     }
 
     public function store(Request $request)
-{
-    // 1. Validate the incoming request
-    $validated = $request->validate([
-        'faculty_id' => 'nullable|exists:faculties,id',
-        'department_id' => 'nullable|exists:departments,id',
-        'level' => 'nullable|array',
-        'payment_type' => 'required|string|max:255',
-        'amount' => 'required|numeric|min:0',
-        'session' => 'required|string|max:255',
-        'student_type' => 'nullable|string|max:255',
-        'matric_number' => 'nullable|string|max:255',
-        'description' => 'nullable|string',
-        'installmental_allow_status' => 'required|boolean',
-        'number_of_instalment' => 'nullable|integer|min:1|max:9',
-        'list_instalment_percentage' => 'nullable|array',
-    ]);
+    {
+        // 1. Validate the incoming request
+        $validated = $request->validate([
+            'faculty_id' => 'nullable|exists:faculties,id',
+            'department_id' => 'nullable|exists:departments,id',
+            'level' => 'nullable|array',
+            'payment_type' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+            'session' => 'required|string|max:255',
+            'student_type' => 'nullable|string|max:255',
+            'matric_number' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'installmental_allow_status' => 'required|boolean',
+            'number_of_instalment' => 'nullable|integer|min:1|max:9',
+            'list_instalment_percentage' => 'nullable|array',
+        ]);
 
-    // 2. Prepare 'level' data (Convert strings like ["100"] to integers [100])
-    $levelData = null;
-    if (isset($validated['level']) && is_array($validated['level'])) {
-        $levelData = array_map('intval', $validated['level']);
+        // 2. Prepare 'level' data (Convert strings like ["100"] to integers [100])
+        if (isset($validated['level']) && is_array($validated['level'])) {
+            $validated['level'] = array_map('intval', $validated['level']);
+        } else {
+            $validated['level'] = null;
+        }
+
+        // 3. Prepare 'list_instalment_percentage'
+        // (Optional: You can uncomment sum validation here if needed)
+        $instalmentData = null;
+        if ($validated['installmental_allow_status'] && isset($validated['list_instalment_percentage'])) {
+            // $totalPercent = array_sum($validated['list_instalment_percentage']);
+            // if ($totalPercent != 100) { ... }
+
+            $instalmentData = $validated['list_instalment_percentage'];
+        }
+
+        // 4. Create the Record
+        // We use json_encode() on array fields to fix the "Array to string conversion" error
+        PaymentSetting::create([
+            'faculty_id' => $validated['faculty_id'] ?? null,
+            'department_id' => $validated['department_id'] ?? null,
+            // Fix: Encode array to JSON string
+            'level' => $validated['level'] ? $validated['level'] : [],
+            'payment_type' => $validated['payment_type'],
+            'amount' => $validated['amount'],
+            'session' => $validated['session'],
+            'student_type' => $validated['student_type'] ?? null,
+            'matric_number' => $validated['matric_number'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'installmental_allow_status' => $validated['installmental_allow_status'],
+            'number_of_instalment' => $validated['number_of_instalment'] ?? null,
+
+            // Fix: Encode array to JSON string
+            'list_instalment_percentage' => $instalmentData ? json_encode($instalmentData) : null,
+        ]);
+
+        return redirect()
+            ->route('bursary.payment-settings.index')
+            ->with('success', 'Payment setting created successfully.');
     }
-
-    // 3. Prepare 'list_instalment_percentage'
-    // (Optional: You can uncomment sum validation here if needed)
-    $instalmentData = null;
-    if ($validated['installmental_allow_status'] && isset($validated['list_instalment_percentage'])) {
-        // $totalPercent = array_sum($validated['list_instalment_percentage']);
-        // if ($totalPercent != 100) { ... }
-        
-        $instalmentData = $validated['list_instalment_percentage'];
-    }
-
-    // 4. Create the Record
-    // We use json_encode() on array fields to fix the "Array to string conversion" error
-    PaymentSetting::create([
-        'faculty_id' => $validated['faculty_id'] ?? null,
-        'department_id' => $validated['department_id'] ?? null,
-        
-        // Fix: Encode array to JSON string
-        'level' => $levelData ? json_encode($levelData) : null,
-        
-        'payment_type' => $validated['payment_type'],
-        'amount' => $validated['amount'],
-        'session' => $validated['session'],
-        'student_type' => $validated['student_type'] ?? null,
-        'matric_number' => $validated['matric_number'] ?? null,
-        'description' => $validated['description'] ?? null,
-        'installmental_allow_status' => $validated['installmental_allow_status'],
-        'number_of_instalment' => $validated['number_of_instalment'] ?? null,
-        
-        // Fix: Encode array to JSON string
-        'list_instalment_percentage' => $instalmentData ? json_encode($instalmentData) : null,
-    ]);
-
-    return redirect()
-        ->route('bursary.payment-settings.index')
-        ->with('success', 'Payment setting created successfully.');
-}
 
     public function edit(PaymentSetting $paymentSetting)
     {
