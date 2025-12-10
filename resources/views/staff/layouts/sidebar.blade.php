@@ -80,81 +80,100 @@
 
                 <!-- DEAN ONLY MENUS -->
                 @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'lecturer']))
-                    {{-- RESULT MANAGEMENT  --}}
-                    <li class="{{ request()->is('staff/dean/results*') ? 'open' : '' }}">
-                        <h6 class="submenu-hdr">
-                            <span>Result Management</span>
-                        </h6>
+    {{-- RESULT MANAGEMENT  --}}
+    <li class="{{ request()->is('staff/dean/results*') ? 'open' : '' }}">
+        <h6 class="submenu-hdr">
+            <span>Result Management</span>
+        </h6>
 
-                        <ul>
-                            <li>
-                                <a href="{{ route('staff.results.upload') }}"
-                                    class="{{ request()->routeIs('staff.results.upload') ? 'active' : '' }}">
-                                    <i class="ti ti-file-upload"></i>
-                                    <span>Upload Results</span>
-                                </a>
-                            </li>
+        <ul>
+            <li>
+                <a href="{{ route('staff.results.upload') }}"
+                    class="{{ request()->routeIs('staff.results.upload') ? 'active' : '' }}">
+                    <i class="ti ti-file-upload"></i>
+                    <span>Upload Results</span>
+                </a>
+            </li>
 
-                            <li>
-                                <a href="{{ route('results.viewUploaded') }}"
-                                    class="{{ request()->routeIs('results.viewUploaded') ? 'active' : '' }}">
-                                    <i class="ti ti-file-text"></i>
-                                    <span>View Uploaded Results</span>
-                                </a>
-                            </li>
+            <li>
+                <a href="{{ route('results.viewUploaded') }}"
+                    class="{{ request()->routeIs('results.viewUploaded') ? 'active' : '' }}">
+                    <i class="ti ti-file-text"></i>
+                    <span>View Uploaded Results</span>
+                </a>
+            </li>
 
-                            <li>
-                                <a href="{{ route('backlog.upload.page') }}"
-                                    class="{{ request()->routeIs('backlog.upload.page') ? 'active' : '' }}">
-                                    <i class="ti ti-file-text"></i>
-                                    <span>Upload Backlog Results</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('transcript.search.page') }}"
-                                    class="{{ request()->routeIs('transcript.search.page') ? 'active' : '' }}">
-                                    <i class="ti ti-search"></i>
-                                    <span>View Transcript</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif
-                @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'ict']))
-                    {{-- Staff --}}
-                    <li class="{{ request()->is('staff/dean/staff*') ? 'open' : '' }}">
-                        <h6 class="submenu-hdr"><span>Staff Management</span></h6>
-                        <ul>
-                            <li>
-                                <a href="{{ route('staff.index') }}"
-                                    class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
-                                    <i class="ti ti-users"></i>
-                                    <span>All Staff</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <!-- COURSE MANAGEMENT -->
-                    <li class="{{ request()->is('staff/dean/*') ? 'open' : '' }}">
-                        <h6 class="submenu-hdr"><span>Course Management</span></h6>
-                        <ul>
-                            <li>
-                                <a href="{{ route('staff.courses.index') }}"
-                                    class="{{ request()->routeIs('staff.courses.index') ? 'active' : '' }}">
-                                    <i class="ti ti-building"></i>
-                                    <span>Courses</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('staff.course.assignments') }}"
-                                    class="{{ request()->routeIs('staff.course.assignments') ? 'active' : '' }}">
-                                    <i class="ti ti-book"></i>
-                                    <span>Course Assignments</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif
+            {{-- NEW: Manage Result Status --}}
+            <li>
+                <a href="{{ route('results.manage.status') }}"
+                    class="{{ request()->routeIs('results.manage.status') ? 'active' : '' }}">
+                    <i class="ti ti-edit"></i>
+                    <span>Manage Result Status</span>
+                </a>
+            </li>
+
+            {{-- NEW: Result Summary --}}
+            <li>
+                <a href="{{ route('results.summary') }}"
+                    class="{{ request()->routeIs('results.summary') ? 'active' : '' }}">
+                    <i class="ti ti-chart-pie"></i>
+                    <span>Result Summary</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('backlog.upload.page') }}"
+                    class="{{ request()->routeIs('backlog.upload.page') ? 'active' : '' }}">
+                    <i class="ti ti-history"></i>
+                    <span>Upload Backlog Results</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ route('transcript.search.page') }}"
+                    class="{{ request()->routeIs('transcript.search.page') ? 'active' : '' }}">
+                    <i class="ti ti-search"></i>
+                    <span>View Transcript</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+@endif
+
+@if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'ict']))
+    {{-- Staff --}}
+    <li class="{{ request()->is('staff/dean/staff*') ? 'open' : '' }}">
+        <h6 class="submenu-hdr"><span>Staff Management</span></h6>
+        <ul>
+            <li>
+                <a href="{{ route('staff.index') }}"
+                    class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
+                    <i class="ti ti-users"></i>
+                    <span>All Staff</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="{{ request()->is('staff/dean/*') ? 'open' : '' }}">
+        <h6 class="submenu-hdr"><span>Course Management</span></h6>
+        <ul>
+            <li>
+                <a href="{{ route('staff.courses.index') }}"
+                    class="{{ request()->routeIs('staff.courses.index') ? 'active' : '' }}">
+                    <i class="ti ti-building"></i>
+                    <span>Courses</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('staff.course.assignments') }}"
+                    class="{{ request()->routeIs('staff.course.assignments') ? 'active' : '' }}">
+                    <i class="ti ti-book"></i>
+                    <span>Course Assignments</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+@endif
                 <!-- ICT AND ADMINISTRATOR ONLY MENUS -->
                 @if (in_array(auth()->user()->userType->name, ['ict', 'administrator']))
                     <!-- STUDENT MANAGEMENT -->

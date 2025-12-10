@@ -51,8 +51,8 @@
                             <label class="form-label">Semester</label>
                             <select name="semester" class="form-select" required>
                                 <option value="">Select Semester</option>
-                                <option value="1st" {{ request('semester') == 'First Semester' ? 'selected' : '' }}>First Semester</option>
-                                <option value="2nd" {{ request('semester') == 'Second Semester' ? 'selected' : '' }}>Second Semester</option>
+                                <option value="1st" {{ request('semester') == '1st' ? 'selected' : '' }}>First Semester</option>
+                                <option value="2nd" {{ request('semester') == '2nd' ? 'selected' : '' }}>Second Semester</option>
                             </select>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
@@ -185,7 +185,7 @@
                                             <label class="form-label">New Status</label>
                                             <select name="status" class="form-select" required>
                                                 <option value="pending" {{ $row->current_status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="recommended" {{ $row->current_status == 'recommended' ? 'selected' : '' }}>Recommended</option>
+                                                {{-- <option value="recommended" {{ $row->current_status == 'recommended' ? 'selected' : '' }}>Recommended</option> --}}
                                                 <option value="approved" {{ $row->current_status == 'approved' ? 'selected' : '' }}>Approved</option>
                                             </select>
                                         </div>
