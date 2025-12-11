@@ -9,13 +9,9 @@
     @include('website.partials.menu')
     <!-- header area end -->
 
-
-
-
     <main class="main">
-
         <!-- breadcrumb -->
-        <div class="site-breadcrumb" style="background: url(assets/img/breadcrumb/01.jpg)">
+        <div class="site-breadcrumb" style="background: url(assets/img/cta/01.jpg)">
             <div class="container">
                 <h2 class="breadcrumb-title">Contact Us</h2>
                 <ul class="breadcrumb-menu">

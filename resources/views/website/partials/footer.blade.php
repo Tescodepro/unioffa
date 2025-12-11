@@ -1,7 +1,7 @@
  <!-- footer area -->
     <footer class="footer-area">
         <div class="footer-shape">
-            <img src="{{ asset('assets/img/shape/03.png') }}" alt="">
+            {{-- <img src="{{ asset('assets/img/logo/logo.jpeg') }}" alt=""> --}}
         </div>
         <div class="footer-widget">
             <div class="container">
@@ -9,7 +9,7 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="footer-widget-box about-us">
                             <a href="index-2.html#" class="footer-logo">
-                                <img src='{{ asset("assets/img/logo/logo.jpeg") }}' alt="" style="width: 80px; height: auto;">
+                                <img src='{{ asset("assets/img/logo/logo.jpeg") }}' alt="" style="width: 100px; height: auto; border-radius: 2px;">
                             </a>
                             <p class="mb-3">
                                 At the University of Offa, we are committed to academic excellence, research,

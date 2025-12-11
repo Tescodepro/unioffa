@@ -117,12 +117,10 @@ Table of contents
   --border-info-color2: rgba(0, 0, 0, 0.05);
   --border-white-color: rgba(255, 255, 255, 0.08);
   --border-white-color2: rgba(255, 255, 255, 0.05);
-  --footer-bg: #012758;
+  --footer-bg: #116E63;
   --footer-bg2: #116E63;
   --footer-text-color: #F5FAFF;
 }
-
-
 
 /*====================
 3. General css
@@ -4651,8 +4649,8 @@ form application
   background-position: center !important;
   background-size: cover !important;
   position: relative;
-  padding-top: 170px;
-  padding-bottom: 150px;
+  padding-top: 100px;
+  padding-bottom: 90px;
   z-index: 1;
 }
 

@@ -186,4 +186,48 @@ class GeneralController extends Controller
 
         return view('website.scholarship-application', compact('title'));
     }
+
+    public function prochancellor()
+    {
+        $title = 'Pro-Chancellor';
+        // Loads resources/views/website/pro-chancellor.blade.php
+        return view('website.pro-chancellor', compact('title'));
+    }
+
+    public function registrar()
+    {
+        $title = 'The Registrar';
+        // Loads resources/views/website/registrar.blade.php
+        return view('website.registrar', compact('title'));
+    }
+
+    // --- Council Members ---
+
+    public function council_suraj()
+    {
+        $title = 'Council Member - Mr. Suraj Oyewale';
+        // Loads resources/views/website/council-suraj.blade.php
+        return view('website.council-suraj', compact('title'));
+    }
+
+    public function council_abdulateef()
+    {
+        $title = 'Council Member - Mr. Oyewale O. Abdulateef';
+        // Loads resources/views/website/council-abdulateef.blade.php
+        return view('website.council-abdulateef', compact('title'));
+    }
+
+    public function council_abdulrasheed()
+    {
+        $title = 'Council Member - Abdulrasheed Oyewale';
+        // Loads resources/views/website/council-abdulrasheed.blade.php
+        return view('website.council-abdulrasheed', compact('title'));
+    }
+
+    public function council_akeem()
+    {
+        $title = 'Council Member - Dr. Akeem Oyewale';
+        // Loads resources/views/website/council-akeem.blade.php
+        return view('website.council-akeem', compact('title'));
+    }
 }

@@ -73,25 +73,23 @@
                                                     </ul>
                                                 </div>
                                                 <div class="col-12 col-sm-4 col-md-3">
-                                                    <h5>Meet Our Tea,</h5>
-                                                    <ul class="mega-menu-item">
-                                                        <li><a class="dropdown-item"
-                                                                href="">Chancellor</a></li>
-                                                        <li><a class="dropdown-item" href="">Board of Trustees</a></li>
-                                                        <li><a class="dropdown-item" href="">Governing Council</a></li>
-                                                        <li><a class="dropdown-item" href="">Principal Officers Committee</a></li>
-                                                        <li><a class="dropdown-item" href="">Management Committee</a></li>
-                                                    </ul>
-                                                </div>
-                                                <div class="col-12 col-sm-12 col-md-3">
-                                                    <h5>University Campuses</h5>
-                                                    <ul class="mega-menu-item">
-                                                        <li><a class="dropdown-item" href="">Igbeti Campus </a></li>
-                                                        <li><a class="dropdown-item" href="">DSAP Ogun State Campus</a></li>
-                                                        <li><a class="dropdown-item" href="">Ilorin Campus</a></li>
-                                                        
-                                                    </ul>
-                                                </div>
+    <h5>Principal Officers</h5>
+    <ul class="mega-menu-item">
+        <li><a class="dropdown-item" href="{{ route('team.prochancellor') }}">The Pro-Chancellor</a></li>
+        <li><a class="dropdown-item" href="#">The Vice-Chancellor</a></li>
+        <li><a class="dropdown-item" href="{{ route('team.registrar') }}">The Registrar</a></li>
+    </ul>
+</div>
+
+<div class="col-12 col-sm-4 col-md-3">
+    <h5>Governing Council</h5>
+    <ul class="mega-menu-item">
+        <li><a class="dropdown-item" href="{{ route('team.council.suraj') }}">Mr. Suraj Oyewale</a></li>
+        <li><a class="dropdown-item" href="{{ route('team.council.abdulateef') }}">Mr. Opeyemi Abdulateef</a></li>
+        <li><a class="dropdown-item" href="{{ route('team.council.abdulrasheed') }}">Mr. Abdulrasheed Oyewale</a></li>
+        <li><a class="dropdown-item" href="{{ route('team.council.akeem') }}">Dr. Akeem Oyewale</a></li>
+    </ul>
+</div>
                                             </div>
                                         </div>
                                     </div>

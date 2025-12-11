@@ -30,12 +30,25 @@ RouteServiceProvider within a group which contains the "web" middleware group. N
 */
 
 Route::controller(GeneralController::class)->group(function () {
+    // General Pages
     Route::get('/', 'home')->name('home');
     Route::get('/contact', 'contact')->name('contact');
+
+    // Applications
     Route::get('/agent-application', 'agentApplication')->name('agent.application');
     Route::post('/submit-agent-application', 'submitAgentApplication')->name('agent.application.submit');
     Route::get('/lgas/{state_id}', 'getLgas')->name('lgas.by.state');
     Route::get('/scholarship-application', 'scholarshipApplication')->name('scholarship.application');
+
+    // Principal Officers
+    Route::get('pro-chancellor', 'prochancellor')->name('team.prochancellor');
+    Route::get('registrar', 'registrar')->name('team.registrar');
+
+    // Council Members
+    Route::get('council/suraj-oyewale', 'council_suraj')->name('team.council.suraj');
+    Route::get('council/opeyemi-abdulateef', 'council_abdulateef')->name('team.council.abdulateef');
+    Route::get('council/abdulrasheed-oyewale', 'council_abdulrasheed')->name('team.council.abdulrasheed');
+    Route::get('council/akeem-oyewale', 'council_akeem')->name('team.council.akeem');
 });
 
 // ====== Application Routes ======= //
@@ -213,12 +226,12 @@ Route::prefix('staff')->group(function () {
             Route::put('/results/{id}', [ResultController::class, 'update'])->name('results.update');
             Route::delete('/results/{id}', [ResultController::class, 'destroy'])->name('results.delete');
             Route::get('/results/summary', [ResultController::class, 'summaryByDepartment'])->name('results.summary');
-// Page to view list and filter
-Route::get('/results/manage-status', [ResultController::class, 'manageStatus'])->name('results.manage.status');
+            // Page to view list and filter
+            Route::get('/results/manage-status', [ResultController::class, 'manageStatus'])->name('results.manage.status');
 
-// Action to update the status
-Route::post('/results/update-status', [ResultController::class, 'updateStatus'])->name('results.update.status');
-Route::post('/results/bulk-update-status', [ResultController::class, 'bulkUpdateStatus'])->name('results.bulk.update');
+            // Action to update the status
+            Route::post('/results/update-status', [ResultController::class, 'updateStatus'])->name('results.update.status');
+            Route::post('/results/bulk-update-status', [ResultController::class, 'bulkUpdateStatus'])->name('results.bulk.update');
 
 
 
