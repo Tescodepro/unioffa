@@ -239,7 +239,7 @@
                         <div class="col-md-12">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="is_active" id="edit_status">
-                                <label class="form-check-label" for="edit_status">Active / Published </label>
+                                <label class="form-check-label" for="edit_status">Active / Published </label> 
                             </div>
                         </div>
                     </div>
