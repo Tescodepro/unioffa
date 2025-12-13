@@ -84,6 +84,7 @@ class PaymentController extends Controller
                 $agentSplit = AgentApplication::where('unique_code', $user->referee_code)->where('status', 'approved')->value('split_code');
                 $split_code = $agentSplit ?? $split_code;
             }
+
         } else {
             $student = Student::where('user_id', $user->id)->first();
             if (!$student) {

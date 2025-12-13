@@ -60,7 +60,7 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithBatchInserts, 
                 }
                 
                 // Get default campus (you can modify this logic)
-                $campus = Campus::first();
+                $campus = Campus::where('slug', 'ogun-campus')->first();
                 if (!$campus) {
                     $this->errors[] = "Row {$rowNumber}: No campus found in system";
                     $this->skipCount++;
@@ -166,7 +166,7 @@ class StudentsImport implements ToCollection, WithHeadingRow, WithBatchInserts, 
             'gender'          => 'required|in:male,female',
             'admission_year'  => 'required|string|regex:/^\d{4}\/\d{4}$/',
             'entry_mode'      => 'required|string|in:TOPUP,IDELUTME,IDELDE,UTME,TRANSFER,DIPLOMA,DE',
-            'dob'             => 'required|date|before:today',
+            'dob'             => 'required',
             'stream'          => 'nullable|integer',
         ]);
     }
