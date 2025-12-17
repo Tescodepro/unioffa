@@ -230,15 +230,14 @@ class DashboardController extends Controller
     {
         $user = Auth::user()->load('student.department.faculty');
         $currentSession = activeSession()->name ?? null;
-        if (! $user->student) {
+        if (!$user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
-        if (! $currentSession) {
+        if (!$currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
         $student = $user->student;
-        if(($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER')  AND ($student->level == 200 OR $student->level == 300)  AND $student->admission_session == $currentSession)
-        {
+        if (($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER') AND ($student->level == 200 OR $student->level == 300) AND $student->admission_session == $currentSession) {
             $student->level = 100;
         }
         // ✅ 1. Fetch payment settings dynamically
@@ -321,7 +320,6 @@ class DashboardController extends Controller
 
                 $payment->installment_scheme = $remaining->toArray();
             }
-
             return $payment;
         });
 
@@ -347,7 +345,7 @@ class DashboardController extends Controller
 
         $student = $user->student;
 
-        if (! $student) {
+        if (!$student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -448,7 +446,7 @@ class DashboardController extends Controller
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (! \Hash::check($request->current_password, $user->password)) {
+        if (!\Hash::check($request->current_password, $user->password)) {
             return redirect()->back()->with('error', 'Current password is incorrect.');
         }
 
@@ -470,7 +468,7 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (! $student) {
+        if (!$student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -486,7 +484,7 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (! $student) {
+        if (!$student) {
             return back()->with('error', 'Student profile not found.');
         }
 
