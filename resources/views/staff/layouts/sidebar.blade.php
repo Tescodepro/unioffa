@@ -4,36 +4,21 @@
             <!-- Logo / Home -->
             <ul>
                 <li>
-                    @if (in_array(auth()->user()->userType->name, ['administrator', 'vice-chancellor', 'registrar']))
-                        <a href="{{ route('students.dashboard') }}"
-                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
-                                class="avatar avatar-md img-fluid rounded" alt="Profile">
-                            <span class="text-dark ms-2 fw-normal">University of Offa</span>
-                        </a>
-                    @elseif(auth()->user()->userType->name === 'bursary')
-                        <a href="{{ route('burser.dashboard') }}"
-                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
-                                class="avatar avatar-md img-fluid rounded" alt="Profile">
-                            <span class="text-dark ms-2 fw-normal">University of Offa</span>
-                        </a>
-                    @elseif(auth()->user()->userType->name === 'dean')
-                        <a href="{{ route('lecturer.dean.dashboard') }}"
-                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
-                                class="avatar avatar-md img-fluid rounded" alt="Profile">
-                            <span class="text-dark ms-2 fw-normal">University of Offa</span>
-                        </a>
-                    @elseif(auth()->user()->userType->name === 'ict')
-                        <a href="{{ route('ict.dashboard') }}"
-                            class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                            <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
-                                class="avatar avatar-md img-fluid rounded" alt="Profile">
-                            <span class="text-dark ms-2 fw-normal">University of Offa</span>
-                        </a>
-                    @endif
-
+                    @php
+                        $dashboardRoute = match (auth()->user()->userType->name) {
+                            'administrator', 'vice-chancellor', 'registrar' => 'students.dashboard',
+                            'bursary' => 'burser.dashboard',
+                            'dean' => 'lecturer.dean.dashboard',
+                            'ict' => 'ict.dashboard',
+                            default => 'lecturer.dashboard',
+                        };
+                    @endphp
+                    <a href="{{ route($dashboardRoute) }}"
+                        class="d-flex align-items-center border bg-white rounded p-2 mb-4">
+                        <img src="{{ asset('assets/img/logo/logo_white.svg') }}"
+                            class="avatar avatar-md img-fluid rounded" alt="Profile">
+                        <span class="text-dark ms-2 fw-normal">University of Offa</span>
+                    </a>
                 </li>
             </ul>
 
@@ -43,189 +28,183 @@
                     <h6 class="submenu-hdr"><span>Main</span></h6>
                     <ul>
                         <li>
-                            @if (in_array(auth()->user()->userType->name, ['administrator', 'vice-chancellor', 'registrar']))
-                                <a href="{{ route('admin.dashboard') }}"
-                                    class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                                    <i class="ti ti-layout-dashboard"></i>
-                                    <span>Dashboard</span>
-                                </a>
-                            @elseif(auth()->user()->userType->name === 'bursary')
-                                <a href="{{ route('burser.dashboard') }}"
-                                    class="{{ request()->routeIs('burser.dashboard') ? 'active' : '' }}">
-                                    <i class="ti ti-layout-dashboard"></i>
-                                    <span>Dashboard</span>
-                                </a>
-                            @elseif(auth()->user()->userType->name === 'ict')
-                                <a href="{{ route('ict.dashboard') }}"
-                                    class="{{ request()->routeIs('ict.dashboard') ? 'active' : '' }}">
-                                    <i class="ti ti-layout-dashboard"></i>
-                                    <span>Dashboard</span>
-                                </a>
-                            @elseif(auth()->user()->userType->name === 'dean')
-                                <a href="{{ route('lecturer.dean.dashboard') }}"
-                                    class="{{ request()->routeIs('lecturer.dean.dashboard') ? 'active' : '' }}">
-                                    <i class="ti ti-layout-dashboard"></i>
-                                    <span>Dashboard</span>
-                                </a>
-                            @elseif(in_array(auth()->user()->userType->name, ['lecturer', 'hod']))
-                                <a href="{{ route('lecturer.dashboard') }}"
-                                    class="{{ request()->routeIs('lecturer.dean.dashboard') ? 'active' : '' }}">
-                                    <i class="ti ti-layout-dashboard"></i>
-                                    <span>Dashboard</span>
-                                </a>
-                            @endif
+                            @php
+                                $route = match (auth()->user()->userType->name) {
+                                    'administrator', 'vice-chancellor', 'registrar' => 'admin.dashboard',
+                                    'bursary' => 'burser.dashboard',
+                                    'ict' => 'ict.dashboard',
+                                    'dean' => 'lecturer.dean.dashboard',
+                                    'lecturer', 'hod' => 'lecturer.dashboard',
+                                    default => 'lecturer.dashboard',
+                                };
+                                
+                                $dashboardRoutes = match (auth()->user()->userType->name) {
+                                    'lecturer', 'hod' => ['lecturer.dashboard'],
+                                    'admin.dashboard' => ['admin.dashboard'],
+                                    'burser.dashboard' => ['burser.dashboard'],
+                                    'ict.dashboard' => ['ict.dashboard'],
+                                    'lecturer.dean.dashboard' => ['lecturer.dean.dashboard'],
+                                    default => ['lecturer.dashboard'],
+                                };
+                            @endphp
+                            <a href="{{ route($route) }}" class="{{ activeClass($dashboardRoutes) }}">
+                                <i class="ti ti-layout-dashboard"></i>
+                                <span>Dashboard</span>
+                            </a>
                         </li>
                     </ul>
                 </li>
 
-                <!-- DEAN ONLY MENUS -->
+                <!-- ACADEMIC STAFF (DEAN, HOD, LECTURER) MENUS -->
                 @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'lecturer']))
-    {{-- RESULT MANAGEMENT  --}}
-    <li class="{{ request()->is('staff/dean/results*') ? 'open' : '' }}">
-        <h6 class="submenu-hdr">
-            <span>Result Management</span>
-        </h6>
+                    {{-- RESULT MANAGEMENT --}}
+                    <li class="{{ openMenuClass(['staff/dean/results*', 'staff/lecturer/results*']) }}">
+                        <h6 class="submenu-hdr">
+                            <span>Result Management</span>
+                        </h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('staff.results.upload') }}"
+                                    class="{{ activeClass('staff.results.upload') }}">
+                                    <i class="ti ti-cloud-upload"></i>
+                                    <span>Upload Results</span>
+                                </a>
+                            </li>
 
-        <ul>
-            <li>
-                <a href="{{ route('staff.results.upload') }}"
-                    class="{{ request()->routeIs('staff.results.upload') ? 'active' : '' }}">
-                    <i class="ti ti-file-upload"></i>
-                    <span>Upload Results</span>
-                </a>
-            </li>
+                            <li>
+                                <a href="{{ route('results.viewUploaded') }}"
+                                    class="{{ activeClass('results.viewUploaded') }}">
+                                    <i class="ti ti-file-check"></i>
+                                    <span>View Uploaded Results</span>
+                                </a>
+                            </li>
 
-            <li>
-                <a href="{{ route('results.viewUploaded') }}"
-                    class="{{ request()->routeIs('results.viewUploaded') ? 'active' : '' }}">
-                    <i class="ti ti-file-text"></i>
-                    <span>View Uploaded Results</span>
-                </a>
-            </li>
+                            <li>
+                                <a href="{{ route('results.manage.status') }}"
+                                    class="{{ activeClass('results.manage.status') }}">
+                                    <i class="ti ti-adjustments"></i>
+                                    <span>Manage Result Status</span>
+                                </a>
+                            </li>
 
-            {{-- NEW: Manage Result Status --}}
-            <li>
-                <a href="{{ route('results.manage.status') }}"
-                    class="{{ request()->routeIs('results.manage.status') ? 'active' : '' }}">
-                    <i class="ti ti-edit"></i>
-                    <span>Manage Result Status</span>
-                </a>
-            </li>
+                            <li>
+                                <a href="{{ route('results.summary') }}"
+                                    class="{{ activeClass('results.summary') }}">
+                                    <i class="ti ti-chart-bar"></i>
+                                    <span>Result Summary</span>
+                                </a>
+                            </li>
 
-            {{-- NEW: Result Summary --}}
-            <li>
-                <a href="{{ route('results.summary') }}"
-                    class="{{ request()->routeIs('results.summary') ? 'active' : '' }}">
-                    <i class="ti ti-chart-pie"></i>
-                    <span>Result Summary</span>
-                </a>
-            </li>
+                            <li>
+                                <a href="{{ route('backlog.upload.page') }}"
+                                    class="{{ activeClass('backlog.upload.page') }}">
+                                    <i class="ti ti-history"></i>
+                                    <span>Upload Backlog Results</span>
+                                </a>
+                            </li>
 
-            <li>
-                <a href="{{ route('backlog.upload.page') }}"
-                    class="{{ request()->routeIs('backlog.upload.page') ? 'active' : '' }}">
-                    <i class="ti ti-history"></i>
-                    <span>Upload Backlog Results</span>
-                </a>
-            </li>
+                            <li>
+                                <a href="{{ route('transcript.search.page') }}"
+                                    class="{{ activeClass('transcript.search.page') }}">
+                                    <i class="ti ti-document"></i>
+                                    <span>View Transcript</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
 
-            <li>
-                <a href="{{ route('transcript.search.page') }}"
-                    class="{{ request()->routeIs('transcript.search.page') ? 'active' : '' }}">
-                    <i class="ti ti-search"></i>
-                    <span>View Transcript</span>
-                </a>
-            </li>
-        </ul>
-    </li>
-@endif
+                    {{-- COURSE MANAGEMENT --}}
+                    <li class="{{ openMenuClass(['staff/dean/*', 'staff/lecturer/*', '!staff/dean/staff*', '!staff/hod/staff*']) }}">
+                        <h6 class="submenu-hdr"><span>Course Management</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('staff.courses.index') }}"
+                                    class="{{ activeClass('staff.courses.index') }}">
+                                    <i class="ti ti-book-2"></i>
+                                    <span>All Courses</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('staff.course.assignments') }}"
+                                    class="{{ activeClass('staff.course.assignments') }}">
+                                    <i class="ti ti-clipboard-list"></i>
+                                    <span>Course Assignments</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
 
-@if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'ict']))
-    {{-- Staff --}}
-    <li class="{{ request()->is('staff/dean/staff*') ? 'open' : '' }}">
-        <h6 class="submenu-hdr"><span>Staff Management</span></h6>
-        <ul>
-            <li>
-                <a href="{{ route('staff.index') }}"
-                    class="{{ request()->routeIs('staff.index') ? 'active' : '' }}">
-                    <i class="ti ti-users"></i>
-                    <span>All Staff</span>
-                </a>
-            </li>
-        </ul>
-    </li>
-    <li class="{{ request()->is('staff/dean/*') ? 'open' : '' }}">
-        <h6 class="submenu-hdr"><span>Course Management</span></h6>
-        <ul>
-            <li>
-                <a href="{{ route('staff.courses.index') }}"
-                    class="{{ request()->routeIs('staff.courses.index') ? 'active' : '' }}">
-                    <i class="ti ti-building"></i>
-                    <span>Courses</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('staff.course.assignments') }}"
-                    class="{{ request()->routeIs('staff.course.assignments') ? 'active' : '' }}">
-                    <i class="ti ti-book"></i>
-                    <span>Course Assignments</span>
-                </a>
-            </li>
-        </ul>
-    </li>
-@endif
+                    {{-- STAFF MANAGEMENT (for Dean and HOD) --}}
+                    @if (in_array(auth()->user()->userType->name, ['dean', 'hod']))
+                        <li class="{{ openMenuClass(['staff/dean/staff*', 'staff/hod/staff*']) }}">
+                            <h6 class="submenu-hdr"><span>Staff Management</span></h6>
+                            <ul>
+                                <li>
+                                    <a href="{{ route('staff.index') }}"
+                                        class="{{ activeClass('staff.index') }}">
+                                        <i class="ti ti-users-group"></i>
+                                        <span>All Staff</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endif
+                @endif
+
                 <!-- ICT AND ADMINISTRATOR ONLY MENUS -->
                 @if (in_array(auth()->user()->userType->name, ['ict', 'administrator']))
                     <!-- STUDENT MANAGEMENT -->
-                    <li class="{{ request()->is('staff/ict/students*') ? 'open' : '' }}">
+                    <li class="{{ openMenuClass('staff/ict/students*') }}">
                         <h6 class="submenu-hdr"><span>Student Management</span></h6>
                         <ul>
                             <li>
                                 <a href="{{ route('ict.students.index') }}"
-                                    class="{{ request()->routeIs('ict.students.index') ? 'active' : '' }}">
+                                    class="{{ activeClass('ict.students.index') }}">
                                     <i class="ti ti-users"></i>
                                     <span>All Students</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('ict.students.create') }}"
-                                    class="{{ request()->routeIs('ict.students.create') ? 'active' : '' }}">
+                                    class="{{ activeClass('ict.students.create') }}">
                                     <i class="ti ti-user-plus"></i>
                                     <span>Add Student</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('ict.students.bulk') }}"
-                                    class="{{ request()->routeIs('ict.students.bulk') ? 'active' : '' }}">
+                                    class="{{ activeClass('ict.students.bulk') }}">
                                     <i class="ti ti-upload"></i>
                                     <span>Bulk Upload</span>
                                 </a>
                             </li>
                         </ul>
                     </li>
-                    {{-- User management for ICT staff only --}}
-                    <li class="{{ request()->is('staff/ict/users*') ? 'open' : '' }}">
+
+                    <!-- USER MANAGEMENT -->
+                    <li class="{{ openMenuClass('staff/ict/users*') }}">
                         <h6 class="submenu-hdr"><span>User Management</span></h6>
                         <ul>
                             <li>
                                 <a href="{{ route('ict.staff.users.index') }}"
-                                    class="{{ request()->routeIs('ict.staff.users.index') ? 'active' : '' }}">
-                                    <i class="ti ti-users"></i>
+                                    class="{{ activeClass('ict.staff.users.index') }}">
+                                    <i class="ti ti-users-group"></i>
                                     <span>All Users</span>
                                 </a>
                             </li>
                         </ul>
                     </li>
                 @endif
+
+                <!-- WEBSITE MANAGEMENT (ICT ONLY) -->
                 @if (in_array(auth()->user()->userType->name, ['ict']))
-                    <!-- STUDENT MANAGEMENT -->
-                    <li class="{{ request()->is('staff/ict/news*') ? 'open' : '' }}">
+                    <li class="{{ openMenuClass('staff/ict/news*') }}">
                         <h6 class="submenu-hdr"><span>Website Management</span></h6>
                         <ul>
                             <li>
                                 <a href="{{ route('news.index') }}"
-                                    class="{{ request()->routeIs('news.index') ? 'active' : '' }}">
-                                    <i class="ti ti-users"></i>
+                                    class="{{ activeClass('news.index') }}">
+                                    <i class="ti ti-news"></i>
                                     <span>News</span>
                                 </a>
                             </li>
@@ -233,123 +212,87 @@
                     </li>
                 @endif
 
+                <!-- FINANCIAL MANAGEMENT (BURSARY, VICE-CHANCELLOR, ICT) -->
                 @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor', 'ict']))
-                    <!-- TRANSACTIONS bursary.transactions.create-->
-                    <li
-                        class="{{ request()->is('staff/bursary/transactions*') || request()->is('staff/bursary/verify*') ? 'open' : '' }}">
+                    {{-- TRANSACTIONS --}}
+                    <li class="{{ openMenuClass(['staff/bursary/transactions*', 'staff/bursary/verify*']) }}">
                         <h6 class="submenu-hdr"><span>Transactions</span></h6>
                         <ul>
                             @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
                                 <li>
                                     <a href="{{ route('burser.dashboard') }}"
-                                        class="{{ request()->routeIs('burser.dashboard') ? 'active' : '' }}">
-                                        <i class="ti ti-credit-card"></i>
+                                        class="{{ activeClass('burser.dashboard') }}">
+                                        <i class="ti ti-chart-line"></i>
                                         <span>Payment Summary</span>
                                     </a>
                                 </li>
                             @endif
+
                             <li>
                                 <a href="{{ route('bursary.transactions') }}"
-                                    class="{{ request()->routeIs('bursary.transactions') ? 'active' : '' }}">
-                                    <i class="ti ti-credit-card"></i>
+                                    class="{{ activeClass('bursary.transactions') }}">
+                                    <i class="ti ti-receipt"></i>
                                     <span>All Transactions</span>
                                 </a>
                             </li>
+
                             <li>
                                 <a href="{{ route('bursary.verify.form') }}"
-                                    class="{{ request()->routeIs('bursary.verify.form') ? 'active' : '' }}">
+                                    class="{{ activeClass('bursary.verify.form') }}">
                                     <i class="ti ti-check"></i>
                                     <span>Verify Payment</span>
                                 </a>
                             </li>
+
                             @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
                                 <li>
                                     <a href="{{ route('bursary.transactions.create') }}"
-                                        class="{{ request()->routeIs('bursary.transactions.create') ? 'active' : '' }}">
-                                        <i class="ti ti-check"></i>
+                                        class="{{ activeClass('bursary.transactions.create') }}">
+                                        <i class="ti ti-plus"></i>
                                         <span>Upload Manual Payment</span>
                                     </a>
                                 </li>
                             @endif
                         </ul>
                     </li>
-                @endif
 
-                @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor', 'ict']))
-                    <!-- PAYMENTS -->
-                    <li class="{{ request()->is('staff/bursary/payment-settings*') ? 'open' : '' }}">
-                        <h6 class="submenu-hdr"><span>Payments</span></h6>
+                    {{-- PAYMENT SETTINGS --}}
+                    <li class="{{ openMenuClass('staff/bursary/payment-settings*') }}">
+                        <h6 class="submenu-hdr"><span>Payment Settings</span></h6>
                         <ul>
                             <li>
                                 <a href="{{ route('bursary.payment-settings.index') }}"
-                                    class="{{ request()->routeIs('bursary.payment-settings.index') ? 'active' : '' }}">
-                                    <i class="ti ti-list-details"></i>
-                                    <span>All Payment Settings</span>
+                                    class="{{ activeClass('bursary.payment-settings.index') }}">
+                                    <i class="ti ti-settings"></i>
+                                    <span>All Settings</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ route('bursary.payment-settings.create') }}"
-                                    class="{{ request()->routeIs('bursary.payment-settings.create') ? 'active' : '' }}">
+                                    class="{{ activeClass('bursary.payment-settings.create') }}">
                                     <i class="ti ti-plus"></i>
-                                    <span>Add Payment Setting</span>
+                                    <span>Add New Setting</span>
                                 </a>
                             </li>
                         </ul>
                     </li>
                 @endif
 
+                <!-- AGENT MANAGEMENT (VICE-CHANCELLOR, ICT) -->
                 @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'ict']))
-                    <!-- PAYMENTS -->
-                    <li class="{{ request()->is('staff/bursary/payment-settings*') ? 'open' : '' }}">
+                    <li class="{{ openMenuClass('staff/admin/agents*') }}">
                         <h6 class="submenu-hdr"><span>Agents</span></h6>
                         <ul>
                             <li>
                                 <a href="{{ route('admin.agent.applicants') }}"
-                                    class="{{ request()->routeIs('admin.agent.applicants') ? 'active' : '' }}">
-                                    <i class="ti ti-list-details"></i>
-                                    <span>All Agent Applications</span>
+                                    class="{{ activeClass('admin.agent.applicants') }}">
+                                    <i class="ti ti-briefcase"></i>
+                                    <span>Agent Applications</span>
                                 </a>
                             </li>
                         </ul>
                     </li>
                 @endif
-
-                {{-- @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
-                    <!-- REPORTS -->
-                    <li class="{{ request()->is('staff/bursary/reports*') ? 'open' : '' }}">
-                        <h6 class="submenu-hdr"><span>Reports</span></h6>
-                        <ul>
-                            <li>
-                                <a href="{{ route('bursary.reports.faculty') }}"
-                                    class="{{ request()->routeIs('bursary.reports.faculty') ? 'active' : '' }}">
-                                    <i class="ti ti-file-analytics"></i>
-                                    <span>By Faculty</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('bursary.reports.department') }}"
-                                    class="{{ request()->routeIs('bursary.reports.department') ? 'active' : '' }}">
-                                    <i class="ti ti-file-text"></i>
-                                    <span>By Department</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('bursary.reports.level') }}"
-                                    class="{{ request()->routeIs('bursary.reports.level') ? 'active' : '' }}">
-                                    <i class="ti ti-bar-chart"></i>
-                                    <span>By Level</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{ route('bursary.reports.student') }}"
-                                    class="{{ request()->routeIs('bursary.reports.student') ? 'active' : '' }}">
-                                    <i class="ti ti-user"></i>
-                                    <span>By Student</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                @endif --}}
 
                 <!-- ACCOUNT -->
                 <li>

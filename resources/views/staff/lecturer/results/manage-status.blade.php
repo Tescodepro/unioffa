@@ -154,7 +154,7 @@
                                                         <i class="fa fa-edit"></i>
                                                     </button>
                                                     {{-- Link to individual transcript --}}
-                                                    <a href="{{ route('transcript.search', ['matric' => $student->username]) }}" 
+                                                    <a href="{{ route('transcript.search', ['matric' => $row->matric_no]) }}" 
                                                        class="btn btn-sm btn-info text-white">
                                                        <i class="fa fa-eye"></i> View
                                                     </a>
