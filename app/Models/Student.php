@@ -99,12 +99,20 @@ class Student extends Model
             $faculty = $department->faculty;
 
             // Count students in this department + year
-            $matricPattern = '^[0-9]{2}\\/[A-Za-z]{2,5}\\/(?:T|D|DP|DE|TR)?[A-Za-z]{2,5}\\/[0-9]{3}$';
-            $count = self::where('department_id', $department->id)
+            // $matricPattern = '^[0-9]{2}\\/[A-Za-z]{2,5}\\/(?:T|D|DP|DE|TR)?[A-Za-z]{2,5}\\/[0-9]{3}$';
+            // $count = self::where('department_id', $department->id)
+            //     ->whereYear('admission_session', $admissionYear)
+            //      ->whereRaw('matric_no REGEXP ?', [$matricPattern])
+            //     ->lockForUpdate()
+            //     ->count() + 1;
+          
+            $allMatricNumbers = self::where('department_id', $department->id)
                 ->whereYear('admission_session', $admissionYear)
-                 ->whereRaw('matric_no REGEXP ?', [$matricPattern])
-                ->lockForUpdate()
-                ->count() + 1;
+                ->pluck('matric_no')
+                ->filter(function($matric) {
+                    return preg_match('/^\d{2}\/[A-Z]{2,5}\/(T|D|DP|DE|TR)?[A-Z]{2,5}\/\d{3}$/', $matric);
+                });
+            $count = $allMatricNumbers->count() + 1;
 
             // Format year (last 2 digits only)
            [$startYear, ] = explode('/', $admissionYear);

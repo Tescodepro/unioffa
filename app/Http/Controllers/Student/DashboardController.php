@@ -24,8 +24,9 @@ class DashboardController extends Controller
     {
         $user = Auth::user()->load('student.department.faculty');
         $recentTransactions = Transaction::where('user_id', Auth::id())
+            ->where('payment_status', '=', '1')
             ->latest()
-            ->take(15)
+            ->take(25)
             ->get();
 
         // Initialize services ONCE outside loop
