@@ -24,7 +24,6 @@ class DashboardController extends Controller
     {
         $user = Auth::user()->load('student.department.faculty');
         $recentTransactions = Transaction::where('user_id', Auth::id())
-            ->where('payment_status', '=', '1')
             ->latest()
             ->take(25)
             ->get();
