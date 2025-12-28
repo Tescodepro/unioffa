@@ -652,22 +652,22 @@ class ResultController extends Controller
     }
 
     public function bulkUpdateStatus(Request $request)
-{
-    $request->validate([
-        'selected_students' => 'required|array',
-        'status' => 'required|in:pending,recommended,approved',
-        'session' => 'required',
-        'semester' => 'required',
-    ]);
+    {
+        $request->validate([
+            'selected_students' => 'required|array',
+            'status' => 'required|in:pending,recommended,approved,published',
+            'session' => 'required',
+            'semester' => 'required',
+        ]);
 
-    // Update results for ALL selected matric numbers in that session/semester
-    Result::whereIn('matric_no', $request->selected_students)
-        ->where('session', $request->session)
-        ->where('semester', $request->semester)
-        ->update(['status' => $request->status]);
+        // Update results for ALL selected matric numbers in that session/semester
+        Result::whereIn('matric_no', $request->selected_students)
+            ->where('session', $request->session)
+            ->where('semester', $request->semester)
+            ->update(['status' => $request->status]);
 
-    return back()->with('success', "Bulk update successful! Changed status to " . ucfirst($request->status));
-}
+        return back()->with('success', "Bulk update successful! Changed status to " . ucfirst($request->status));
+    }
     // 2. Process the Status Update
     public function updateStatus(Request $request)
     {
@@ -675,7 +675,7 @@ class ResultController extends Controller
             'matric_no' => 'required',
             'session' => 'required',
             'semester' => 'required',
-            'status' => 'required|in:pending,recommended,approved',
+            'status' => 'required|in:pending,recommended,approved,published',
         ]);
 
         // Bulk update results for this student, session, and semester

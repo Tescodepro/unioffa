@@ -37,7 +37,7 @@
                                     'lecturer', 'hod' => 'lecturer.dashboard',
                                     default => 'lecturer.dashboard',
                                 };
-                                
+
                                 $dashboardRoutes = match (auth()->user()->userType->name) {
                                     'lecturer', 'hod' => ['lecturer.dashboard'],
                                     'admin.dashboard' => ['admin.dashboard'],
@@ -55,29 +55,31 @@
                     </ul>
                 </li>
 
-                <!-- ACADEMIC STAFF (DEAN, HOD, LECTURER) MENUS -->
-                @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'lecturer']))
+                <!-- ACADEMIC STAFF (DEAN, HOD, LECTURER, VICE-CHANCELLOR) MENUS -->
+                @if (in_array(auth()->user()->userType->name, ['dean', 'hod', 'lecturer', 'vice-chancellor']))
                     {{-- RESULT MANAGEMENT --}}
                     <li class="{{ openMenuClass(['staff/dean/results*', 'staff/lecturer/results*']) }}">
                         <h6 class="submenu-hdr">
                             <span>Result Management</span>
                         </h6>
                         <ul>
-                            <li>
-                                <a href="{{ route('staff.results.upload') }}"
-                                    class="{{ activeClass('staff.results.upload') }}">
-                                    <i class="ti ti-cloud-upload"></i>
-                                    <span>Upload Results</span>
-                                </a>
-                            </li>
+                            @if (auth()->user()->userType->name !== 'vice-chancellor')
+                                <li>
+                                    <a href="{{ route('staff.results.upload') }}"
+                                        class="{{ activeClass('staff.results.upload') }}">
+                                        <i class="ti ti-cloud-upload"></i>
+                                        <span>Upload Results</span>
+                                    </a>
+                                </li>
 
-                            <li>
-                                <a href="{{ route('results.viewUploaded') }}"
-                                    class="{{ activeClass('results.viewUploaded') }}">
-                                    <i class="ti ti-file-check"></i>
-                                    <span>View Uploaded Results</span>
-                                </a>
-                            </li>
+                                <li>
+                                    <a href="{{ route('results.viewUploaded') }}"
+                                        class="{{ activeClass('results.viewUploaded') }}">
+                                        <i class="ti ti-file-check"></i>
+                                        <span>View Uploaded Results</span>
+                                    </a>
+                                </li>
+                            @endif
 
                             <li>
                                 <a href="{{ route('results.manage.status') }}"
@@ -88,20 +90,21 @@
                             </li>
 
                             <li>
-                                <a href="{{ route('results.summary') }}"
-                                    class="{{ activeClass('results.summary') }}">
+                                <a href="{{ route('results.summary') }}" class="{{ activeClass('results.summary') }}">
                                     <i class="ti ti-chart-bar"></i>
                                     <span>Result Summary</span>
                                 </a>
                             </li>
 
-                            <li>
-                                <a href="{{ route('backlog.upload.page') }}"
-                                    class="{{ activeClass('backlog.upload.page') }}">
-                                    <i class="ti ti-history"></i>
-                                    <span>Upload Backlog Results</span>
-                                </a>
-                            </li>
+                            @if (auth()->user()->userType->name !== 'vice-chancellor')
+                                <li>
+                                    <a href="{{ route('backlog.upload.page') }}"
+                                        class="{{ activeClass('backlog.upload.page') }}">
+                                        <i class="ti ti-history"></i>
+                                        <span>Upload Backlog Results</span>
+                                    </a>
+                                </li>
+                            @endif
 
                             <li>
                                 <a href="{{ route('transcript.search.page') }}"
@@ -114,7 +117,8 @@
                     </li>
 
                     {{-- COURSE MANAGEMENT --}}
-                    <li class="{{ openMenuClass(['staff/dean/*', 'staff/lecturer/*', '!staff/dean/staff*', '!staff/hod/staff*']) }}">
+                    <li
+                        class="{{ openMenuClass(['staff/dean/*', 'staff/lecturer/*', '!staff/dean/staff*', '!staff/hod/staff*']) }}">
                         <h6 class="submenu-hdr"><span>Course Management</span></h6>
                         <ul>
                             <li>
@@ -140,8 +144,7 @@
                             <h6 class="submenu-hdr"><span>Staff Management</span></h6>
                             <ul>
                                 <li>
-                                    <a href="{{ route('staff.index') }}"
-                                        class="{{ activeClass('staff.index') }}">
+                                    <a href="{{ route('staff.index') }}" class="{{ activeClass('staff.index') }}">
                                         <i class="ti ti-users-group"></i>
                                         <span>All Staff</span>
                                     </a>
@@ -202,8 +205,7 @@
                         <h6 class="submenu-hdr"><span>Website Management</span></h6>
                         <ul>
                             <li>
-                                <a href="{{ route('news.index') }}"
-                                    class="{{ activeClass('news.index') }}">
+                                <a href="{{ route('news.index') }}" class="{{ activeClass('news.index') }}">
                                     <i class="ti ti-news"></i>
                                     <span>News</span>
                                 </a>

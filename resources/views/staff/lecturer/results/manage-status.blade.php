@@ -86,6 +86,7 @@
                                     <option value="">-- With Selected --</option>
                                     <option value="recommended">Recommend Selected</option>
                                     <option value="approved">Approve Selected</option>
+                                    <option value="published">Publish Selected</option>
                                     <option value="pending">Mark as Pending</option>
                                 </select>
                                 <button class="btn btn-primary btn-sm">Apply</button>
@@ -142,6 +143,8 @@
                                                         <span class="badge bg-success">Approved</span>
                                                     @elseif($row->current_status == 'recommended')
                                                         <span class="badge bg-info">Recommended</span>
+                                                    @elseif($row->current_status == 'published')
+                                                        <span class="badge bg-secondary">Published</span>
                                                     @else
                                                         <span class="badge bg-warning text-dark">Pending</span>
                                                     @endif
@@ -192,6 +195,7 @@
                                                 <option value="pending" {{ $row->current_status == 'pending' ? 'selected' : '' }}>Pending</option>
                                                 {{-- <option value="recommended" {{ $row->current_status == 'recommended' ? 'selected' : '' }}>Recommended</option> --}}
                                                 <option value="approved" {{ $row->current_status == 'approved' ? 'selected' : '' }}>Approved</option>
+                                                <option value="published" {{ $row->current_status == 'published' ? 'selected' : '' }}>Published</option>
                                             </select>
                                         </div>
                                     </div>
