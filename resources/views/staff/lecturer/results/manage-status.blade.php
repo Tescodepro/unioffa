@@ -194,9 +194,11 @@
                                             <select name="status" class="form-select" required>
                                                 <option value="pending" {{ $row->current_status == 'pending' ? 'selected' : '' }}>Pending</option>
                                                  @if (in_array(auth()->user()->userType->name, ['vice_chancellor']))
+                                                    <option value="rejected" {{ $row->current_status == 'rejected' ? 'selected' : '' }}>Rejected</option>
                                                     <option value="approved" {{ $row->current_status == 'approved' ? 'selected' : '' }}>Approved</option>
                                                     <option value="published" {{ $row->current_status == 'published' ? 'selected' : '' }}>Published</option>
                                                 @elseif (in_array(auth()->user()->userType->name, ['dean']))
+                                                    <option value="rejected" {{ $row->current_status == 'rejected' ? 'selected' : '' }}>Rejected</option>
                                                     <option value="approved" {{ $row->current_status == 'approved' ? 'selected' : '' }}>Approved</option>
                                                 @else
                                                     <option value="recommended" {{ $row->current_status == 'recommended' ? 'selected' : '' }}>Recommended</option>
