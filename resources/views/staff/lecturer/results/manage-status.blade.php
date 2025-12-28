@@ -154,7 +154,7 @@
                                                     <button type="button" class="btn btn-sm btn-outline-primary" 
                                                         data-bs-toggle="modal" 
                                                         data-bs-target="#statusModal{{ str_replace('/', '', $row->matric_no) }}">
-                                                        <i class="fa fa-edit"></i>
+                                                        <i class="fa fa-share"></i> Publish
                                                     </button>
                                                     {{-- Link to individual transcript --}}
                                                     <a href="{{ route('transcript.search', ['matric' => $row->matric_no]) }}" 
@@ -193,9 +193,14 @@
                                             <label class="form-label">New Status</label>
                                             <select name="status" class="form-select" required>
                                                 <option value="pending" {{ $row->current_status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                {{-- <option value="recommended" {{ $row->current_status == 'recommended' ? 'selected' : '' }}>Recommended</option> --}}
-                                                <option value="approved" {{ $row->current_status == 'approved' ? 'selected' : '' }}>Approved</option>
-                                                <option value="published" {{ $row->current_status == 'published' ? 'selected' : '' }}>Published</option>
+                                                 @if (in_array(auth()->user()->userType->name, ['vice_chancellor']))
+                                                    <option value="approved" {{ $row->current_status == 'approved' ? 'selected' : '' }}>Approved</option>
+                                                    <option value="published" {{ $row->current_status == 'published' ? 'selected' : '' }}>Published</option>
+                                                @elseif (in_array(auth()->user()->userType->name, ['dean']))
+                                                    <option value="approved" {{ $row->current_status == 'approved' ? 'selected' : '' }}>Approved</option>
+                                                @else
+                                                    <option value="recommended" {{ $row->current_status == 'recommended' ? 'selected' : '' }}>Recommended</option>
+                                                @endif
                                             </select>
                                         </div>
                                     </div>
