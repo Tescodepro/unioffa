@@ -211,9 +211,7 @@
                                                         {{ $row->current_status == 'pending' ? 'selected' : '' }}>Pending
                                                     </option>
                                                     @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
-                                                        <option value="rejected"
-                                                            {{ $row->current_status == 'rejected' ? 'selected' : '' }}>
-                                                            Rejected</option>
+                                                        
                                                         <option value="approved"
                                                             {{ $row->current_status == 'approved' ? 'selected' : '' }}>
                                                             Approved</option>
@@ -221,9 +219,7 @@
                                                             {{ $row->current_status == 'published' ? 'selected' : '' }}>
                                                             Published</option>
                                                     @elseif (in_array(auth()->user()->userType->name, ['dean']))
-                                                        <option value="rejected"
-                                                            {{ $row->current_status == 'rejected' ? 'selected' : '' }}>
-                                                            Rejected</option>
+                                                        
                                                         <option value="approved"
                                                             {{ $row->current_status == 'approved' ? 'selected' : '' }}>
                                                             Approved</option>
