@@ -4,19 +4,21 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationSetting;
-use App\Models\{Hostel, User, Student};
+use App\Models\Hostel;
 use App\Models\PaymentSetting;
+use App\Models\Result;
+use App\Models\Student;
 use App\Models\Transaction;
+use App\Models\User;
+use App\Services\HostelAssignmentService;
+use App\Services\MatricNumberGenerationService;
+use App\Services\PaymentVerificationService;
+use App\Services\StudentMigrationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use App\Services\{UniqueIdService, PaymentVerificationService, StudentMigrationService, MatricNumberGenerationService};
-use App\Services\HostelAssignmentService;
 use Illuminate\Support\Facades\Log;
-
-
 
 class DashboardController extends Controller
 {
@@ -25,13 +27,13 @@ class DashboardController extends Controller
         $user = Auth::user()->load('student.department.faculty');
         $recentTransactions = Transaction::where('user_id', Auth::id())
             ->latest()
-            ->take(25)
+            ->take(35)
             ->get();
 
         // Initialize services ONCE outside loop
-        $verifier = new PaymentVerificationService();
-        $studentMigration = new StudentMigrationService();
-        $matricService = new MatricNumberGenerationService();
+        $verifier = new PaymentVerificationService;
+        $studentMigration = new StudentMigrationService;
+        $matricService = new MatricNumberGenerationService;
         foreach ($recentTransactions as $txn) {
             try {
                 // 1. VERIFY PAYMENT (only if not verified)
@@ -45,25 +47,25 @@ class DashboardController extends Controller
                 }
 
                 // 2. ACCEPTANCE PAYMENT - CREATE STUDENT RECORD
-                if ($txn->payment_type === 'acceptance' && !$user->student) {
+                if ($txn->payment_type === 'acceptance' && ! $user->student) {
                     $user = User::find($txn->user_id);
-                    if (!$user->student) {
+                    if (! $user->student) {
                         $newStudent = $studentMigration->migrate($txn->user_id);
                         $user->load('student.department.faculty'); // ✅ RELOAD RELATIONSHIPS
                     }
                 }
                 // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER
-                if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
+                if ($txn->payment_type === 'tuition' && ! Student::hasMatricNumber()) {
                     $student = $user->student;
                     $year = $year = $student->admission_session;
-                    Log::info('Generating matric number for student ID: ' . $student->id);
+                    Log::info('Generating matric number for student ID: '.$student->id);
                     $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
-                    Log::info('Generated matric number: ' . $newMatricNo);
+                    Log::info('Generated matric number: '.$newMatricNo);
                     $student->update(['matric_no' => $newMatricNo]);
                     $student->user->update(['username' => $newMatricNo]);
                 }
             } catch (\Exception $e) {
-                Log::error("Transaction {$txn->id} processing failed: " . $e->getMessage());
+                Log::error("Transaction {$txn->id} processing failed: ".$e->getMessage());
             }
         }
 
@@ -218,26 +220,24 @@ class DashboardController extends Controller
     //             }
     //         }
 
-
     //         return $payment;
     //     });
 
     //     return view('student.payment', compact('paymentSettings', 'currentSession'));
     // }
 
-
     public function loadPayment()
     {
         $user = Auth::user()->load('student.department.faculty');
         $currentSession = activeSession()->name ?? null;
-        if (!$user->student) {
+        if (! $user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
-        if (!$currentSession) {
+        if (! $currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
         $student = $user->student;
-        if (($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER') AND ($student->level == 200 OR $student->level == 300) AND $student->admission_session == $currentSession) {
+        if (($student->entry_mode == 'DE' or $student->entry_mode == 'TRANSFER') and ($student->level == 200 or $student->level == 300) and $student->admission_session == $currentSession) {
             $student->level = 100;
         }
         // ✅ 1. Fetch payment settings dynamically
@@ -313,13 +313,14 @@ class DashboardController extends Controller
                 $payment->max_installments = $payment->number_of_instalment ?? count($percentages);
 
                 // Convert cumulative percentages (e.g. [60,100], [33,66,100]) into actual amounts
-                $installmentAmounts = collect($percentages)->map(fn($percent) => round($payment->amount * ($percent / 100)));
+                $installmentAmounts = collect($percentages)->map(fn ($percent) => round($payment->amount * ($percent / 100)));
 
                 // Find remaining payments (any stage above what’s already paid)
-                $remaining = $installmentAmounts->filter(fn($amt) => $amt > $amountPaid)->values();
+                $remaining = $installmentAmounts->filter(fn ($amt) => $amt > $amountPaid)->values();
 
                 $payment->installment_scheme = $remaining->toArray();
             }
+
             return $payment;
         });
 
@@ -345,7 +346,7 @@ class DashboardController extends Controller
 
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -367,7 +368,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
+        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
     }
 
     // ==================== Profile ================================
@@ -389,8 +390,8 @@ class DashboardController extends Controller
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'phone' => 'required|string|max:20|unique:users,phone,'.$user->id,
             'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'date_of_birth' => 'nullable|date',
             'state_of_origin' => 'nullable|string|max:255',
@@ -406,9 +407,9 @@ class DashboardController extends Controller
         // ✅ Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
             $file = $request->file('profile_picture');
-            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $filename = uniqid().'.'.$file->getClientOriginalExtension();
             $file->storeAs('profile_pictures', $filename, 'public');
-            $user->profile_picture = 'storage/profile_pictures/' . $filename;
+            $user->profile_picture = 'storage/profile_pictures/'.$filename;
         }
 
         // ✅ Update user details
@@ -446,7 +447,7 @@ class DashboardController extends Controller
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (!\Hash::check($request->current_password, $user->password)) {
+        if (! \Hash::check($request->current_password, $user->password)) {
             return redirect()->back()->with('error', 'Current password is incorrect.');
         }
 
@@ -468,7 +469,7 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -484,12 +485,158 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (!$student) {
+        if (! $student) {
             return back()->with('error', 'Student profile not found.');
         }
 
         $result = $hostelService->autoAssign($student);
 
         return back()->with('success', $result['message'] ?? 'Hostel application processed.');
+    }
+
+    // ==================== Results & Transcript ===============================
+
+    /**
+     * Display student results with semester filtering
+     */
+    public function viewResults(Request $request)
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (! $student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        // Get available sessions/semesters for filter
+        $sessions = Result::where('student_id', $student->id)
+            ->where('status', 'published')
+            ->select('session')
+            ->distinct()
+            ->orderBy('session', 'desc')
+            ->pluck('session');
+
+        $semesters = ['First', 'Second'];
+
+        // Filter logic
+        $query = Result::where('student_id', $student->id)
+            ->where('status', 'published');
+
+        if ($request->filled('session')) {
+            $query->where('session', $request->session);
+        }
+
+        if ($request->filled('semester')) {
+            $query->where('semester', $request->semester);
+        }
+
+        $results = $query->orderBy('session', 'desc')
+            ->orderBy('semester')
+            ->get();
+
+        // Calculate semester GPA if filtered
+        $semesterStats = $this->calculateGPA($results);
+
+        return view('student.results', compact('results', 'sessions', 'semesters', 'semesterStats'));
+    }
+
+    /**
+     * View full transcript
+     */
+    public function viewTranscript()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (! $student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        $results = Result::where('student_id', $student->id)
+            ->where('status', 'published')
+            ->orderBy('session')
+            ->orderBy('semester')
+            ->get();
+
+        $resultsBySession = $results->groupBy('session');
+        $cgpa = $this->calculateCGPA($results);
+
+        return view('student.transcript', compact('student', 'resultsBySession', 'cgpa'));
+    }
+
+    /**
+     * Download transcript as PDF
+     */
+    public function downloadTranscript()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (! $student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        $results = Result::where('student_id', $student->id)
+            ->where('status', 'published')
+            ->orderBy('session')
+            ->orderBy('semester')
+            ->get();
+
+        $resultsBySession = $results->groupBy('session');
+        $cgpa = $this->calculateCGPA($results);
+
+        $pdf = Pdf::loadView('student.transcript-pdf', compact('student', 'resultsBySession', 'cgpa'))
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->download('Transcript_'.$student->matric_no.'.pdf');
+    }
+
+    /**
+     * Calculate GPA for a set of results
+     */
+    private function calculateGPA($results)
+    {
+        $totalUnits = 0;
+        $totalGradePoints = 0;
+        $unitsPassed = 0;
+
+        foreach ($results as $result) {
+            $unit = (int) $result->course_unit;
+            $score = (float) $result->total;
+
+            $totalUnits += $unit;
+
+            // 5.0 grading scale
+            $points = match (true) {
+                $score >= 70 => 5,
+                $score >= 60 => 4,
+                $score >= 50 => 3,
+                $score >= 45 => 2,
+                $score >= 40 => 1,
+                default => 0
+            };
+
+            $totalGradePoints += ($unit * $points);
+
+            if ($score >= 40) {
+                $unitsPassed += $unit;
+            }
+        }
+
+        $gpa = $totalUnits > 0 ? $totalGradePoints / $totalUnits : 0;
+
+        return [
+            'total_units' => $totalUnits,
+            'units_passed' => $unitsPassed,
+            'gpa' => round($gpa, 2),
+        ];
+    }
+
+    /**
+     * Calculate CGPA for all results
+     */
+    private function calculateCGPA($results)
+    {
+        return $this->calculateGPA($results)['gpa'];
     }
 }

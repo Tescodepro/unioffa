@@ -124,6 +124,13 @@ Route::prefix('students')->group(function () {
             Route::post('course-registration', 'store');
             Route::get('course-registration/download', 'downloadCourseForm')->name('students.course.download');
         });
+
+        // Student Results & Transcript
+        Route::controller(DashboardController::class)->group(function () {
+            Route::get('/results', 'viewResults')->name('students.results');
+            Route::get('/transcript', 'viewTranscript')->name('students.transcript');
+            Route::get('/transcript/download', 'downloadTranscript')->name('students.transcript.download');
+        });
     });
 });
 
@@ -232,11 +239,6 @@ Route::prefix('staff')->group(function () {
             // Action to update the status
             Route::post('/results/update-status', [ResultController::class, 'updateStatus'])->name('results.update.status');
             Route::post('/results/bulk-update-status', [ResultController::class, 'bulkUpdateStatus'])->name('results.bulk.update');
-
-
-
-
-
 
         });
     });

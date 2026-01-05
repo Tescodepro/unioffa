@@ -6,34 +6,31 @@ use App\Http\Controllers\Controller;
 use App\Mail\ApplicantRegisteredMail;
 use App\Mail\GeneralMail;
 // Authentication & User Models
-use App\Models\User;
-use App\Models\UserType;
-
+use App\Models\AdmissionList;
+use App\Models\Alevel;
 // Application Models
 use App\Models\ApplicationSetting;
-use App\Models\UserApplications;
-use App\Models\AdmissionList;
-
-// Academic Models
 use App\Models\Campus;
-use App\Models\Department;
-use App\Models\Faculty;
-
-// Educational Background Models
-use App\Models\Alevel;
-use App\Models\Olevel;
-use App\Models\JambDetail;
-use App\Models\EducationHistory;
-use App\Models\Student;
-
-// Profile & Document Models
-use App\Models\Profile;
-use App\Models\Document;
 use App\Models\CourseOfStudy;
-
-// Transaction Models
+// Academic Models
+use App\Models\Department;
+use App\Models\Document;
+use App\Models\EducationHistory;
+// Educational Background Models
+use App\Models\Faculty;
+use App\Models\JambDetail;
+use App\Models\Olevel;
+use App\Models\Profile;
+use App\Models\Student;
+// Profile & Document Models
 use App\Models\Transaction;
-use App\Services\{UniqueIdService, PaymentVerificationService, StudentMigrationService, MatricNumberGenerationService};
+use App\Models\User;
+use App\Models\UserApplications;
+// Transaction Models
+use App\Models\UserType;
+use App\Services\PaymentVerificationService;
+use App\Services\StudentMigrationService;
+use App\Services\UniqueIdService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Exception;
@@ -46,17 +43,16 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
-
 class ApplicationController extends Controller
 {
     public function index()
     {
         $title = 'Application Registration Form';
-        // get  active center
         $campuses = Campus::active()->get();
 
         return view('applications.register', compact('title', 'campuses'));
     }
+
     public function createAccount(Request $request, UniqueIdService $uniqueIdService)
     {
         $request->validate([
@@ -93,7 +89,7 @@ class ApplicationController extends Controller
                 'registration_no' => $uniqueId,
                 'user_type_id' => UserType::where('name', 'applicant')->first()->id,
                 // 'referee_code' => $request->filled('referee_code') ? $request->referee_code : '578EF5E5',
-                'referee_code' => $request->filled('referee_code') ? $request->referee_code : NULL,
+                'referee_code' => $request->filled('referee_code') ? $request->referee_code : null,
             ]);
 
             // GET referee agent if any using referral code
@@ -110,13 +106,13 @@ class ApplicationController extends Controller
                     $subject = 'Referral Notification - New Applicant Registration';
 
                     $content = [
-                        'title' => 'Hello ' . $agentApplication->first_name . ',',
-                        'body' => 'A new applicant has registered using your referral code (' . $request->referee_code . ').<br><br>' .
-                            '<strong>Registration Details:</strong><br>' .
-                            '- Applicant Name: ' . $user->first_name . ' ' . $user->last_name . '<br>' .
-                            '- Applicant Email: ' . $user->email . '<br>' .
-                            '- Date: ' . now()->format('Y-m-d H:i:s') . '<br>' .
-                            '- IP Address: ' . request()->ip() . '<br><br>' .
+                        'title' => 'Hello '.$agentApplication->first_name.',',
+                        'body' => 'A new applicant has registered using your referral code ('.$request->referee_code.').<br><br>'.
+                            '<strong>Registration Details:</strong><br>'.
+                            '- Applicant Name: '.$user->first_name.' '.$user->last_name.'<br>'.
+                            '- Applicant Email: '.$user->email.'<br>'.
+                            '- Date: '.now()->format('Y-m-d H:i:s').'<br>'.
+                            '- IP Address: '.request()->ip().'<br><br>'.
                             'Thank you for referring applicants to Offa University. Keep up the great work!',
                         'footer' => 'Warm regards,<br>Offa University Team',
                     ];
@@ -143,7 +139,7 @@ class ApplicationController extends Controller
             DB::rollBack();
 
             // Log failure with details
-            Log::error("❌ Failed to send mail to {$request->email}. Error: " . $e->getMessage());
+            Log::error("❌ Failed to send mail to {$request->email}. Error: ".$e->getMessage());
 
             return back()->withErrors(['email' => 'Registration failed because email could not be sent. Try again.']);
         }
@@ -180,12 +176,12 @@ class ApplicationController extends Controller
             $subject = 'Login Notification';
 
             $content = [
-                'title' => Auth::user()->full_name . ',',
+                'title' => Auth::user()->full_name.',',
                 'body' => 'We noticed a login to your Offa University account.<br><br>
 
             Details:<br>  
-            - Date: ' . now()->format('Y-m-d H:i:s') . '<br>  
-            - IP Address: ' . request()->ip() . ' <br><br>
+            - Date: '.now()->format('Y-m-d H:i:s').'<br>  
+            - IP Address: '.request()->ip().' <br><br>
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
@@ -217,10 +213,10 @@ class ApplicationController extends Controller
 
         $recentTransactions = Transaction::where('user_id', Auth::id())
             ->latest()
-            ->take(15)
+            ->take(35)
             ->get();
 
-        $verifier = new PaymentVerificationService();
+        $verifier = new PaymentVerificationService;
         $redirectRoute = null;
         $redirectMessage = null;
 
@@ -234,7 +230,7 @@ class ApplicationController extends Controller
             }
 
             // Handle acceptance fee payment - ONLY for non-students
-            if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && !$user->student) {
+            if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && ! $user->student) {
                 // Check if user has submitted application for this session
                 $hasSubmittedApplication = UserApplications::where('user_id', Auth::id())
                     ->where('academic_session', $txn->session)
@@ -242,7 +238,7 @@ class ApplicationController extends Controller
                     ->exists();
                 // dd($hasSubmittedApplication);
                 if ($hasSubmittedApplication) {
-                    $studentMigration = new StudentMigrationService();
+                    $studentMigration = new StudentMigrationService;
                     $newStudent = $studentMigration->migrate(Auth::id());
 
                     if ($newStudent) {
@@ -278,7 +274,7 @@ class ApplicationController extends Controller
                             $student->user->update(['username' => $newMatricNo]);
 
                             $redirectRoute = 'students.dashboard';
-                            $redirectMessage = 'Tuition payment successful! Matric number generated: ' . $newMatricNo;
+                            $redirectMessage = 'Tuition payment successful! Matric number generated: '.$newMatricNo;
                             break;
                         }
                     } else {
@@ -304,7 +300,7 @@ class ApplicationController extends Controller
             'application_setting_id' => 'required|exists:application_settings,id',
         ]);
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->back()->with('error', 'Please login first');
         }
 
@@ -343,7 +339,7 @@ class ApplicationController extends Controller
     public function applicationForm($user_application_id)
     {
         $users = Auth::user();
-        $title = Auth::user()->full_name . ' Application Form';
+        $title = Auth::user()->full_name.' Application Form';
 
         $application = UserApplications::with('applicationSetting')
             ->where('user_id', Auth::id())
@@ -433,7 +429,7 @@ class ApplicationController extends Controller
     {
         $request->validate([
             'olevel_exam_type' => 'required|in:waec,neco,nabteb',
-            'olevel_year' => 'required|integer|min:1910|max:' . date('Y'),
+            'olevel_year' => 'required|integer|min:1910|max:'.date('Y'),
             'olevel_subjects' => 'required|array|min:5|max:8',
             'olevel_subjects.*' => 'required|string',
             'olevel_grades' => 'required|array|min:5|max:8',
@@ -536,8 +532,8 @@ class ApplicationController extends Controller
                 }
 
                 // Store new file
-                $filename = time() . '_' . $doc . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('documents/' . Auth::id(), $filename, 'public');
+                $filename = time().'_'.$doc.'_'.$file->getClientOriginalName();
+                $filePath = $file->storeAs('documents/'.Auth::id(), $filename, 'public');
 
                 Document::updateOrCreate(
                     [
@@ -561,7 +557,7 @@ class ApplicationController extends Controller
     {
         $rules = [
             'registration_number' => 'required|string|max:255',
-            'exam_year' => 'required|integer|min:2000|max:' . date('Y'),
+            'exam_year' => 'required|integer|min:2000|max:'.date('Y'),
             'jamb_type' => 'required|in:utme,direct_entry',
         ];
 
@@ -595,7 +591,7 @@ class ApplicationController extends Controller
                 $data
             );
         } catch (Exception $th) {
-            return redirect()->back()->withErrors(['error' => 'An error occurred while saving JAMB details: ' . $th->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'An error occurred while saving JAMB details: '.$th->getMessage()]);
         }
 
         return redirect()->back()->with('success', 'JAMB details saved successfully.');
@@ -648,12 +644,13 @@ class ApplicationController extends Controller
         $pdf = Pdf::loadView('applications.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
+        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
     }
 
     public function showForgotPasswordForm()
     {
         $title = 'Forgot Password';
+
         return view('applications.forget_password', compact('title'));
     }
 
@@ -671,7 +668,7 @@ class ApplicationController extends Controller
             //  Find the user
             $user = User::where('email', $request->email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return back()->withErrors(['email' => 'No account found with that email address.']);
             }
 
@@ -687,28 +684,29 @@ class ApplicationController extends Controller
             $ipAddress = $request->ip();
 
             $content = [
-                'title' => $user->full_name . ',',
-                'body' => "
+                'title' => $user->full_name.',',
+                'body' => '
                     We received a request to reset your password.  
                     Please use the following One-Time Password (OTP):  
-                    <h2>" . $otp . "</h2>  
+                    <h2>'.$otp.'</h2>  
 
                     Details:<br>  
-                    - Date: " . $currentTime . "<br>  
-                    - IP Address: " . $ipAddress . " <br><br>
+                    - Date: '.$currentTime.'<br>  
+                    - IP Address: '.$ipAddress.' <br><br>
 
                     If this was you, proceed with resetting your password.  
                     If not, please secure your account immediately.
-                ",
+                ',
                 'footer' => 'Stay safe,<br>University of Offa Team',
             ];
 
             // Send email
             Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
+
             // Mail::to('obj4u2001@gmail.com')->send(new GeneralMail($subject, $content, false));
             return redirect()->route('password.otp.update')->with('success', "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp .");
         } catch (Exception $e) {
-            Log::error('Forgot Password Error: ' . $e->getMessage());
+            Log::error('Forgot Password Error: '.$e->getMessage());
 
             return back()->withErrors(['email' => 'Something went wrong. Please try again later.']);
         }
@@ -734,14 +732,14 @@ class ApplicationController extends Controller
             ->where('otp_expires_at', '>', now())
             ->first();
 
-        if (!$otpRecord) {
+        if (! $otpRecord) {
             return back()->withErrors(['otp' => 'Invalid or expired OTP.']);
         }
 
         // Update user password
         $user = User::where('email', $otpRecord->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors(['otp' => 'User not found.']);
         }
 
@@ -787,7 +785,7 @@ class ApplicationController extends Controller
 
         $data = [
             'application' => $application,
-            'modules' => $modules
+            'modules' => $modules,
         ];
 
         $pdf = Pdf::loadView('applications.application-details-printout', $data)
