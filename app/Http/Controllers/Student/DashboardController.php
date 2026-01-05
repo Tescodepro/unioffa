@@ -509,17 +509,17 @@ class DashboardController extends Controller
         }
 
         // Get available sessions/semesters for filter
-        $sessions = Result::where('student_id', $student->id)
+        $sessions = Result::where('matric_no', $student->matric_no)
             ->where('status', 'published')
             ->select('session')
             ->distinct()
             ->orderBy('session', 'desc')
             ->pluck('session');
 
-        $semesters = ['First', 'Second'];
+        $semesters = ['1st', '2nd'];
 
         // Filter logic
-        $query = Result::where('student_id', $student->id)
+        $query = Result::where('matric_no', $student->matric_no)
             ->where('status', 'published');
 
         if ($request->filled('session')) {
@@ -552,7 +552,7 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
-        $results = Result::where('student_id', $student->id)
+        $results = Result::where('matric_no', $student->matric_no)
             ->where('status', 'published')
             ->orderBy('session')
             ->orderBy('semester')
@@ -576,7 +576,7 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
-        $results = Result::where('student_id', $student->id)
+        $results = Result::where('matric_no', $student->matric_no)
             ->where('status', 'published')
             ->orderBy('session')
             ->orderBy('semester')
@@ -588,7 +588,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.transcript-pdf', compact('student', 'resultsBySession', 'cgpa'))
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Transcript_'.$student->matric_no.'.pdf');
+        return $pdf->download('Transcript_'.$student->first_name.'_'.$student->last_name.'.pdf');
     }
 
     /**

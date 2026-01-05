@@ -106,8 +106,8 @@
                         <div class="card-body">
                             @php
                                 $sessionResults = collect($results);
-                                $firstSemester = $sessionResults->where('semester', 'First');
-                                $secondSemester = $sessionResults->where('semester', 'Second');
+                                $firstSemester = $sessionResults->where('semester', '1st');
+                                $secondSemester = $sessionResults->where('semester', '2nd');
                             @endphp
 
                             @if($firstSemester->isNotEmpty())
@@ -197,7 +197,7 @@
                                                         </span>
                                                     </td>
                                                     <td class="text-center">
-                                                        <span class="badge {{ $result->remark == 'Pass' ? 'bg-danger' }}">
+                                                        <span class="badge {{ $result->remark == 'Pass' ? 'bg-success' : 'bg-danger' }}">
                                                             {{ $result->remark }}
                                                         </span>
                                                     </td>
