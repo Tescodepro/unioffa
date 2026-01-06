@@ -172,8 +172,8 @@
 
         @php
             $sessionResults = collect($results);
-            $firstSemester = $sessionResults->where('semester', 'First');
-            $secondSemester = $sessionResults->where('semester', 'Second');
+            $firstSemester = $sessionResults->where('semester', '1st');
+            $secondSemester = $sessionResults->where('semester', '2nd');
         @endphp
 
         @if($firstSemester->isNotEmpty())
