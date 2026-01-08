@@ -38,7 +38,8 @@ class BursaryController extends Controller
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
                             
-                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20']);
+                                                        ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                                                        ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             })
             ->groupBy('payment_type')
@@ -51,7 +52,8 @@ class BursaryController extends Controller
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
                             
-                            ->whereNotBetween('created_at', ['2025-12-10', '2025-12-20']);
+                                                        ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                                                        ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             })
             ->orderBy('created_at', 'desc')
@@ -71,7 +73,8 @@ class BursaryController extends Controller
                 ->orWhere(function ($tq) {
                     $tq->where('payment_type', 'technical')
                         
-                        ->whereNotBetween('created_at', ['2025-12-10', '2025-12-20']);
+                                                ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                                                ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                 });
         });
 
@@ -111,7 +114,8 @@ class BursaryController extends Controller
                 ->orWhere(function ($tq) {
                     $tq->where('payment_type', 'technical')
                         
-                        ->whereNotBetween('created_at', ['2025-12-10', '2025-12-20']);
+                                                ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                                                ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                 });
         });
 
