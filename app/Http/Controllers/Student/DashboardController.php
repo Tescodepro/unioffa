@@ -162,15 +162,49 @@ class DashboardController extends Controller
             // ✅ Use DB installment settings if enabled
             if ($payment->installmental_allow_status) {
                 $percentages = json_decode($payment->list_instalment_percentage, true) ?? [];
+
+                // If percentages are empty, fallback to default logic or disable installment
+                if (empty($percentages)) {
+                    // Fallback: treat as single payment if no percentages defined
+                    return $payment;
+                }
+
                 $payment->max_installments = $payment->number_of_instalment ?? count($percentages);
 
-                // Convert cumulative percentages (e.g. [60,100], [33,66,100]) into actual amounts
-                $installmentAmounts = collect($percentages)->map(fn($percent) => round($payment->amount * ($percent / 100)));
+                // 1. Convert splits (e.g. [60, 40]) to Cumulative Milestones (e.g. [60, 100])
+                $cumulativePercentages = [];
+                $runningTotal = 0;
+                foreach ($percentages as $p) {
+                    $runningTotal += $p;
+                    $cumulativePercentages[] = $runningTotal;
+                }
 
-                // Find remaining payments (any stage above what’s already paid)
-                $remaining = $installmentAmounts->filter(fn($amt) => $amt > $amountPaid)->values();
+                // Ensure the last one is exactly 100 to avoid floating point issues
+                if (!empty($cumulativePercentages) && end($cumulativePercentages) !== 100) {
+                    // Normalize if they don't add up to 100, or just trust the admin? 
+                    // Let's force the last milestone relative to total amount in the next step.
+                }
 
-                $payment->installment_scheme = $remaining->toArray();
+                // 2. Convert Cumulative Percentages to Cumulative Monetary Milestones
+                $milestones = collect($cumulativePercentages)->map(function ($percent) use ($payment) {
+                    return round($payment->amount * ($percent / 100));
+                });
+
+                // Fix: Ensure the last milestone is exactly the total amount
+                if ($milestones->isNotEmpty()) {
+                    $milestones->pop();
+                    $milestones->push($payment->amount);
+                }
+
+                // 3. Calculate "To Pay" options based on Amount Paid
+                // We only show milestones that are GREATER than what has been paid.
+                $options = $milestones->filter(function ($milestone) use ($amountPaid) {
+                    return $milestone > $amountPaid;
+                })->map(function ($milestone) use ($amountPaid) {
+                    return $milestone - $amountPaid;
+                })->values();
+
+                $payment->installment_scheme = $options->toArray();
             }
 
             return $payment;

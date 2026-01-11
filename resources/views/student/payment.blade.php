@@ -190,18 +190,18 @@
                                                                                                     <option
                                                                                                         value="{{ $installmentAmount }}">
                                                                                                         {{ number_format($installmentAmount, 2) }}
-                                                                                                        @if ($installmentAmount < $payment->amount)
-                                                                                                            (Installment
-                                                                                                            {{ $installmentNumber }})
-                                                                                                        @else
-                                                                                                            (Full Payment)
-                                                                                                        @endif
+                                                                                                        (Balance for Installment {{ $installmentNumber }})
+                                                                                                    </option>
+                                                                                                @elseif ($installmentAmount == $payment->balance)
+                                                                                                    <option
+                                                                                                        value="{{ $installmentAmount }}">
+                                                                                                        {{ number_format($installmentAmount, 2) }}
+                                                                                                        (Complete Payment)
                                                                                                     </option>
                                                                                                 @else
                                                                                                     <option
-                                                                                                        value="{{ $payment->balance }}">
-                                                                                                        {{ number_format($payment->balance, 2) }}
-                                                                                                        (Remaining balance)
+                                                                                                        value="{{ $installmentAmount }}">
+                                                                                                        {{ number_format($installmentAmount, 2) }}
                                                                                                     </option>
                                                                                                 @endif
                                                                                             @endforeach
@@ -214,11 +214,11 @@
                                                                                     </div>
                                                                                 @else
                                                                                     {{-- Full payment only --}}
-                                                                                    <p>Amount:
-                                                                                        <strong>{{ number_format($payment->amount, 2) }}</strong>
+                                                                                    <p>Balance to Pay:
+                                                                                        <strong>{{ number_format($payment->balance, 2) }}</strong>
                                                                                     </p>
                                                                                     <input type="hidden" name="amount"
-                                                                                        value="{{ $payment->amount }}">
+                                                                                        value="{{ $payment->balance }}">
                                                                                 @endif
 
                                                                                 <input type="hidden" name="fee_type"
