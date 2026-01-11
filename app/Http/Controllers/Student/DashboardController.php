@@ -133,6 +133,10 @@ class DashboardController extends Controller
                 $q->whereNull('matric_number')
                     ->orWhere('matric_number', $student->matric_no);
             })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('entry_mode')
+                    ->orWhere('entry_mode', $student->entry_mode);
+            })
             ->get();
 
         if ($paymentSettings->isEmpty()) {

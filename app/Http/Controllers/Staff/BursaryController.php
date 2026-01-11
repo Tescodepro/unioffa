@@ -167,35 +167,60 @@ class BursaryController extends Controller
             'reference' => 'required|string|max:255',
         ]);
 
-        $transaction = Transaction::where('refernce_number', $request->reference)->first();
+        $reference = trim($request->reference);
+        $transaction = Transaction::where('refernce_number', $reference)->first();
 
         if (!$transaction) {
             return back()->with('error', 'No transaction found for that reference number.');
         }
 
-        $verifier = new PaymentVerificationService();
-        $verifyResponse = $verifier->verify($transaction->refernce_number);
-        // dd($verifyResponse);
+        // Always verify from Paystack gateway
+        try {
+            $paymentService = new \App\Services\PaymentService('paystack');
+            $verifyResponse = $paymentService->verifyPayment($reference);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Verification failed: ' . $e->getMessage());
+        }
 
-        // Update transaction info
-        $transaction->refresh();
-        $transaction->verification_message = $verifyResponse['message'] ?? 'Verification completed.';
-        $transaction->save();
+        // Get raw data from Paystack response
+        $rawData = $verifyResponse['raw']['data'] ?? [];
 
-        // Pass verification data to view
-        return back()->with([
-            'success' => 'Payment verification completed successfully.',
-            'verifyData' => [
-                'payer_name' => $transaction->payer_name ?? 'N/A',
-                'payer_email' => $transaction->payer_email ?? 'N/A',
-                'amount' => $transaction->amount ?? '0.00',
-                'reference' => $transaction->refernce_number,
-                'status' => $verifyResponse['data']['status'] ?? 'unknown',
-                'gateway_response' => $verifyResponse['data']['gateway_response'] ?? 'No response',
-                'paid_at' => $verifyResponse['data']['paid_at'] ?? 'N/A',
-                'channel' => $verifyResponse['data']['channel'] ?? 'N/A',
-            ]
-        ]);
+        // Update transaction based on response
+        if ($verifyResponse['success'] ?? false) {
+            $transaction->update([
+                'payment_status' => 1,
+                'payment_method' => 'paystack',
+            ]);
+
+            return back()->with([
+                'success' => 'Payment verified successfully!',
+                'verifyData' => [
+                    'payer_name' => $rawData['customer']['first_name'] ?? ($transaction->user->first_name . ' ' . $transaction->user->last_name ?? 'N/A'),
+                    'payer_email' => $rawData['customer']['email'] ?? ($transaction->user->email ?? 'N/A'),
+                    'amount' => ($rawData['amount'] ?? 0) / 100, // Convert from kobo
+                    'reference' => $rawData['reference'] ?? $reference,
+                    'status' => 'success',
+                    'gateway_response' => $rawData['gateway_response'] ?? 'Approved',
+                    'paid_at' => $rawData['paid_at'] ?? 'N/A',
+                    'channel' => $rawData['channel'] ?? 'N/A',
+                ]
+            ]);
+        } else {
+            // Payment not successful
+            return back()->with([
+                'error' => 'Payment verification failed.',
+                'verifyData' => [
+                    'payer_name' => $rawData['customer']['first_name'] ?? ($transaction->user->first_name . ' ' . $transaction->user->last_name ?? 'N/A'),
+                    'payer_email' => $rawData['customer']['email'] ?? ($transaction->user->email ?? 'N/A'),
+                    'amount' => $transaction->amount ?? '0.00',
+                    'reference' => $reference,
+                    'status' => 'failed',
+                    'gateway_response' => $rawData['gateway_response'] ?? ($verifyResponse['message'] ?? 'Payment not confirmed'),
+                    'paid_at' => 'N/A',
+                    'channel' => $rawData['channel'] ?? 'N/A',
+                ]
+            ]);
+        }
     }
 
     /**

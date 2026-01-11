@@ -24,6 +24,7 @@ class PaymentSetting extends Model
         'amount',
         'description',
         'student_type',
+        'entry_mode',
         'session',
         'installmental_allow_status',
         'number_of_instalment',

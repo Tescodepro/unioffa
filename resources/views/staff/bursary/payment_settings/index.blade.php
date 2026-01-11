@@ -23,21 +23,6 @@
                 {{-- FILTERS --}}
                 <form method="GET" action="{{ route('bursary.payment-settings.index') }}" class="card p-3 shadow-sm mb-4">
                     <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Payment Type</label>
-                            <select name="payment_type" class="form-select">
-                                <option value="">All</option>
-                                @foreach ($paymentTypes as $type)
-                                   @if ($type != 'technial')
-                                        <option value="{{ $type }}"
-                                            {{ request('payment_type') == $type ? 'selected' : '' }}>
-                                            {{ ucfirst($type) }}
-                                        </option>
-                                   @endif
-                                @endforeach
-                            </select>
-                        </div>
-
                         <div class="col-md-2">
                             <label class="form-label">Session</label>
                             <select name="session" class="form-select">
@@ -51,7 +36,22 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Payment Type</label>
+                            <select name="payment_type" class="form-select">
+                                <option value="">All</option>
+                                @foreach ($paymentTypes as $type)
+                                   @if ($type != 'technical')
+                                        <option value="{{ $type }}"
+                                            {{ request('payment_type') == $type ? 'selected' : '' }}>
+                                            {{ ucfirst($type) }}
+                                        </option>
+                                   @endif
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
                             <label class="form-label">Faculty</label>
                             <select name="faculty_id" class="form-select">
                                 <option value="">All</option>
@@ -63,14 +63,8 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Matric Number</label>
-                            <input type="text" name="matric_number" class="form-control"
-                                value="{{ request('matric_number') }}" placeholder="Enter matric number">
-                        </div>
 
-
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Department</label>
                             <select name="department_id" class="form-select">
                                 <option value="">All</option>
@@ -95,6 +89,12 @@
                             </select>
                         </div>
 
+                        <div class="col-md-2">
+                            <label class="form-label">Matric Number</label>
+                            <input type="text" name="matric_number" class="form-control"
+                                value="{{ request('matric_number') }}" placeholder="Enter matric number">
+                        </div>
+
                         <div class="col-md-2 d-flex align-items-end">
                             <button type="submit" class="btn btn-dark w-100">Filter</button>
                         </div>
@@ -116,6 +116,7 @@
                                     <th>Amount (₦)</th>
                                     <th>Session</th>
                                     <th>Student Type</th>
+                                    <th>Entry Mode</th>
                                     <th>Installment</th>
                                     <th>Installment Details</th>
                                     <th>Actions</th>
@@ -128,12 +129,13 @@
                                             <td>{{ $key + 1 }}</td>
                                             <td>{{ $setting->faculty->faculty_code ?? 'All' }}</td>
                                             <td>{{ $setting->department->department_code ?? 'All' }}</td>
-                                            <td>{{ implode(', ', $setting->level ?? []) }}</td>
+                                            <td>{{ $setting->level ? implode(', ', $setting->level) : 'All' }}</td>
                                             <td>{{ $setting->matric_number ?? 'All' }}</td>
                                             <td>{{ ucfirst($setting->payment_type) }}</td>
                                             <td>{{ number_format($setting->amount, 2) }}</td>
                                             <td>{{ $setting->session }}</td>
                                             <td>{{ $setting->student_type ?? 'All' }}</td>
+                                            <td>{{ $setting->entry_mode ?? 'All' }}</td>
                                             <td>
                                                 @if ($setting->installmental_allow_status)
                                                     <span class="badge bg-success">Allowed</span>
@@ -164,7 +166,7 @@
                                     @endif
                                 @empty
                                     <tr>
-                                        <td colspan="11" class="text-center">No settings found.</td>
+                                        <td colspan="13" class="text-center">No settings found.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -174,7 +176,7 @@
                     @if ($settings->hasPages())
                         <div class="card-footer">
                             <div class="d-flex justify-content-end">
-                                {{ $settings->links('pagination::bootstrap-5') }}
+                                {{ $settings->withQueryString()->links('pagination::bootstrap-5') }}
                             </div>
                         </div>
                     @endif
