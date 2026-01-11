@@ -26,7 +26,7 @@ class BursaryController extends Controller
         ];
 
         // Group transactions by payment_type
-        
+
         $paymentsByType = Transaction::select(
             'payment_type',
             DB::raw('COUNT(*) as total'),
@@ -37,9 +37,9 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-                            
-                                                        ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
-                                                        ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+
+                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             })
             ->groupBy('payment_type')
@@ -51,9 +51,9 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-                            
-                                                        ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
-                                                        ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+
+                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             })
             ->orderBy('created_at', 'desc')
@@ -66,17 +66,17 @@ class BursaryController extends Controller
     public function transactions(Request $request)
     {
         $query = Transaction::query()
-        ->with('user')
-        ->where('payment_status', 1)
-        ->where(function ($q) {
-            $q->where('payment_type', '!=', 'technical')
-                ->orWhere(function ($tq) {
-                    $tq->where('payment_type', 'technical')
-                        
-                                                ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
-                                                ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
-                });
-        });
+            ->with('user')
+            ->where('payment_status', 1)
+            ->where(function ($q) {
+                $q->where('payment_type', '!=', 'technical')
+                    ->orWhere(function ($tq) {
+                        $tq->where('payment_type', 'technical')
+
+                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+                    });
+            });
 
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
@@ -107,17 +107,17 @@ class BursaryController extends Controller
     public function exportTransactions(Request $request, $format)
     {
         $query = Transaction::query()
-        ->with('user')
-        ->where('payment_status', 1)
-        ->where(function ($q) {
-            $q->where('payment_type', '!=', 'technical')
-                ->orWhere(function ($tq) {
-                    $tq->where('payment_type', 'technical')
-                        
-                                                ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
-                                                ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
-                });
-        });
+            ->with('user')
+            ->where('payment_status', 1)
+            ->where(function ($q) {
+                $q->where('payment_type', '!=', 'technical')
+                    ->orWhere(function ($tq) {
+                        $tq->where('payment_type', 'technical')
+
+                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
+                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+                    });
+            });
 
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
@@ -397,7 +397,7 @@ class BursaryController extends Controller
         $transaction->payment_status = 0;
         $transaction->payment_method = 'manual';
         $transaction->session = $validated['session'];
-        $transaction->description = 'manual upload by burser'; // optional column if you want to track
+        $transaction->description = 'manual upload by bursary'; // optional column if you want to track
         $transaction->save();
 
         return redirect()

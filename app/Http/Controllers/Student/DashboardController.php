@@ -47,25 +47,25 @@ class DashboardController extends Controller
                 }
 
                 // 2. ACCEPTANCE PAYMENT - CREATE STUDENT RECORD
-                if ($txn->payment_type === 'acceptance' && ! $user->student) {
+                if ($txn->payment_type === 'acceptance' && !$user->student) {
                     $user = User::find($txn->user_id);
-                    if (! $user->student) {
+                    if (!$user->student) {
                         $newStudent = $studentMigration->migrate($txn->user_id);
                         $user->load('student.department.faculty'); // ✅ RELOAD RELATIONSHIPS
                     }
                 }
                 // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER
-                if ($txn->payment_type === 'tuition' && ! Student::hasMatricNumber()) {
+                if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
                     $student = $user->student;
-                    $year = $year = $student->admission_session;
-                    Log::info('Generating matric number for student ID: '.$student->id);
+                    $year = $student->admission_session;
+                    Log::info('Generating matric number for student ID: ' . $student->id);
                     $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
-                    Log::info('Generated matric number: '.$newMatricNo);
+                    Log::info('Generated matric number: ' . $newMatricNo);
                     $student->update(['matric_no' => $newMatricNo]);
                     $student->user->update(['username' => $newMatricNo]);
                 }
             } catch (\Exception $e) {
-                Log::error("Transaction {$txn->id} processing failed: ".$e->getMessage());
+                Log::error("Transaction {$txn->id} processing failed: " . $e->getMessage());
             }
         }
 
@@ -79,10 +79,10 @@ class DashboardController extends Controller
     {
         $user = Auth::user()->load('student.department.faculty');
         $currentSession = activeSession()->name ?? null;
-        if (! $user->student) {
+        if (!$user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
-        if (! $currentSession) {
+        if (!$currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
         $student = $user->student;
@@ -165,10 +165,10 @@ class DashboardController extends Controller
                 $payment->max_installments = $payment->number_of_instalment ?? count($percentages);
 
                 // Convert cumulative percentages (e.g. [60,100], [33,66,100]) into actual amounts
-                $installmentAmounts = collect($percentages)->map(fn ($percent) => round($payment->amount * ($percent / 100)));
+                $installmentAmounts = collect($percentages)->map(fn($percent) => round($payment->amount * ($percent / 100)));
 
                 // Find remaining payments (any stage above what’s already paid)
-                $remaining = $installmentAmounts->filter(fn ($amt) => $amt > $amountPaid)->values();
+                $remaining = $installmentAmounts->filter(fn($amt) => $amt > $amountPaid)->values();
 
                 $payment->installment_scheme = $remaining->toArray();
             }
@@ -198,7 +198,7 @@ class DashboardController extends Controller
 
         $student = $user->student;
 
-        if (! $student) {
+        if (!$student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -220,7 +220,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
+        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
     }
 
     // ==================== Profile ================================
@@ -242,8 +242,8 @@ class DashboardController extends Controller
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$user->id,
-            'phone' => 'required|string|max:20|unique:users,phone,'.$user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
             'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'date_of_birth' => 'nullable|date',
             'state_of_origin' => 'nullable|string|max:255',
@@ -259,9 +259,9 @@ class DashboardController extends Controller
         // ✅ Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
             $file = $request->file('profile_picture');
-            $filename = uniqid().'.'.$file->getClientOriginalExtension();
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
             $file->storeAs('profile_pictures', $filename, 'public');
-            $user->profile_picture = 'storage/profile_pictures/'.$filename;
+            $user->profile_picture = 'storage/profile_pictures/' . $filename;
         }
 
         // ✅ Update user details
@@ -299,7 +299,7 @@ class DashboardController extends Controller
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (! \Hash::check($request->current_password, $user->password)) {
+        if (!\Hash::check($request->current_password, $user->password)) {
             return redirect()->back()->with('error', 'Current password is incorrect.');
         }
 
@@ -321,7 +321,7 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (! $student) {
+        if (!$student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -337,7 +337,7 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (! $student) {
+        if (!$student) {
             return back()->with('error', 'Student profile not found.');
         }
 
@@ -356,7 +356,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (! $student) {
+        if (!$student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -375,7 +375,7 @@ class DashboardController extends Controller
             ->where('status', 'published');
 
         if ($request->filled('session')) {
-            $query->where('session', $request->session);
+            $query->where('session', $request->input('session'));
         }
 
         if ($request->filled('semester')) {
@@ -400,7 +400,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (! $student) {
+        if (!$student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -424,7 +424,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (! $student) {
+        if (!$student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -440,7 +440,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.transcript-pdf', compact('student', 'resultsBySession', 'cgpa'))
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Transcript_'.$student->first_name.'_'.$student->last_name.'.pdf');
+        return $pdf->download('Transcript_' . $student->first_name . '_' . $student->last_name . '.pdf');
     }
 
     /**

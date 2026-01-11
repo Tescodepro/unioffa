@@ -49,7 +49,7 @@ class Result extends Model
     // Student that owns the result
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(Student::class, 'student_id');
     }
 
     // The course this result belongs to
@@ -86,11 +86,16 @@ class Result extends Model
     {
         $score = $this->total ?? ($this->ca + $this->exam);
 
-        if ($score >= 70) return ['A', 'Excellent'];
-        if ($score >= 60) return ['B', 'Very Good'];
-        if ($score >= 50) return ['C', 'Good'];
-        if ($score >= 45) return ['D', 'Fair'];
-        if ($score >= 40) return ['E', 'Pass'];
+        if ($score >= 70)
+            return ['A', 'Excellent'];
+        if ($score >= 60)
+            return ['B', 'Very Good'];
+        if ($score >= 50)
+            return ['C', 'Good'];
+        if ($score >= 45)
+            return ['D', 'Fair'];
+        if ($score >= 40)
+            return ['E', 'Pass'];
 
         return ['F', 'Fail'];
     }
