@@ -180,7 +180,7 @@
                                                                                                 $installmentNumber =
                                                                                                     $key + 1;
                                                                                             @endphp
-                                                                                            @if ($payment->balance >= $installmentAmount)
+                                                                                            @if($payment->balance >= $installmentAmount)
                                                                                                 <option
                                                                                                     value="{{ $installmentAmount }}">
                                                                                                     {{ number_format($installmentAmount, 2) }}
@@ -188,8 +188,7 @@
                                                                                                     Installment
                                                                                                     {{ $installmentNumber }})
                                                                                                 </option>
-                                                                                                @elseif
-                                                                                                ($installmentAmount == $payment->balance)
+                                                                                            @elseif($installmentAmount == $payment->balance)
                                                                                                 <option
                                                                                                     value="{{ $installmentAmount }}">
                                                                                                     {{ number_format($installmentAmount, 2) }}
