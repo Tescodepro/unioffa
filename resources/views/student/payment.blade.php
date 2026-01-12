@@ -24,11 +24,13 @@
         }
 
         .modal {
-            z-index: 1055 !important; /* Higher than backdrop */
+            z-index: 1055 !important;
+            /* Higher than backdrop */
         }
 
         .modal-dialog {
-            z-index: 1060 !important; /* Even higher */
+            z-index: 1060 !important;
+            /* Even higher */
             position: relative;
         }
 
@@ -114,8 +116,11 @@
                                             <td>{{ number_format($payment->balance, 2) }}</td>
                                             <td>
                                                 @if ($payment->balance > 0)
-                                                    {{-- Check if installments are allowed and limit reached --}}
-                                                    @if ($payment->installmental_allow_status && $payment->installment_count >= $payment->max_installments)
+                                                    {{-- Check if installments are allowed and limit reached (but allow final payment to clear balance) --}}
+                                                    @if (
+                                                        $payment->installmental_allow_status &&
+                                                            $payment->installment_count >= $payment->max_installments &&
+                                                            $payment->balance == $payment->amount)
                                                         <span class="badge bg-danger">Installment Limit Reached</span>
                                                     @else
                                                         {{-- Pay Now Button --}}
@@ -190,9 +195,12 @@
                                                                                                     <option
                                                                                                         value="{{ $installmentAmount }}">
                                                                                                         {{ number_format($installmentAmount, 2) }}
-                                                                                                        (Balance for Installment {{ $installmentNumber }})
+                                                                                                        (Balance for
+                                                                                                        Installment
+                                                                                                        {{ $installmentNumber }})
                                                                                                     </option>
-                                                                                                @elseif ($installmentAmount == $payment->balance)
+                                                                                                    @elseif
+                                                                                                    ($installmentAmount == $payment->balance)
                                                                                                     <option
                                                                                                         value="{{ $installmentAmount }}">
                                                                                                         {{ number_format($installmentAmount, 2) }}
@@ -269,7 +277,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Fix iOS modal backdrop issue
             const modals = document.querySelectorAll('.modal');
-            
+
             modals.forEach(function(modal) {
                 modal.addEventListener('show.bs.modal', function(e) {
                     // Move modal to body end to fix z-index
@@ -277,7 +285,7 @@
                         document.body.appendChild(modal);
                         modal.setAttribute('data-moved', 'true');
                     }
-                    
+
                     // Force backdrop to be behind modal
                     setTimeout(function() {
                         const backdrop = document.querySelector('.modal-backdrop');
