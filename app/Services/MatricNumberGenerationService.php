@@ -18,8 +18,8 @@ class MatricNumberGenerationService
     public function generateIfNeeded(Student $student): bool
     {
         try {
-            // ✅ CHECK IF NEEDS MATRIC (USING YOUR STATIC METHOD)
-            if (Student::hasMatricNumber()) {
+            // ✅ CHECK IF THIS SPECIFIC STUDENT ALREADY HAS A VALID MATRIC NUMBER
+            if (!empty($student->matric_no) && $this->isValidMatricFormat($student->matric_no)) {
                 Log::info("Student {$student->id} already has valid matric: {$student->matric_no}");
                 return false; // Already has valid matric
             }
@@ -32,7 +32,7 @@ class MatricNumberGenerationService
 
             // Extract admission year
             $year = (int) Carbon::parse($student->admission_date)->year;
-            
+
             // Generate new matric number
             $newMatricNo = Student::generateMatricNo(
                 $department->department_code,
@@ -67,6 +67,22 @@ class MatricNumberGenerationService
         ]);
 
         return true;
+    }
+
+    /**
+     * Validate if matric number has correct format
+     * 
+     * @param string $matricNo
+     * @return bool
+     */
+    private function isValidMatricFormat(string $matricNo): bool
+    {
+        // Valid matric pattern examples:
+        // 24/FAS/CSC/001
+        // 25/ENG/DPCSC/112
+        // 23/SCI/TRCSC/005
+        $pattern = '/^\d{2}\/[A-Z]{2,5}\/(T|D|DP|DE|TR)?[A-Z]{2,5}\/\d{3}$/i';
+        return preg_match($pattern, $matricNo) === 1;
     }
 
     /**

@@ -152,17 +152,6 @@ class PaymentController extends Controller
             if (in_array($paymentType, ['accommodation', 'hostel', 'maintenance'])) {
                 $backRoute = route('students.hostel.index');
             } else {
-                if ($paymentType == 'tuition' && !Student::hasMatricNumber()) {
-                    $user = $transaction->user; // Already authenticated!
-                    $student = $user->student;
-                    if ($student) {
-                        $year = $year = $student->admission_session;
-                        $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
-                        $student->update(['matric_no' => $newMatricNo]);
-                        $student->user->update(['username' => $newMatricNo]);
-                    }
-                }
-
                 $backRoute = route('students.load_payment');
             }
         }
@@ -171,6 +160,19 @@ class PaymentController extends Controller
 
             if ($transaction) {
                 $transaction->update(['payment_status' => 1]); // success
+            }
+
+            // ✅ GENERATE MATRIC ONLY IF PAYMENT IS SUCCESSFUL
+            if ($paymentType == 'tuition') {
+                $user = $transaction->user;
+                $student = $user->student;
+                if ($student) {
+                    $matricService = new MatricNumberGenerationService();
+                    $generated = $matricService->generateIfNeeded($student);
+                    if ($generated) {
+                        Log::info("Matric number generated for student {$student->id} after tuition payment");
+                    }
+                }
             }
 
             return view('payment-status-page', compact('paymentType', 'transaction', 'backRoute'))->with('success', 'Payment successful');
@@ -301,7 +303,7 @@ class PaymentController extends Controller
             ->where('payment_status', 1) // only successful payments
             ->first();
 
-        if (! $transaction) {
+        if (!$transaction) {
             return redirect()->back()->with('error', 'Transaction not found or not successful.');
         }
 
@@ -324,7 +326,7 @@ class PaymentController extends Controller
             ->with('user.student.department')
             ->first();
 
-        if (! $transaction) {
+        if (!$transaction) {
             return view('verify-receipt', [
                 'transaction' => null,
                 'ref' => $ref,
@@ -341,7 +343,7 @@ class PaymentController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (! $student) {
+        if (!$student) {
             return back()->with('error', 'Student profile not found.');
         }
 

@@ -54,15 +54,19 @@ class DashboardController extends Controller
                         $user->load('student.department.faculty'); // ✅ RELOAD RELATIONSHIPS
                     }
                 }
-                // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER
-                if ($txn->payment_type === 'tuition' && !Student::hasMatricNumber()) {
+
+                // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER IF VERIFIED AND STUDENT HAS NO VALID MATRIC
+                if ($txn->payment_type === 'tuition' && $txn->payment_status === 1) {
                     $student = $user->student;
-                    $year = $student->admission_session;
-                    Log::info('Generating matric number for student ID: ' . $student->id);
-                    $newMatricNo = Student::generateMatricNo($student->department->department_code, $year, $student->entry_mode);
-                    Log::info('Generated matric number: ' . $newMatricNo);
-                    $student->update(['matric_no' => $newMatricNo]);
-                    $student->user->update(['username' => $newMatricNo]);
+                    if ($student) {
+                        $generated = $matricService->generateIfNeeded($student);
+                        if ($generated) {
+                            Log::info("Matric number generated for student {$student->id} from dashboard verification");
+                            // Reload student to get updated matric number
+                            $student->refresh();
+                            $user->load('student.department.faculty');
+                        }
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error("Transaction {$txn->id} processing failed: " . $e->getMessage());
@@ -71,7 +75,6 @@ class DashboardController extends Controller
 
         // ✅ FINAL RELOAD - Ensure dashboard has latest data
         $user->load('student.department.faculty');
-
         return view('student.dashboard', compact('user'));
     }
 
