@@ -16,8 +16,34 @@ class CourseRegistrationController extends Controller
     {
         $user = Auth::user()->load('student.department.faculty');
         $student = $user->student;
+
+        if (!$student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        // Check payment status first
+        $paymentStatusService = new PaymentStatusService;
+        $payment_status = [
+            'status' => $paymentStatusService->getStatus($student, activeSession()->name),
+            'allCleared' => $paymentStatusService->hasClearedAll($student, activeSession()->name),
+            'outstanding' => $paymentStatusService->getTotalOutstanding($student, activeSession()->name),
+        ];
+
+        // If payment not cleared, don't allow course registration
+        if (!$payment_status['allCleared']) {
+            return view('student.course-registration', [
+                'courses' => collect(),
+                'registrations' => collect(),
+                'registeredCourses' => collect(),
+                'payment_status' => $payment_status,
+                'error' => 'You must clear all outstanding payments before registering courses.',
+            ]);
+        }
+
         $departmentId = $student->department_id;
         $level = $student->level;
+        $currentSession = activeSession()->name;
+        $currentSemester = activeSemester()->code;
 
         // Load available courses
         $courses = Course::where('active_for_register', 1)
@@ -28,28 +54,20 @@ class CourseRegistrationController extends Controller
             })
             ->get();
 
-        // Search filter for registered courses
+        // Get all registrations for search
         $query = CourseRegistration::where('student_id', $user->id);
         if ($request->has('search')) {
             $query->where('course_title', 'like', '%' . $request->search . '%')
                 ->orWhere('course_code', 'like', '%' . $request->search . '%');
         }
-
         $registrations = $query->with('course', 'session', 'semester')->get();
 
+        // Get registered courses for current session/semester only
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
-            ->where('session', activeSession()->name ?? null)
-            ->where('semester', activeSemester()->code ?? null)
+            ->where('session', $currentSession)
+            ->where('semester', $currentSemester)
             ->get();
-
-        // Check payment status and update course registrations accordingly
-        $paymentStatusService = new PaymentStatusService;
-        $payment_status = [
-            'status' => $paymentStatusService->getStatus($student, activeSession()->name),
-            'allCleared' => $paymentStatusService->hasClearedAll($student, activeSession()->name),
-            'outstanding' => $paymentStatusService->getTotalOutstanding($student, activeSession()->name),
-        ];
 
         return view('student.course-registration', compact('courses', 'registrations', 'registeredCourses', 'payment_status'));
     }
@@ -57,36 +75,62 @@ class CourseRegistrationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'courses' => 'required|array',
+            'courses' => 'required|array|min:1',
+            'courses.*' => 'integer|exists:courses,id',
         ]);
 
-        $student = Auth::user();
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        // Check payment status before allowing registration
+        $paymentStatusService = new PaymentStatusService;
+        if (!$paymentStatusService->hasClearedAll($student, activeSession()->name)) {
+            return redirect()->back()->with('error', 'You must clear all outstanding payments before registering courses.');
+        }
+
+        $currentSession = activeSession()->name;
+        $currentSemester = activeSemester()->code;
+        $successCount = 0;
 
         foreach ($request->courses as $courseId) {
             $course = Course::findOrFail($courseId);
 
+            // Verify course belongs to student's department/level
+            if ($course->level != $student->level) {
+                continue; // Skip if course is not for student's level
+            }
+
             // Prevent duplicate registration
-            $exists = CourseRegistration::where('student_id', $student->id)
+            $exists = CourseRegistration::where('student_id', $user->id)
                 ->where('course_id', $course->id)
-                ->where('session', activeSession()->name)
-                ->where('semester', activeSemester()->code)
+                ->where('session', $currentSession)
+                ->where('semester', $currentSemester)
                 ->exists();
 
             if (!$exists) {
                 CourseRegistration::create([
-                    'student_id' => $student->id,
+                    'student_id' => $user->id,
                     'course_id' => $course->id,
                     'course_code' => $course->course_code,
                     'course_title' => $course->course_title,
                     'course_unit' => $course->course_unit,
-                    'session' => activeSession()->name,
-                    'semester' => activeSemester()->code,
+                    'session' => $currentSession,
+                    'semester' => $currentSemester,
                     'status' => 'pending',
                 ]);
+                $successCount++;
             }
         }
 
-        return redirect()->back()->with('success', 'Selected courses registered successfully.');
+        if ($successCount > 0) {
+            return redirect()->back()->with('success', "{$successCount} course(s) registered successfully.");
+        }
+
+        return redirect()->back()->with('info', 'No new courses were registered (all may already be registered).');
     }
 
     public function approve($id)
@@ -108,8 +152,11 @@ class CourseRegistrationController extends Controller
     public function downloadCourseForm()
     {
         $user = Auth::user();
-        $student = Student::where('user_id', $user->id)->with('department')->first();
+        $student = $user->student;
 
+        if (!$student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
+        }
 
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
@@ -125,7 +172,7 @@ class CourseRegistrationController extends Controller
             'semester' => activeSemester(),
         ]);
 
-        return $pdf->download('course_form_' . $student->full_name . '.pdf');
+        return $pdf->download('course_form_' . $student->first_name . '_' . $student->last_name . '.pdf');
     }
 
     public function removeCourse($id)
