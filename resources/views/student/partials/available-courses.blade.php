@@ -73,7 +73,7 @@
 <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
         <h4 class="mb-3">Registered Courses</h4>
-        <a href="{{ route('students.course.download') }}" class="btn btn-primary btn-icon mb-4" target="_blank">
+        <a href="{{ route('students.course.download') }}" class="btn btn-primary mb-4" target="_blank">
             <i class="ti ti-printer me-2"></i> Download Course Form
         </a>
     </div>
