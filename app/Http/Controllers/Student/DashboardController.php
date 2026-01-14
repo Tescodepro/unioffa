@@ -95,7 +95,7 @@ class DashboardController extends Controller
         // ✅ 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
             ->where('session', $currentSession) // session must always match
-            ->when($student->entry_mode === 'TRANSFER', function ($query) {
+            ->when($student->entry_mode == 'TRANSFER', function ($query) {
                 $query->where('payment_type', '!=', 'matriculation');
             })
             ->when($student->programme, function ($q) use ($student) {
@@ -136,10 +136,10 @@ class DashboardController extends Controller
                 $q->whereNull('matric_number')
                     ->orWhere('matric_number', $student->matric_no);
             })
-            ->where(function ($q) use ($student) {
-                $q->whereNull('entry_mode')
-                    ->orWhere('entry_mode', $student->entry_mode);
-            })
+            // ->where(function ($q) use ($student) {
+            //     $q->whereNull('entry_mode')
+            //         ->orWhere('entry_mode', $student->entry_mode);
+            // })
             ->get();
 
         if ($paymentSettings->isEmpty()) {

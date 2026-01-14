@@ -122,6 +122,7 @@ Route::prefix('students')->group(function () {
         Route::controller(CourseRegistrationController::class)->group(function () {
             Route::get('/course-registration', 'index')->name('students.course.registration');
             Route::post('course-registration', 'store');
+            Route::delete('course-registration/{id}', 'removeCourse')->name('students.course.remove');
             Route::get('course-registration/download', 'downloadCourseForm')->name('students.course.download');
         });
 

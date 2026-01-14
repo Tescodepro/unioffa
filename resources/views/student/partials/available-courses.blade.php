@@ -67,8 +67,7 @@
 <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
         <h4 class="mb-3">Registered Courses</h4>
-        <a href="{{ route('students.course.download') }}" class="btn btn-primary btn-icon mb-4"
-            target="_blank">
+        <a href="{{ route('students.course.download') }}" class="btn btn-primary btn-icon mb-4" target="_blank">
             <i class="ti ti-printer me-2"></i> Download Course Form
         </a>
     </div>
@@ -82,6 +81,7 @@
                         <th>Unit</th>
                         <th>Status</th>
                         <th>Semester</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -92,16 +92,27 @@
                             <td>{{ $course->course->course_unit }}</td>
                             <td>{{ $course->course->course_status ?? 'N/A' }}</td>
                             <td>
-                                    @if ($course->semester == '1st')
-                                        First Semester
-                                    @else
-                                        Second Semester
-                                    @endif
-                                </td>
+                                @if ($course->semester == '1st')
+                                    First Semester
+                                @else
+                                    Second Semester
+                                @endif
+                            </td>
+                            <td>
+                                <form action="{{ route('students.course.remove', $course->id) }}" method="POST"
+                                    style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Are you sure you want to remove this course?');">
+                                        <i class="ti ti-trash me-1"></i> Remove
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">
+                            <td colspan="6" class="text-center text-muted">
                                 You have not registered any course yet.
                             </td>
                         </tr>

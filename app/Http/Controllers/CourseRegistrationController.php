@@ -31,8 +31,8 @@ class CourseRegistrationController extends Controller
         // Search filter for registered courses
         $query = CourseRegistration::where('student_id', $user->id);
         if ($request->has('search')) {
-            $query->where('course_title', 'like', '%'.$request->search.'%')
-                ->orWhere('course_code', 'like', '%'.$request->search.'%');
+            $query->where('course_title', 'like', '%' . $request->search . '%')
+                ->orWhere('course_code', 'like', '%' . $request->search . '%');
         }
 
         $registrations = $query->with('course', 'session', 'semester')->get();
@@ -72,7 +72,7 @@ class CourseRegistrationController extends Controller
                 ->where('semester', activeSemester()->code)
                 ->exists();
 
-            if (! $exists) {
+            if (!$exists) {
                 CourseRegistration::create([
                     'student_id' => $student->id,
                     'course_id' => $course->id,
@@ -109,7 +109,7 @@ class CourseRegistrationController extends Controller
     {
         $user = Auth::user();
         $student = Student::where('user_id', $user->id)->with('department')->first();
-        
+
 
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
@@ -125,6 +125,21 @@ class CourseRegistrationController extends Controller
             'semester' => activeSemester(),
         ]);
 
-        return $pdf->download('course_form_'.$student->full_name.'.pdf');
+        return $pdf->download('course_form_' . $student->full_name . '.pdf');
+    }
+
+    public function removeCourse($id)
+    {
+        $registration = CourseRegistration::findOrFail($id);
+
+        // Verify the course belongs to the authenticated student
+        if ($registration->student_id !== Auth::id()) {
+            return redirect()->back()->with('error', 'Unauthorized access.');
+        }
+
+        $courseName = $registration->course->course_code;
+        $registration->delete();
+
+        return redirect()->back()->with('success', "Course {$courseName} has been removed successfully.");
     }
 }
