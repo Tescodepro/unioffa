@@ -22,6 +22,9 @@ class PaymentStatusService
         }
         $paymentSettings = PaymentSetting::query()
             ->where('student_type', $student->programme)
+             ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
+                $query->where('payment_type', '!=', 'matriculation');
+            })
             ->whereJsonContains('level', (int) $student->level)
             ->where('session', $session)
             ->when($student->department?->faculty_id, function ($q) use ($student) {
