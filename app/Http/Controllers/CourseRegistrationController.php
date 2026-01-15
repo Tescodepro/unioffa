@@ -42,13 +42,16 @@ class CourseRegistrationController extends Controller
 
         $departmentId = $student->department_id;
         $level = $student->level;
+        if (($student->entry_mode == 'DE' or $student->entry_mode == 'TRANSFER') and $student->admission_session == activeSession()->name) {
+            $level = 200;
+        }
         $currentSession = activeSession()->name;
         $currentSemester = activeSemester()->code;
 
         // Load available courses
+        // dd($level);
         $courses = Course::where('active_for_register', 1)
             ->where('level', $level)
-            
             ->where(function ($query) use ($departmentId) {
                 $query->where('department_id', $departmentId)
                     ->orWhereJsonContains('other_departments', $departmentId);
