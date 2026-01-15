@@ -155,7 +155,7 @@
                 @endif
 
                 <!-- ICT AND ADMINISTRATOR ONLY MENUS -->
-                @if (in_array(auth()->user()->userType->name, ['ict', 'administrator']))
+                @if (in_array(auth()->user()->userType->name, ['ict', 'vice-chancellor', 'registrar']))
                     <!-- STUDENT MANAGEMENT -->
                     <li class="{{ openMenuClass('staff/ict/students*') }}">
                         <h6 class="submenu-hdr"><span>Student Management</span></h6>
