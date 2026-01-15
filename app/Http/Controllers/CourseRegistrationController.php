@@ -48,6 +48,7 @@ class CourseRegistrationController extends Controller
         // Load available courses
         $courses = Course::where('active_for_register', 1)
             ->where('level', $level)
+            
             ->where(function ($query) use ($departmentId) {
                 $query->where('department_id', $departmentId)
                     ->orWhereJsonContains('other_departments', $departmentId);

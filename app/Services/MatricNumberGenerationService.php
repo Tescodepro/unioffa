@@ -30,8 +30,9 @@ class MatricNumberGenerationService
                 return false;
             }
 
-            // Extract admission year
-            $year = (int) Carbon::parse($student->admission_date)->year;
+            
+            // Extract year from session format (e.g., "2024/2025" -> 24)
+            $year = (int) explode('/', $student->admission_session)[0];
 
             // Generate new matric number
             $newMatricNo = Student::generateMatricNo(
@@ -94,8 +95,10 @@ class MatricNumberGenerationService
     public function generateForUser(string $userId): int
     {
         $students = Student::where('user_id', $userId)
-            ->whereNull('matric_no')
-            ->orWhereRaw("matric_no LIKE 'UOO/APP/%'")
+            ->where(function ($query) {
+                $query->whereNull('matric_no')
+                    ->orWhereRaw("matric_no LIKE 'UOO/APP/%'");
+            })
             ->get();
 
         $updated = 0;

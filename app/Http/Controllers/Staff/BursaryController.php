@@ -37,8 +37,6 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-
-                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
                             ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             })
@@ -51,8 +49,6 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-
-                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
                             ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             })
@@ -72,8 +68,6 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-
-                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
                             ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             });
@@ -113,8 +107,6 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-
-                            ->whereNotBetween('created_at', ['2025-12-15', '2025-12-20'])
                             ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
                     });
             });

@@ -47,7 +47,7 @@ class DashboardController extends Controller
                 }
 
                 // 2. ACCEPTANCE PAYMENT - CREATE STUDENT RECORD
-                if ($txn->payment_type === 'acceptance' && !$user->student) {
+                if ($txn->payment_type == 'acceptance' && !$user->student) {
                     $user = User::find($txn->user_id);
                     if (!$user->student) {
                         $newStudent = $studentMigration->migrate($txn->user_id);
@@ -56,7 +56,7 @@ class DashboardController extends Controller
                 }
 
                 // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER IF VERIFIED AND STUDENT HAS NO VALID MATRIC
-                if ($txn->payment_type === 'tuition' && $txn->payment_status === 1) {
+                if ($txn->payment_type == 'tuition' && $txn->payment_status == 1) {
                     $student = $user->student;
                     if ($student) {
                         $generated = $matricService->generateIfNeeded($student);
