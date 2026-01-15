@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Application\ApplicationController;
+use App\Http\Controllers\Application\AdmittedStudentsDownloadController;
 use App\Http\Controllers\CourseRegistrationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PaymentController;
@@ -151,6 +152,34 @@ Route::prefix('staff')->group(function () {
             Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admin.applicants.details');
             Route::get('/agent-applicants', 'showAgentDetail')->name('admin.agent.applicants');
             Route::post('/agent-applicants/update-status', 'changeAgentStatus')->name('admin.agent.application.update_status');
+        });
+
+        // Admitted Students Download Routes
+        Route::controller(AdmittedStudentsDownloadController::class)->group(function () {
+            Route::get('/admitted-students', 'index')->name('admitted-students.index');
+            Route::post('/admitted-students/download', 'download')->name('admitted-students.download');
+        });
+    });
+
+    // VC, ICT, and Registrar access to admitted students download
+    Route::middleware('user.type:vice-chancellor')->group(function () {
+        Route::controller(AdmittedStudentsDownloadController::class)->group(function () {
+            Route::get('/admitted-students', 'index')->name('admitted-students.index');
+            Route::post('/admitted-students/download', 'download')->name('admitted-students.download');
+        });
+    });
+
+    Route::middleware('user.type:ict')->group(function () {
+        Route::controller(AdmittedStudentsDownloadController::class)->group(function () {
+            Route::get('/admitted-students', 'index')->name('admitted-students.index');
+            Route::post('/admitted-students/download', 'download')->name('admitted-students.download');
+        });
+    });
+
+    Route::middleware('user.type:registrar')->group(function () {
+        Route::controller(AdmittedStudentsDownloadController::class)->group(function () {
+            Route::get('/admitted-students', 'index')->name('admitted-students.index');
+            Route::post('/admitted-students/download', 'download')->name('admitted-students.download');
         });
     });
 

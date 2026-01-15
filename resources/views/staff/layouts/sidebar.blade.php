@@ -181,6 +181,13 @@
                                     <span>Bulk Upload</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="{{ route('admitted-students.index') }}"
+                                    class="{{ activeClass('admitted-students.index') }}">
+                                    <i class="ti ti-download"></i>
+                                    <span>Download Admitted Students</span>
+                                </a>
+                            </li>
                         </ul>
                     </li>
 
