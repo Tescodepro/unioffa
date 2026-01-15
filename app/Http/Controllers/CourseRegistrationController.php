@@ -77,7 +77,7 @@ class CourseRegistrationController extends Controller
     {
         $request->validate([
             'courses' => 'required|array|min:1',
-            'courses.*' => 'integer|exists:courses,id',
+            'courses.*' => 'exists:courses,id',
         ]);
 
         $user = Auth::user();
