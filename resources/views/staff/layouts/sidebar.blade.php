@@ -161,8 +161,7 @@
                         <h6 class="submenu-hdr"><span>Student Management</span></h6>
                         <ul>
                             <li>
-                                <a href="{{ route('ict.students.index') }}"
-                                    class="{{ activeClass('ict.students.index') }}">
+                                <a href="{{ route('ict.students.index') }}" class="{{ activeClass('ict.students.index') }}">
                                     <i class="ti ti-users"></i>
                                     <span>All Students</span>
                                 </a>
@@ -175,8 +174,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('ict.students.bulk') }}"
-                                    class="{{ activeClass('ict.students.bulk') }}">
+                                <a href="{{ route('ict.students.bulk') }}" class="{{ activeClass('ict.students.bulk') }}">
                                     <i class="ti ti-upload"></i>
                                     <span>Bulk Upload</span>
                                 </a>
@@ -212,7 +210,7 @@
                         <h6 class="submenu-hdr"><span>Website Management</span></h6>
                         <ul>
                             <li>
-                                <a href="{{ route('news.index') }}" class="{{ activeClass('news.index') }}">
+                                <a href="{{ route('ict.news.index') }}" class="{{ activeClass('ict.news.index') }}">
                                     <i class="ti ti-news"></i>
                                     <span>News</span>
                                 </a>
@@ -229,8 +227,7 @@
                         <ul>
                             @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
                                 <li>
-                                    <a href="{{ route('burser.dashboard') }}"
-                                        class="{{ activeClass('burser.dashboard') }}">
+                                    <a href="{{ route('burser.dashboard') }}" class="{{ activeClass('burser.dashboard') }}">
                                         <i class="ti ti-chart-line"></i>
                                         <span>Payment Summary</span>
                                     </a>

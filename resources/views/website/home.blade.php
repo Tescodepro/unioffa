@@ -282,7 +282,7 @@
                     <div class="col-lg-4">
                         <div class="choose-img wow fadeInRight" data-wow-delay=".25s">
                             <img src="{{ asset('assets/img/choose/faculty.png') }}" alt="University Faculties"
-                                loading="lazy">
+                                loading="lazy" width="500" height="500">
                         </div>
                     </div>
                 </div>
@@ -456,62 +456,6 @@
             </div>
         </div>
         <!-- department area end -->
-
-        <!-- event area -->
-        <div class="event-area py-120">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-6 mx-auto">
-                        <div class="site-heading text-center">
-                            <span class="site-title-tagline"><i class="far fa-book-open-reader"></i> Events</span>
-                            <h2 class="site-title">Our Upcoming <span>Events</span></h2>
-                            <p>Stay updated with upcoming academic and extracurricular events at the University of Offa.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    @forelse($events as $event)
-                        <div class="col-lg-4">
-                            <div class="event-item wow fadeInUp" data-wow-delay=".25s">
-                                <div class="event-location">
-                                    <span><i class="far fa-map-marker-alt"></i> {{ $event->location }}</span>
-                                </div>
-                                <div class="event-img">
-                                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}">
-                                </div>
-                                <div class="event-info">
-                                    <div class="event-meta">
-                                        <span class="event-date"><i class="far fa-calendar-alt"></i>
-                                            {{ \Carbon\Carbon::parse($event->date)->format('d M, Y') }}
-                                        </span>
-                                        <span class="event-time"><i class="far fa-clock"></i>
-                                            {{ $event->time }}
-                                        </span>
-                                    </div>
-                                    <h4 class="event-title"><a
-                                            href="{{ route('events.show', $event->id) }}">{{ $event->title }}</a></h4>
-                                    <p>{{ Str::limit($event->description, 100) }}</p>
-                                    <div class="event-btn">
-                                        <a href="{{ route('events.show', $event->id) }}" class="theme-btn">Join
-                                            Event<i class="fas fa-arrow-right-long"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="col-lg-12">
-                            <div class="text-center py-5">
-                                <h4>No upcoming events at the moment.</h4>
-                                <p>Please check back later for updates.</p>
-                            </div>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
-        <!-- event area end -->
 
         <!-- gallery-area -->
         <!-- <div class="gallery-area py-120">

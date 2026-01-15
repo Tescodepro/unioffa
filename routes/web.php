@@ -30,10 +30,14 @@ RouteServiceProvider within a group which contains the "web" middleware group. N
 
 */
 
+// Public News Route (no auth required)
+Route::get('/news/{news}', [NewsController::class, 'show'])->name('news.show');
+
 Route::controller(GeneralController::class)->group(function () {
     // General Pages
     Route::get('/', 'home')->name('home');
     Route::get('/contact', 'contact')->name('contact');
+    Route::get('/news', 'blog')->name('blog');
 
     // Applications
     Route::get('/agent-application', 'agentApplication')->name('agent.application');
@@ -292,7 +296,7 @@ Route::prefix('staff')->group(function () {
             Route::get('/users', 'getAllUsers')->name('ict.staff.users.index');
             Route::post('/users', 'storeUsers');
             Route::post('users/{id}', 'updateUsers')->name('ict.staff.users.update');
-            Route::resource('news', NewsController::class);
+            Route::resource('news', NewsController::class)->names('ict.news');
 
         });
     });

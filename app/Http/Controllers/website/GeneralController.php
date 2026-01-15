@@ -34,6 +34,16 @@ class GeneralController extends Controller
         return view('website.contact', compact('title'));
     }
 
+    public function blog()
+    {
+        $title = 'News & Blog';
+        $news = News::where('is_active', true)
+            ->latest()
+            ->paginate(9);
+
+        return view('website.blog', compact('title', 'news'));
+    }
+
     public function agentApplication()
     {
         $title = 'Agent Application Form';
