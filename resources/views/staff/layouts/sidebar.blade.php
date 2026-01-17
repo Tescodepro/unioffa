@@ -262,6 +262,43 @@
                         </ul>
                     </li>
 
+                    {{-- REPORTS --}}
+                    @if (in_array(auth()->user()->userType->name, ['bursary', 'vice-chancellor']))
+                        <li class="{{ openMenuClass('staff/burser/reports*') }}">
+                            <h6 class="submenu-hdr"><span>Reports</span></h6>
+                            <ul>
+                                <li>
+                                    <a href="{{ route('bursary.reports.faculty') }}"
+                                        class="{{ activeClass('bursary.reports.faculty') }}">
+                                        <i class="ti ti-building"></i>
+                                        <span>By Faculty</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('bursary.reports.department') }}"
+                                        class="{{ activeClass('bursary.reports.department') }}">
+                                        <i class="ti ti-category"></i>
+                                        <span>By Department</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('bursary.reports.level') }}"
+                                        class="{{ activeClass('bursary.reports.level') }}">
+                                        <i class="ti ti-stack"></i>
+                                        <span>By Level</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('bursary.reports.student') }}"
+                                        class="{{ activeClass('bursary.reports.student') }}">
+                                        <i class="ti ti-user"></i>
+                                        <span>By Student</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endif
+
                     {{-- PAYMENT SETTINGS --}}
                     <li class="{{ openMenuClass('staff/bursary/payment-settings*') }}">
                         <h6 class="submenu-hdr"><span>Payment Settings</span></h6>

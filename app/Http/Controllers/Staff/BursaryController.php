@@ -37,7 +37,7 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+                            ->whereRaw("created_at NOT BETWEEN '2026-01-09' AND '2026-01-18'");
                     });
             })
             ->groupBy('payment_type')
@@ -49,7 +49,7 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+                            ->whereRaw("created_at NOT BETWEEN '2026-01-09' AND '2026-01-18'");
                     });
             })
             ->orderBy('created_at', 'desc')
@@ -68,7 +68,7 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+                            ->whereRaw("created_at NOT BETWEEN '2026-01-09' AND '2026-01-18'");
                     });
             });
 
@@ -107,7 +107,7 @@ class BursaryController extends Controller
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
                         $tq->where('payment_type', 'technical')
-                            ->whereNotBetween('created_at', ['2026-01-09', '2026-01-18']);
+                            ->whereRaw("created_at NOT BETWEEN '2026-01-09' AND '2026-01-18'");
                     });
             });
 
@@ -251,7 +251,7 @@ class BursaryController extends Controller
                 }
             }
 
-            $totalReceived = $transactions->where('status', 'success')->sum('amount');
+            $totalReceived = $transactions->where('payment_status', 1)->sum('amount');
             $totalTransactions = $transactions->count();
             $expected = PaymentSetting::where('faculty_id', $faculty->id)->sum('amount');
 
@@ -280,12 +280,12 @@ class BursaryController extends Controller
                 }
             }
 
-            $totalReceived = $transactions->where('status', 'success')->sum('amount');
+            $totalReceived = $transactions->where('payment_status', 1)->sum('amount');
             $totalTransactions = $transactions->count();
             $expected = PaymentSetting::where('department_id', $dept->id)->sum('amount');
 
             return [
-                'faculty' => $dept->faculty->faculty_code ?? '',
+                'faculty' => $dept->faculty?->faculty_code ?? 'N/A',
                 'department' => $dept->department_code ?? $dept->name,
                 'total_transactions' => $totalTransactions,
                 'expected' => $expected,
@@ -311,7 +311,7 @@ class BursaryController extends Controller
             foreach ($levelsArray as $level) {
                 $expected = PaymentSetting::whereJsonContains('level', $level)->sum('amount');
                 $received = Transaction::where('level', $level)
-                    ->where('status', 'success')
+                    ->where('payment_status', 1)
                     ->sum('amount');
 
                 $data[] = [
@@ -335,14 +335,14 @@ class BursaryController extends Controller
 
         $data = $transactions->map(function ($txn) {
             return [
-                'student_name' => $txn->user->name ?? 'N/A',
-                'matric_number' => $txn->user->student->matric_number ?? 'N/A',
-                'faculty' => $txn->user->student->department->faculty->faculty_code ?? 'N/A',
-                'department' => $txn->user->student->department->department_code ?? 'N/A',
+                'student_name' => $txn->user?->full_name ?? 'N/A',
+                'matric_number' => $txn->user?->student?->matric_number ?? 'N/A',
+                'faculty' => $txn->user?->student?->department?->faculty?->faculty_code ?? 'N/A',
+                'department' => $txn->user?->student?->department?->department_code ?? 'N/A',
                 'amount' => $txn->amount,
-                'status' => ucfirst($txn->status),
-                'reference' => $txn->reference_number,
-                'date' => $txn->created_at->format('Y-m-d'),
+                'status' => ucfirst($txn->status ?? 'unknown'),
+                'reference' => $txn->refernce_number,
+                'date' => $txn->created_at?->format('Y-m-d') ?? 'N/A',
             ];
         });
 
