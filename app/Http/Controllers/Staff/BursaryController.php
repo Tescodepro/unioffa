@@ -326,9 +326,13 @@ class BursaryController extends Controller
                 $processedLevels[] = $level;
 
                 $expected = PaymentSetting::whereJsonContains('level', $level)->sum('amount');
-                $received = Transaction::where('level', $level)
-                    ->where('payment_status', 1)
-                    ->sum('amount');
+
+                // Get received amount by joining transactions with users and students
+                $received = Transaction::join('users', 'transactions.user_id', '=', 'users.id')
+                    ->join('students', 'students.user_id', '=', 'users.id')
+                    ->where('students.level', $level)
+                    ->where('transactions.payment_status', 1)
+                    ->sum('transactions.amount');
 
                 $data[] = [
                     'level' => $level,
