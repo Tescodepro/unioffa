@@ -302,13 +302,29 @@ class BursaryController extends Controller
     {
         $levels = PaymentSetting::select('level')->distinct()->pluck('level');
         $data = [];
+        $processedLevels = []; // Track processed levels to avoid duplicates
 
-        foreach ($levels as $levelsJson) {
-            $levelsArray = json_decode($levelsJson, true);
-            if (!is_array($levelsArray))
+        foreach ($levels as $levelData) {
+            // Handle both array (from model casting) and JSON string
+            if (is_array($levelData)) {
+                $levelsArray = $levelData;
+            } elseif (is_string($levelData)) {
+                $levelsArray = json_decode($levelData, true);
+            } else {
                 continue;
+            }
+
+            if (!is_array($levelsArray)) {
+                continue;
+            }
 
             foreach ($levelsArray as $level) {
+                // Skip if we've already processed this level
+                if (in_array($level, $processedLevels)) {
+                    continue;
+                }
+                $processedLevels[] = $level;
+
                 $expected = PaymentSetting::whereJsonContains('level', $level)->sum('amount');
                 $received = Transaction::where('level', $level)
                     ->where('payment_status', 1)
