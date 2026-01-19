@@ -53,7 +53,7 @@
                             <div class="col-md-6">
                                 <label class="form-label">Matric Number</label>
                                 <input type="text" name="matric_no" class="form-control" 
-                                    value="{{ old('matric_no', $student->matric_no) }}" required>
+                                    value="{{ old('matric_no', $student->matric_no) }}" required readonly>
                             </div>
 
                             <div class="col-md-6">
