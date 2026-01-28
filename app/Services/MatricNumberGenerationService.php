@@ -19,7 +19,7 @@ class MatricNumberGenerationService
     {
         try {
             // ✅ CHECK IF THIS SPECIFIC STUDENT ALREADY HAS A VALID MATRIC NUMBER
-            if (!empty($student->matric_no) && $this->isValidMatricFormat($student->matric_no)) {
+            if ($student->hasMatricNumber()) {
                 Log::info("Student {$student->id} already has valid matric: {$student->matric_no}");
                 return false; // Already has valid matric
             }
@@ -30,7 +30,7 @@ class MatricNumberGenerationService
                 return false;
             }
 
-            
+
             // Extract year from session format (e.g., "2024/2025" -> 24)
             $year = (int) explode('/', $student->admission_session)[0];
 
