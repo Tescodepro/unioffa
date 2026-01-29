@@ -42,9 +42,9 @@ class CourseRegistrationController extends Controller
 
         $departmentId = $student->department_id;
         $level = $student->level;
-        if (($student->entry_mode == 'DE' or $student->entry_mode == 'TRANSFER') and $student->admission_session == activeSession()->name) {
-            $level = 200;
-        }
+        // if (($student->entry_mode == 'DE' or $student->entry_mode == 'TRANSFER') and $student->admission_session == activeSession()->name) {
+        //     $level = 200;
+        // }
         $currentSession = activeSession()->name;
         $currentSemester = activeSemester()->code;
 
