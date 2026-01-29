@@ -10,12 +10,15 @@ jobs:
     name: FTP-Deploy-Action
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2.1.0
+    - name: Checkout Code
+      uses: actions/checkout@v4 # Updated to v4 to fix save-state warnings
       with:
         fetch-depth: 2 
     
     - name: Build assets
-      run: npm install && npm run build
+      run: |
+        npm install
+        npm run build
 
     - name: Install PHP and Composer
       uses: shivammathur/setup-php@v2
@@ -32,6 +35,15 @@ jobs:
         server: ${{ secrets.SERVER }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
-        # ADD THESE LINES TO SPECIFY THE DEPLOYMENT LOCATION:
-        local-dir: ./ # The local directory to upload (usually your project root)
-        server-dir: /public_html/ # The remote directory on your server
+        local-dir: ./ 
+        server-dir: /public_html/
+        # Exclude files that shouldn't be overwritten or uploaded
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          .env
+          storage/*.key
+          vendor/laravel/framework/src/Illuminate/Routing/RouteCollection.php 
+          # Note: We exclude the specific problematic file briefly if it's locked, 
+          # but generally, the exclude list above is standard.
