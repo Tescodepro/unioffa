@@ -36,7 +36,8 @@
                         </div>
                         <br>
                         <div class="bg-light p-3 rounded shadow-sm">
-                            <p class="mb-1"><strong>Current Session:</strong> {{ activeSession()->name ?? 'No active session' }}
+                            <p class="mb-1"><strong>Current Session:</strong>
+                                {{ activeSession()->name ?? 'No active session' }}
                             </p>
                             <p class="mb-0"><strong>Current Semester:</strong>
                                 {{ activeSemester()->name ?? 'No active semester' }}</p>
@@ -47,7 +48,7 @@
 
                 @include('layouts.flash-message')
 
-                @if ( !$payment_status['allCleared'] && (isset($payment_status['tuition']) && $payment_status['tuition']['percentage_paid'] >= 60 && strtolower($current_semester) === '1st'))
+                @if (!$payment_status['allCleared'] && (isset($payment_status['tuition']) && $payment_status['tuition']['percentage_paid'] >= 60 && strtolower($current_semester) === '1st'))
                     {{-- Tuition ≥ 60% and it’s first semester --}}
                     @include('student.partials.available-courses')
 
@@ -71,10 +72,10 @@
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
     <script>
-        $(document).ready(function() {
-            $('.datatable').DataTable();
+        $(document).ready(function () {
+            // $('.datatable').DataTable(); // Removed to prevent double initialization conflict with available-courses.blade.php
 
-            $('#select-all').on('click', function() {
+            $('#select-all').on('click', function () {
                 $('input[name="courses[]"]').prop('checked', this.checked);
             });
         });
