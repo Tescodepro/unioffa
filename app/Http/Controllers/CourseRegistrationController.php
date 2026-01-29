@@ -46,7 +46,7 @@ class CourseRegistrationController extends Controller
         //     $level = 200;
         // }
         $currentSession = activeSession()->name;
-        $currentSemester = activeSemester()->code;
+        $currentSemester = activeSemester()->code; 
 
         // Load available courses
         // dd($level);
