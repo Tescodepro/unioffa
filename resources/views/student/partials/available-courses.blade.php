@@ -83,7 +83,6 @@
                         <th>Course Code</th>
                         <th>Title</th>
                         <th>Unit</th>
-                        <th>Status</th>
                         <th>Semester</th>
                         <th>Action</th>
                     </tr>
@@ -95,12 +94,6 @@
                             <td class="searchable-cell">{{ $course->course->course_title }}</td>
                             <td>{{ $course->course->course_unit }}</td>
                             <td>
-                                <span
-                                    class="badge bg-{{ $course->status === 'approved' ? 'success' : ($course->status === 'rejected' ? 'danger' : 'warning') }}">
-                                    {{ ucfirst($course->status) }}
-                                </span>
-                            </td>
-                            <td>
                                 @if ($course->semester == '1st')
                                     <span class="badge bg-primary">First Semester</span>
                                 @else
@@ -109,10 +102,7 @@
                             </td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-danger remove-course-btn"
-                                    data-course-id="{{ $course->id }}" data-course-code="{{ $course->course->course_code }}"
-                                    data-course-title="{{ $course->course->course_title }}"
-                                    data-course-unit="{{ $course->course->course_unit }}" data-bs-toggle="modal"
-                                    data-bs-target="#removeConfirmModal">
+                                    onclick="confirmDelete('{{ $course->id }}', '{{ $course->course->course_code }}', '{{ $course->course->course_title }}', '{{ $course->course->course_unit }}')">
                                     <i class="ti ti-trash me-1"></i> Remove
                                 </button>
                             </td>
@@ -218,10 +208,6 @@
                 }]
             });
 
-            // Custom search for available courses - REMOVED
-
-            // Custom search for registered courses - REMOVED
-
             // Select all checkbox
             $('#select-all').on('click', function () {
                 var isChecked = this.checked;
@@ -232,26 +218,7 @@
             $(document).on('change', '#availableCoursesTable tbody .course-checkbox', function () {
                 var totalCheckboxes = $('#availableCoursesTable tbody .course-checkbox').length;
                 var checkedCheckboxes = $('#availableCoursesTable tbody .course-checkbox:checked').length;
-                $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes && totalCheckboxes >
-                    0);
-            });
-
-            // Remove course modal handler
-            $('.remove-course-btn').on('click', function () {
-                var courseId = $(this).data('course-id');
-                var courseCode = $(this).data('course-code');
-                var courseTitle = $(this).data('course-title');
-                var courseUnit = $(this).data('course-unit');
-
-                // Populate modal with course details
-                $('#modalCourseCode').text(courseCode);
-                $('#modalCourseTitle').text(courseTitle);
-                $('#modalCourseUnit').text(courseUnit);
-
-                // Set form action
-                var form = $('#removeForm');
-                form.attr('action', '{{ route('students.course.remove', ':id') }}'.replace(':id',
-                    courseId));
+                $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes && totalCheckboxes > 0);
             });
 
             // Form submission validation
@@ -264,5 +231,25 @@
                 }
             });
         });
+
+        function confirmDelete(id, code, title, unit) {
+            // Populate modal data
+            $('#modalCourseCode').text(code);
+            $('#modalCourseTitle').text(title);
+            $('#modalCourseUnit').text(unit);
+
+            // Update form action
+            // Use a temporary ID in the route generation to be replaced by JS
+            var url = "{{ route('students.course.remove', '000') }}";
+            url = url.replace('000', id);
+            $('#removeForm').attr('action', url);
+
+            // Show modal using Bootstrap 5 API or jQuery
+            var modalEl = document.getElementById('removeConfirmModal');
+            if (modalEl) {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
     </script>
 @endpush
