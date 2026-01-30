@@ -45,8 +45,7 @@
                             <select name="user_type_id" class="form-select">
                                 <option value="">All User Types</option>
                                 @foreach ($userTypes as $type)
-                                    <option value="{{ $type->id }}"
-                                        {{ request('user_type_id') == $type->id ? 'selected' : '' }}>
+                                    <option value="{{ $type->id }}" {{ request('user_type_id') == $type->id ? 'selected' : '' }}>
                                         {{ $type->name }}
                                     </option>
                                 @endforeach
@@ -87,10 +86,43 @@
                                                 data-first_name="{{ $user->first_name }}"
                                                 data-middle_name="{{ $user->middle_name }}"
                                                 data-last_name="{{ $user->last_name }}" data-email="{{ $user->email }}"
-                                                data-phone="{{ $user->phone }}"
-                                                data-user_type_id="{{ $user->user_type_id }}">
+                                                data-phone="{{ $user->phone }}" data-user_type_id="{{ $user->user_type_id }}"
+                                                title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
+
+                                            @if ($user->trashed())
+                                                <form action="{{ route('ict.staff.users.enable', $user->id) }}" method="POST"
+                                                    class="d-inline"
+                                                    onsubmit="return confirm('Are you sure you want to enable this user?');">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-outline-success me-1"
+                                                        title="Enable">
+                                                        <i class="ti ti-check"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('ict.staff.users.disable', $user->id) }}" method="POST"
+                                                    class="d-inline"
+                                                    onsubmit="return confirm('Are you sure you want to disable this user?');">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning me-1"
+                                                        title="Disable">
+                                                        <i class="ti ti-ban"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            <form action="{{ route('ict.staff.users.destroy', $user->id) }}" method="POST"
+                                                class="d-inline"
+                                                onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this user? This action cannot be undone.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    title="Delete Permanently">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @empty
@@ -245,11 +277,11 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
 
             document.querySelectorAll('.editUserBtn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const id = this.dataset.id;
                     const username = this.dataset.username;
                     const firstName = this.dataset.first_name;

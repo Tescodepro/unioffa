@@ -296,6 +296,10 @@ Route::prefix('staff')->group(function () {
             Route::get('/users', 'getAllUsers')->name('ict.staff.users.index');
             Route::post('/users', 'storeUsers');
             Route::post('users/{id}', 'updateUsers')->name('ict.staff.users.update');
+
+            Route::post('users/{id}/disable', 'disableUser')->name('ict.staff.users.disable');
+            Route::post('users/{id}/enable', 'enableUser')->name('ict.staff.users.enable');
+            Route::delete('users/{id}/force-delete', 'forceDeleteUser')->name('ict.staff.users.destroy');
             Route::resource('news', NewsController::class)->names('ict.news');
 
         });

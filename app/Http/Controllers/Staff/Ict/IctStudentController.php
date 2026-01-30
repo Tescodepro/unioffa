@@ -128,19 +128,19 @@ class IctStudentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'first_name'      => 'required|string|max:100',
-            'last_name'       => 'required|string|max:100',
-            'middle_name'     => 'nullable|string|max:100',
-            'email'           => 'required|email|unique:users,email',
-            'phone'           => 'required|string|unique:users,phone',
-            'department_id'   => 'required|exists:departments,id',
-            'level'           => 'required|integer|in:100,200,300,400,500',
-            'gender'          => 'required|in:male,female',
-            'admission_year'  => 'required|string|regex:/^\d{4}\/\d{4}$/',
-            'campus_id'       => 'required|exists:campuses,id',
-            'stream'          => 'nullable|integer',
-            'entry_mode'      => 'required|string|in:TOPUP,IDELUTME,IDELDE,UTME,TRANSFER,DIPLOMA,DE',
-            'dob'             => 'required|date|before:today',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|string|unique:users,phone',
+            'department_id' => 'required|exists:departments,id',
+            'level' => 'required|integer|in:100,200,300,400,500',
+            'gender' => 'required|in:male,female',
+            'admission_year' => 'required|string|regex:/^\d{4}\/\d{4}$/',
+            'campus_id' => 'required|exists:campuses,id',
+            'stream' => 'nullable|integer',
+            'entry_mode' => 'required|string|in:TOPUP,IDELUTME,IDELDE,UTME,TRANSFER,DIPLOMA,DE',
+            'dob' => 'required|date|before:today',
         ]);
 
         try {
@@ -162,17 +162,17 @@ class IctStudentController extends Controller
             $userType = UserType::where('name', 'student')->firstOrFail();
             // Create user
             $user = User::create([
-                'first_name'       => $request->first_name,
-                'last_name'        => $request->last_name,
-                'middle_name'      => $request->middle_name ?? Null,
-                'email'            => $request->email,
-                'phone'            => $request->phone,
-                'username'         => $matricNo,
-                'registration_no'  => null,
-                'password'         => Hash::make($request->last_name),
-                'user_type_id'     => $userType->id,
-                'date_of_birth'    => $request->dob,
-                'campus_id'        => $request->campus_id,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name ?? Null,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'username' => $matricNo,
+                'registration_no' => null,
+                'password' => Hash::make($request->last_name),
+                'user_type_id' => $userType->id,
+                'date_of_birth' => $request->dob,
+                'campus_id' => $request->campus_id,
             ]);
 
             if (in_array($request->entry_mode, ['UTME', 'TRANSFER', 'DE'])) {
@@ -183,19 +183,19 @@ class IctStudentController extends Controller
 
 
             Student::create([
-                'user_id'            => $user->id,
-                'campus_id'          => $request->campus_id,
-                'department_id'      => $department->id,
-                'matric_no'          => $matricNo,
-                'programme'          => $programme, // Store original entry mode
-                'stream'             => $request->stream,
-                'entry_mode'         => $request->entry_mode,
-                'level'              => $request->level,
-                'admission_session'  => $request->admission_year,
-                'admission_date'     => "{$admissionYear}-09-01", // Assuming Sept admission
-                'status'             => 1,
-                'sex'                => $request->gender, // Map gender to sex
-                'address'            => null, // Optional field not in form
+                'user_id' => $user->id,
+                'campus_id' => $request->campus_id,
+                'department_id' => $department->id,
+                'matric_no' => $matricNo,
+                'programme' => $programme, // Store original entry mode
+                'stream' => $request->stream,
+                'entry_mode' => $request->entry_mode,
+                'level' => $request->level,
+                'admission_session' => $request->admission_year,
+                'admission_date' => "{$admissionYear}-09-01", // Assuming Sept admission
+                'status' => 1,
+                'sex' => $request->gender, // Map gender to sex
+                'address' => null, // Optional field not in form
             ]);
 
             $name = $request->first_name . ' ' . $request->last_name;
@@ -300,57 +300,57 @@ class IctStudentController extends Controller
         $departments = Department::with('faculty')->get();
         return view('staff.ict.students.edit', compact('student', 'departments'));
     }
-    
 
-public function update(Request $request, $id)
-{
-    $student = Student::with('user')->findOrFail($id);
 
-    $request->validate([
-        'first_name' => 'required|string|max:255',
-        'last_name'  => 'required|string|max:255',
-        'email'      => [
-            'required',
-            'email',
-            'max:255',
-            Rule::unique('users', 'email')->ignore($student->user_id)
-        ],
-        'matric_no'  => [
-            'required',
-            'string',
-            'max:255',
-            // must not conflict with other students
-            Rule::unique('students', 'matric_no')->ignore($student->id),
-            // must not conflict with users.username
-            Rule::unique('users', 'username')->ignore($student->user_id)
-        ],
-        'department_id' => 'required|uuid',
-        'programme'  => 'required|string|max:255',
-        'level'      => 'required|integer',
-        'sex'        => 'required|string'
-    ]);
+    public function update(Request $request, $id)
+    {
+        $student = Student::with('user')->findOrFail($id);
 
-    // Update user
-    $student->user->update([
-        'first_name' => $request->first_name,
-        'last_name'  => $request->last_name,
-        'email'      => $request->email,
-        'phone'      => $request->phone,
-        'username'   => $request->matric_no
-    ]);
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($student->user_id)
+            ],
+            'matric_no' => [
+                'required',
+                'string',
+                'max:255',
+                // must not conflict with other students
+                Rule::unique('students', 'matric_no')->ignore($student->id),
+                // must not conflict with users.username
+                Rule::unique('users', 'username')->ignore($student->user_id)
+            ],
+            'department_id' => 'required|uuid',
+            'programme' => 'required|string|max:255',
+            'level' => 'required|integer',
+            'sex' => 'required|string'
+        ]);
 
-    // Update student
-    $student->update([
-        'matric_no'     => $request->matric_no,
-        'department_id' => $request->department_id,
-        'programme'     => $request->programme,
-        'level'         => $request->level,
-        'sex'           => $request->sex
-    ]);
+        // Update user
+        $student->user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'username' => $request->matric_no
+        ]);
 
-    return redirect()->route('ict.students.index')
-        ->with('success', 'Student updated successfully.');
-}
+        // Update student
+        $student->update([
+            'matric_no' => $request->matric_no,
+            'department_id' => $request->department_id,
+            'programme' => $request->programme,
+            'level' => $request->level,
+            'sex' => $request->sex
+        ]);
+
+        return redirect()->route('ict.students.index')
+            ->with('success', 'Student updated successfully.');
+    }
 
 
     public function destroy(Student $student)
@@ -384,7 +384,7 @@ public function update(Request $request, $id)
         $userTypeId = $request->input('user_type_id');
 
         // Query with filters
-        $users = User::with('userType')
+        $users = User::withTrashed()->with('userType')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', "%$search%")
@@ -409,24 +409,24 @@ public function update(Request $request, $id)
     public function updateUsers(Request $request, $id)
     {
         $request->validate([
-            'username'     => 'required|string|max:255|unique:users,username,' . $id,
-            'first_name'   => 'required|string|max:255',
-            'middle_name'  => 'nullable|string|max:255',
-            'last_name'    => 'required|string|max:255',
-            'email'        => 'required|email|unique:users,email,' . $id,
-            'phone'        => 'nullable|string|max:20',
+            'username' => 'required|string|max:255|unique:users,username,' . $id,
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'phone' => 'nullable|string|max:20',
             'user_type_id' => 'required|exists:user_types,id',
         ]);
 
         $user = User::findOrFail($id);
 
         $user->update([
-            'username'     => $request->username,
-            'first_name'   => $request->first_name,
-            'middle_name'  => $request->middle_name,
-            'last_name'    => $request->last_name,
-            'email'        => $request->email,
-            'phone'        => $request->phone,
+            'username' => $request->username,
+            'first_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
             'user_type_id' => $request->user_type_id,
         ]);
 
@@ -436,27 +436,48 @@ public function update(Request $request, $id)
     public function storeUsers(Request $request)
     {
         $request->validate([
-            'username'     => 'required|string|max:255|unique:users,username',
-            'first_name'   => 'required|string|max:255',
-            'middle_name'  => 'nullable|string|max:255',
-            'last_name'    => 'required|string|max:255',
-            'email'        => 'required|email|unique:users,email',
-            'phone'        => 'nullable|string|max:20|unique:users,phone',
+            'username' => 'required|string|max:255|unique:users,username',
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20|unique:users,phone',
             'user_type_id' => 'required|exists:user_types,id',
         ]);
 
         User::create([
-            'username'     => $request->username,
-            'first_name'   => $request->first_name,
-            'middle_name'  => $request->middle_name,
-            'last_name'    => $request->last_name,
-            'email'        => $request->email,
-            'phone'        => $request->phone,
+            'username' => $request->username,
+            'first_name' => $request->first_name,
+            'middle_name' => $request->middle_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
             'user_type_id' => $request->user_type_id,
             // you can also set a default password if needed:
-            'password'     => bcrypt('password123'),
+            'password' => bcrypt('password123'),
         ]);
 
         return back()->with('success', 'User added successfully.');
+    }
+
+    public function disableUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete(); // Soft delete
+        return back()->with('success', 'User disabled successfully.');
+    }
+
+    public function enableUser($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        $user->restore();
+        return back()->with('success', 'User enabled successfully.');
+    }
+
+    public function forceDeleteUser($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        $user->forceDelete();
+        return back()->with('success', 'User permanently deleted.');
     }
 }
