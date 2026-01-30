@@ -86,43 +86,43 @@
                                         <td>{{ $user->userType->name ?? '—' }}</td>
                                         @if(auth()->user()->userType->name == 'ict')
                                             <td class="text-end">
-                                            <button class="btn btn-sm btn-outline-primary me-1 editUserBtn"
-                                                data-id="{{ $user->id }}" data-username="{{ $user->username }}"
-                                                data-first_name="{{ $user->first_name }}"
-                                                data-middle_name="{{ $user->middle_name }}"
-                                                data-last_name="{{ $user->last_name }}" data-email="{{ $user->email }}"
-                                                data-phone="{{ $user->phone }}" data-user_type_id="{{ $user->user_type_id }}"
-                                                title="Edit">
-                                                <i class="ti ti-edit"></i>
-                                            </button>
-
-                                            @if ($user->trashed())
-                                                <button type="button" class="btn btn-sm btn-outline-success me-1 confirm-action-btn"
-                                                    data-url="{{ route('ict.staff.users.enable', $user->id) }}" data-method="POST"
-                                                    data-title="Enable User"
-                                                    data-message="Are you sure you want to enable <strong>{{ $user->username }}</strong>?"
-                                                    data-btn-class="btn-success" data-btn-text="Enable" title="Enable">
-                                                    <i class="ti ti-check"></i>
+                                                <button class="btn btn-sm btn-outline-primary me-1 editUserBtn"
+                                                    data-id="{{ $user->id }}" data-username="{{ $user->username }}"
+                                                    data-first_name="{{ $user->first_name }}"
+                                                    data-middle_name="{{ $user->middle_name }}"
+                                                    data-last_name="{{ $user->last_name }}" data-email="{{ $user->email }}"
+                                                    data-phone="{{ $user->phone }}" data-user_type_id="{{ $user->user_type_id }}"
+                                                    title="Edit">
+                                                    <i class="ti ti-edit"></i>
                                                 </button>
-                                            @else
-                                                <button type="button" class="btn btn-sm btn-outline-warning me-1 confirm-action-btn"
-                                                    data-url="{{ route('ict.staff.users.disable', $user->id) }}" data-method="POST"
-                                                    data-title="Disable User"
-                                                    data-message="Are you sure you want to disable <strong>{{ $user->username }}</strong>?"
-                                                    data-btn-class="btn-warning" data-btn-text="Disable" title="Disable">
-                                                    <i class="ti ti-ban"></i>
-                                                </button>
-                                            @endif
 
-                                            <button type="button" class="btn btn-sm btn-outline-danger confirm-action-btn"
-                                                data-url="{{ route('ict.staff.users.destroy', $user->id) }}"
-                                                data-method="DELETE" data-title="Delete User Permanently"
-                                                data-message="Are you sure you want to <strong>PERMANENTLY DELETE</strong> {{ $user->username }}? This action cannot be undone."
-                                                data-btn-class="btn-danger" data-btn-text="Delete Permanently"
-                                                title="Delete Permanently">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </td>
+                                                @if ($user->trashed())
+                                                    <button type="button" class="btn btn-sm btn-outline-success me-1 confirm-action-btn"
+                                                        data-url="{{ route('ict.staff.users.enable', $user->id) }}" data-method="POST"
+                                                        data-title="Enable User"
+                                                        data-message="Are you sure you want to enable <strong>{{ $user->username }}</strong>?"
+                                                        data-btn-class="btn-success" data-btn-text="Enable" title="Enable">
+                                                        <i class="ti ti-check"></i>
+                                                    </button>
+                                                @else
+                                                    <button type="button" class="btn btn-sm btn-outline-warning me-1 confirm-action-btn"
+                                                        data-url="{{ route('ict.staff.users.disable', $user->id) }}" data-method="POST"
+                                                        data-title="Disable User"
+                                                        data-message="Are you sure you want to disable <strong>{{ $user->username }}</strong>?"
+                                                        data-btn-class="btn-warning" data-btn-text="Disable" title="Disable">
+                                                        <i class="ti ti-ban"></i>
+                                                    </button>
+                                                @endif
+
+                                                <button type="button" class="btn btn-sm btn-outline-danger confirm-action-btn"
+                                                    data-url="{{ route('ict.staff.users.destroy', $user->id) }}"
+                                                    data-method="DELETE" data-title="Delete User Permanently"
+                                                    data-message="Are you sure you want to <strong>PERMANENTLY DELETE</strong> {{ $user->username }}? This action cannot be undone."
+                                                    data-btn-class="btn-danger" data-btn-text="Delete Permanently"
+                                                    title="Delete Permanently">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            </td>
                                         @endif
                                     </tr>
                                 @empty
