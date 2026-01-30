@@ -399,6 +399,7 @@ class IctStudentController extends Controller
             ->when($email, fn($q) => $q->where('email', 'like', "%$email%"))
             ->when($phone, fn($q) => $q->where('phone', 'like', "%$phone%"))
             ->when($username, fn($q) => $q->where('username', 'like', "%$username%"))
+            ->when($name, fn($q) => $q->where('first_name', 'like', "%$name%")->orWhere('last_name', 'like', "%$name%")->orWhere('middle_name', 'like', "%$name%"))
             ->when($userTypeId, fn($q) => $q->where('user_type_id', $userTypeId))
             ->paginate(20);
 
