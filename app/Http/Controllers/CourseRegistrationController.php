@@ -42,14 +42,10 @@ class CourseRegistrationController extends Controller
 
         $departmentId = $student->department_id;
         $level = $student->level;
-        // if (($student->entry_mode == 'DE' or $student->entry_mode == 'TRANSFER') and $student->admission_session == activeSession()->name) {
-        //     $level = 200;
-        // }
-        $currentSession = activeSession()->name;
-        $currentSemester = activeSemester()->code; 
 
-        // Load available courses
-        // dd($level);
+        $currentSession = activeSession()->name;
+        $currentSemester = activeSemester()->code;
+
         $courses = Course::where('active_for_register', 1)
             ->where('level', $level)
             ->where(function ($query) use ($departmentId) {
@@ -58,14 +54,6 @@ class CourseRegistrationController extends Controller
             })
             ->get();
 
-        // Get all registrations for search
-        $query = CourseRegistration::where('student_id', $user->id);
-        if ($request->has('search')) {
-            $query->where('course_title', 'like', '%' . $request->search . '%')
-                ->orWhere('course_code', 'like', '%' . $request->search . '%');
-        }
-        $registrations = $query->with('course', 'session', 'semester')->get();
-
         // Get registered courses for current session/semester only
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
@@ -73,7 +61,7 @@ class CourseRegistrationController extends Controller
             ->where('semester', $currentSemester)
             ->get();
 
-        return view('student.course-registration', compact('courses', 'registrations', 'registeredCourses', 'payment_status'));
+        return view('student.course-registration', compact('courses', 'registeredCourses', 'payment_status'));
     }
 
     public function store(Request $request)

@@ -7,11 +7,7 @@
         <form method="POST" action="{{ route('students.course.registration') }}" id="courseForm">
             @csrf
             <div class="custom-datatable-filter table-responsive">
-                <!-- Search Box -->
-                <div class="mb-3 px-3">
-                    <input type="text" id="availableCoursesSearch" class="form-control"
-                        placeholder="Search by course code or title...">
-                </div>
+                <!-- Search Box Removed -->
 
                 <table class="table datatable align-middle" id="availableCoursesTable">
                     <thead class="thead-light">
@@ -79,11 +75,7 @@
     </div>
     <div class="card-body p-0 py-3">
         <div class="custom-datatable-filter table-responsive">
-            <!-- Search Box -->
-            <div class="mb-3 px-3">
-                <input type="text" id="registeredCoursesSearch" class="form-control"
-                    placeholder="Search by course code or title...">
-            </div>
+            <!-- Search Box Removed -->
 
             <table class="table datatable align-middle" id="registeredCoursesTable">
                 <thead class="thead-light">
@@ -117,8 +109,7 @@
                             </td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-danger remove-course-btn"
-                                    data-course-id="{{ $course->id }}"
-                                    data-course-code="{{ $course->course->course_code }}"
+                                    data-course-id="{{ $course->id }}" data-course-code="{{ $course->course->course_code }}"
                                     data-course-title="{{ $course->course->course_title }}"
                                     data-course-unit="{{ $course->course->course_unit }}" data-bs-toggle="modal"
                                     data-bs-target="#removeConfirmModal">
@@ -205,11 +196,11 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Initialize DataTables
             var availableTable = $('#availableCoursesTable').DataTable({
                 paging: true,
-                searching: false, // Disable DataTables search, we'll use custom search
+                searching: true, // Enable DataTables search
                 ordering: true,
                 columnDefs: [{
                     orderable: false,
@@ -219,7 +210,7 @@
 
             var registeredTable = $('#registeredCoursesTable').DataTable({
                 paging: true,
-                searching: false, // Disable DataTables search, we'll use custom search
+                searching: true, // Enable DataTables search
                 ordering: true,
                 columnDefs: [{
                     orderable: false,
@@ -227,34 +218,18 @@
                 }]
             });
 
-            // Custom search for available courses
-            $('#availableCoursesSearch').on('keyup', function() {
-                var searchValue = $(this).val().toLowerCase();
-                $('#availableCoursesTable tbody tr').each(function() {
-                    var row = $(this);
-                    var text = row.find('.searchable-cell').text().toLowerCase();
-                    row.toggle(text.indexOf(searchValue) > -1);
-                });
-            });
+            // Custom search for available courses - REMOVED
 
-            // Custom search for registered courses
-            $('#registeredCoursesSearch').on('keyup', function() {
-                var searchValue = $(this).val().toLowerCase();
-                $('#registeredCoursesTable tbody tr').each(function() {
-                    var row = $(this);
-                    var text = row.find('.searchable-cell').text().toLowerCase();
-                    row.toggle(text.indexOf(searchValue) > -1);
-                });
-            });
+            // Custom search for registered courses - REMOVED
 
             // Select all checkbox
-            $('#select-all').on('click', function() {
+            $('#select-all').on('click', function () {
                 var isChecked = this.checked;
                 $('#availableCoursesTable tbody .course-checkbox').prop('checked', isChecked);
             });
 
             // Update select-all checkbox based on individual checkboxes
-            $(document).on('change', '#availableCoursesTable tbody .course-checkbox', function() {
+            $(document).on('change', '#availableCoursesTable tbody .course-checkbox', function () {
                 var totalCheckboxes = $('#availableCoursesTable tbody .course-checkbox').length;
                 var checkedCheckboxes = $('#availableCoursesTable tbody .course-checkbox:checked').length;
                 $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes && totalCheckboxes >
@@ -262,7 +237,7 @@
             });
 
             // Remove course modal handler
-            $('.remove-course-btn').on('click', function() {
+            $('.remove-course-btn').on('click', function () {
                 var courseId = $(this).data('course-id');
                 var courseCode = $(this).data('course-code');
                 var courseTitle = $(this).data('course-title');
@@ -280,7 +255,7 @@
             });
 
             // Form submission validation
-            $('#courseForm').on('submit', function(e) {
+            $('#courseForm').on('submit', function (e) {
                 var checkedCount = $('input[name="courses[]"]:checked').length;
                 if (checkedCount === 0) {
                     e.preventDefault();

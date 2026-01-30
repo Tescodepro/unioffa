@@ -16,16 +16,18 @@ class PaymentStatusService
      */
     public function getStatus($student, string $session): array
     {
-        if(($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER')  AND ($student->level == 200 OR $student->level == 300)  AND $student->admission_session == $session)
-        {
-            $student->level = 100;
+        if (($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER') AND ($student->level == 200 OR $student->level == 300) AND $student->admission_session == $session) {
+            $level_payment = 100;
+        } else {
+            $level_payment = $student->level;
         }
+
         $paymentSettings = PaymentSetting::query()
             ->where('student_type', $student->programme)
-             ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
+            ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
                 $query->where('payment_type', '!=', 'matriculation');
             })
-            ->whereJsonContains('level', (int) $student->level)
+            ->whereJsonContains('level', (int) $level_payment)
             ->where('session', $session)
             ->when($student->department?->faculty_id, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
@@ -78,12 +80,12 @@ class PaymentStatusService
             }
 
             $data = [
-                'payment_type'   => $payment->payment_type,
-                'description'    => $payment->description,
-                'amount'         => (int) $payment->amount,
-                'amount_paid'    => (int) $amountPaid,
-                'balance'        => (int) $balance,
-                'status'         => $balance <= 0 ? 'PAID' : 'PENDING',
+                'payment_type' => $payment->payment_type,
+                'description' => $payment->description,
+                'amount' => (int) $payment->amount,
+                'amount_paid' => (int) $amountPaid,
+                'balance' => (int) $balance,
+                'status' => $balance <= 0 ? 'PAID' : 'PENDING',
             ];
 
             if ($payment->payment_type === 'tuition') {
