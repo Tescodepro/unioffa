@@ -20,11 +20,13 @@
                         <h3 class="page-title mb-1">List of Users</h3>
                         <p class="text-muted mb-0">View, filter, and manage all user accounts.</p>
                     </div>
-                    <div>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                            <i class="ti ti-plus"></i> Add User
-                        </button>
-                    </div>
+                    @if(auth()->user()->userType->name == 'ict')
+                        <div>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <i class="ti ti-plus"></i> Add User
+                            </button>
+                        </div>
+                    @endif
                 </div>
                 <!-- Filter Form -->
                 <form method="GET" action="{{ route('ict.staff.users.index') }}" class="mb-3">
@@ -69,7 +71,9 @@
                                     <th>Email</th>
                                     <th>Phone</th>
                                     <th>User Type</th>
-                                    <th class="text-end">Action</th>
+                                    @if(auth()->user()->userType->name == 'ict')
+                                        <th class="text-end">Action</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -80,54 +84,46 @@
                                         <td>{{ $user->email }}</td>
                                         <td>{{ $user->phone ?? '—' }}</td>
                                         <td>{{ $user->userType->name ?? '—' }}</td>
-                                        <td class="text-end">
+                                        @if(auth()->user()->userType->name == 'ict')
+                                            <td class="text-end">
                                             <button class="btn btn-sm btn-outline-primary me-1 editUserBtn"
                                                 data-id="{{ $user->id }}" data-username="{{ $user->username }}"
                                                 data-first_name="{{ $user->first_name }}"
                                                 data-middle_name="{{ $user->middle_name }}"
-                                                data-last_name="{{ $user->last_name }}"
-                                                data-email="{{ $user->email }}"
-                                                data-phone="{{ $user->phone }}"
-                                                data-user_type_id="{{ $user->user_type_id }}"
+                                                data-last_name="{{ $user->last_name }}" data-email="{{ $user->email }}"
+                                                data-phone="{{ $user->phone }}" data-user_type_id="{{ $user->user_type_id }}"
                                                 title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
 
                                             @if ($user->trashed())
                                                 <button type="button" class="btn btn-sm btn-outline-success me-1 confirm-action-btn"
-                                                    data-url="{{ route('ict.staff.users.enable', $user->id) }}"
-                                                    data-method="POST"
+                                                    data-url="{{ route('ict.staff.users.enable', $user->id) }}" data-method="POST"
                                                     data-title="Enable User"
                                                     data-message="Are you sure you want to enable <strong>{{ $user->username }}</strong>?"
-                                                    data-btn-class="btn-success"
-                                                    data-btn-text="Enable"
-                                                    title="Enable">
+                                                    data-btn-class="btn-success" data-btn-text="Enable" title="Enable">
                                                     <i class="ti ti-check"></i>
                                                 </button>
                                             @else
                                                 <button type="button" class="btn btn-sm btn-outline-warning me-1 confirm-action-btn"
-                                                    data-url="{{ route('ict.staff.users.disable', $user->id) }}"
-                                                    data-method="POST"
+                                                    data-url="{{ route('ict.staff.users.disable', $user->id) }}" data-method="POST"
                                                     data-title="Disable User"
                                                     data-message="Are you sure you want to disable <strong>{{ $user->username }}</strong>?"
-                                                    data-btn-class="btn-warning"
-                                                    data-btn-text="Disable"
-                                                    title="Disable">
+                                                    data-btn-class="btn-warning" data-btn-text="Disable" title="Disable">
                                                     <i class="ti ti-ban"></i>
                                                 </button>
                                             @endif
 
                                             <button type="button" class="btn btn-sm btn-outline-danger confirm-action-btn"
                                                 data-url="{{ route('ict.staff.users.destroy', $user->id) }}"
-                                                data-method="DELETE"
-                                                data-title="Delete User Permanently"
+                                                data-method="DELETE" data-title="Delete User Permanently"
                                                 data-message="Are you sure you want to <strong>PERMANENTLY DELETE</strong> {{ $user->username }}? This action cannot be undone."
-                                                data-btn-class="btn-danger"
-                                                data-btn-text="Delete Permanently"
+                                                data-btn-class="btn-danger" data-btn-text="Delete Permanently"
                                                 title="Delete Permanently">
                                                 <i class="ti ti-trash"></i>
                                             </button>
                                         </td>
+                                        @endif
                                     </tr>
                                 @empty
                                     <tr>
@@ -306,12 +302,12 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Edit User Modal Logic
             const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
 
             document.querySelectorAll('.editUserBtn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const id = this.dataset.id;
                     const username = this.dataset.username;
                     const firstName = this.dataset.first_name;
@@ -349,7 +345,7 @@
             const modalBtn = document.getElementById('confirmationModalBtn');
 
             document.querySelectorAll('.confirm-action-btn').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const url = this.dataset.url;
                     const method = this.dataset.method; // POST, DELETE, etc.
                     const title = this.dataset.title;
