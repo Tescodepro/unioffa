@@ -36,6 +36,10 @@
                                 placeholder="Username">
                         </div>
                         <div class="col-md-2">
+                            <input type="text" name="name" value="{{ request('name') }}" class="form-control"
+                                placeholder="Name">
+                        </div>
+                        <div class="col-md-2">
                             <input type="text" name="email" value="{{ request('email') }}" class="form-control"
                                 placeholder="Email">
                         </div>

@@ -381,6 +381,7 @@ class IctStudentController extends Controller
         $email = $request->input('email');
         $phone = $request->input('phone');
         $username = $request->input('username');
+        $name = $request->input('name');
         $userTypeId = $request->input('user_type_id');
 
         // Query with filters
