@@ -14,9 +14,9 @@
         <div class="site-breadcrumb" style="background: url(assets/img/cta/01.jpg)">
             <div class="container">
                 <h2 class="breadcrumb-title">Contact Us</h2>
-                <ul class="breadcrumb-menu">
+                <ul class="breadcrumb-menu"> 
                     <li><a href="{{ route('home') }}">Home</a></li>
-                    <li class="active">Contact Us</li>
+                    <li class="active">Contact University of Offa</li>
                 </ul>
             </div>
         </div>
