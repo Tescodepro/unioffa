@@ -85,44 +85,48 @@
                                                 data-id="{{ $user->id }}" data-username="{{ $user->username }}"
                                                 data-first_name="{{ $user->first_name }}"
                                                 data-middle_name="{{ $user->middle_name }}"
-                                                data-last_name="{{ $user->last_name }}" data-email="{{ $user->email }}"
-                                                data-phone="{{ $user->phone }}" data-user_type_id="{{ $user->user_type_id }}"
+                                                data-last_name="{{ $user->last_name }}"
+                                                data-email="{{ $user->email }}"
+                                                data-phone="{{ $user->phone }}"
+                                                data-user_type_id="{{ $user->user_type_id }}"
                                                 title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
 
                                             @if ($user->trashed())
-                                                <form action="{{ route('ict.staff.users.enable', $user->id) }}" method="POST"
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('Are you sure you want to enable this user?');">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-sm btn-outline-success me-1"
-                                                        title="Enable">
-                                                        <i class="ti ti-check"></i>
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-outline-success me-1 confirm-action-btn"
+                                                    data-url="{{ route('ict.staff.users.enable', $user->id) }}"
+                                                    data-method="POST"
+                                                    data-title="Enable User"
+                                                    data-message="Are you sure you want to enable <strong>{{ $user->username }}</strong>?"
+                                                    data-btn-class="btn-success"
+                                                    data-btn-text="Enable"
+                                                    title="Enable">
+                                                    <i class="ti ti-check"></i>
+                                                </button>
                                             @else
-                                                <form action="{{ route('ict.staff.users.disable', $user->id) }}" method="POST"
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('Are you sure you want to disable this user?');">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-sm btn-outline-warning me-1"
-                                                        title="Disable">
-                                                        <i class="ti ti-ban"></i>
-                                                    </button>
-                                                </form>
+                                                <button type="button" class="btn btn-sm btn-outline-warning me-1 confirm-action-btn"
+                                                    data-url="{{ route('ict.staff.users.disable', $user->id) }}"
+                                                    data-method="POST"
+                                                    data-title="Disable User"
+                                                    data-message="Are you sure you want to disable <strong>{{ $user->username }}</strong>?"
+                                                    data-btn-class="btn-warning"
+                                                    data-btn-text="Disable"
+                                                    title="Disable">
+                                                    <i class="ti ti-ban"></i>
+                                                </button>
                                             @endif
 
-                                            <form action="{{ route('ict.staff.users.destroy', $user->id) }}" method="POST"
-                                                class="d-inline"
-                                                onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this user? This action cannot be undone.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    title="Delete Permanently">
-                                                    <i class="ti ti-trash"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-sm btn-outline-danger confirm-action-btn"
+                                                data-url="{{ route('ict.staff.users.destroy', $user->id) }}"
+                                                data-method="DELETE"
+                                                data-title="Delete User Permanently"
+                                                data-message="Are you sure you want to <strong>PERMANENTLY DELETE</strong> {{ $user->username }}? This action cannot be undone."
+                                                data-btn-class="btn-danger"
+                                                data-btn-text="Delete Permanently"
+                                                title="Delete Permanently">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 @empty
@@ -273,15 +277,41 @@
 
 
 
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="confirmationForm" method="POST">
+                    @csrf
+                    <!-- Method spoofing will be handled by JS if needed, or we can use a hidden input -->
+                    <input type="hidden" name="_method" id="methodInput" value="POST">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmationModalTitle">Confirm Action</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="confirmationModalBody">Are you sure you want to proceed?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="confirmationModalBtn">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Edit User Modal Logic
             const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
 
             document.querySelectorAll('.editUserBtn').forEach(button => {
-                button.addEventListener('click', function () {
+                button.addEventListener('click', function() {
                     const id = this.dataset.id;
                     const username = this.dataset.username;
                     const firstName = this.dataset.first_name;
@@ -306,6 +336,46 @@
                     form.action = routeTemplate.replace('/0', '/' + id);
 
                     editModal.show();
+                });
+            });
+
+            // Confirmation Modal Logic
+            const confirmationModalEl = document.getElementById('confirmationModal');
+            const confirmationModal = new bootstrap.Modal(confirmationModalEl);
+            const confirmationForm = document.getElementById('confirmationForm');
+            const methodInput = document.getElementById('methodInput');
+            const modalTitle = document.getElementById('confirmationModalTitle');
+            const modalBody = document.getElementById('confirmationModalBody');
+            const modalBtn = document.getElementById('confirmationModalBtn');
+
+            document.querySelectorAll('.confirm-action-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.dataset.url;
+                    const method = this.dataset.method; // POST, DELETE, etc.
+                    const title = this.dataset.title;
+                    const message = this.dataset.message;
+                    const btnClass = this.dataset.btn_class || 'btn-primary';
+                    const btnText = this.dataset.btn_text || 'Confirm';
+
+                    // Set Form Action
+                    confirmationForm.action = url;
+
+                    // Set Method
+                    if (method === 'DELETE' || method === 'PUT' || method === 'PATCH') {
+                        methodInput.value = method;
+                    } else {
+                        methodInput.value = 'POST';
+                    }
+
+                    // Update Content
+                    modalTitle.textContent = title;
+                    modalBody.innerHTML = message;
+                    modalBtn.textContent = btnText;
+
+                    // Update Button Class
+                    modalBtn.className = 'btn ' + btnClass;
+
+                    confirmationModal.show();
                 });
             });
         });
