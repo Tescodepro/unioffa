@@ -91,6 +91,13 @@ class DashboardController extends Controller
 
         $student = $user->student;
 
+        // ✅ Determine Effective Level for Payment
+        // Rule: If student is admitted in current session AND level is 200 or 300 (DE/Transfer), pay 100 level fees.
+        $effectiveLevel = (int) $student->level;
+        if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
+            $effectiveLevel = 100;
+        }
+
         // ✅ 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
             ->where('session', $currentSession) // session must always match
@@ -106,13 +113,13 @@ class DashboardController extends Controller
                 // If student type is null, only accept settings where student_type is null
                 $q->whereNull('student_type');
             })
-            ->when($student->level, function ($q) use ($student) {
-                $q->where(function ($sub) use ($student) {
+            ->when($effectiveLevel, function ($q) use ($effectiveLevel) {
+                $q->where(function ($sub) use ($effectiveLevel) {
                     $sub->whereNull('level')
-                        ->orWhereJsonContains('level', (int) $student->level);
+                        ->orWhereJsonContains('level', $effectiveLevel);
                 });
             }, function ($q) {
-                // If student's level is null, only accept settings where level is null
+                // If effective level is 0/null, only accept settings where level is null
                 $q->whereNull('level');
             })
             ->when($student->department?->faculty_id, function ($q) use ($student) {
