@@ -101,23 +101,27 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Student Type (Programme)</label>
-                                    <select name="student_type" class="form-select">
-                                        <option value="">All Programmes</option>
-                                        <option value="REGULAR" {{ old('student_type', $paymentSetting->student_type) == 'REGULAR' ? 'selected' : '' }}>REGULAR</option>
-                                        <option value="TOPUP" {{ old('student_type', $paymentSetting->student_type) == 'TOPUP' ? 'selected' : '' }}>TOPUP</option>
-                                        <option value="IDELDE" {{ old('student_type', $paymentSetting->student_type) == 'IDELDE' ? 'selected' : '' }}>IDELDE</option>
-                                        <option value="IDELUTME" {{ old('student_type', $paymentSetting->student_type) == 'IDELUTME' ? 'selected' : '' }}>IDELUTME
-                                        </option>
+                                    @php $selectedTypes = $paymentSetting->student_type ?? []; @endphp
+                                    <select name="student_type[]" multiple class="form-select" style="min-height: 100px;">
+                                        @foreach(['REGULAR', 'TOPUP', 'IDELDE', 'IDELUTME'] as $type)
+                                            <option value="{{ $type }}" {{ in_array($type, $selectedTypes) ? 'selected' : '' }}>
+                                                {{ $type }}
+                                            </option>
+                                        @endforeach
                                     </select>
+                                    <small class="text-muted">Ctrl/Cmd + Click to select multiple.</small>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Entry Mode</label>
-                                    <select name="entry_mode" class="form-select">
-                                        <option value="">All Entry Modes</option>
-                                        <option value="UTME" {{ old('entry_mode', $paymentSetting->entry_mode) == 'UTME' ? 'selected' : '' }}>UTME</option>
-                                        <option value="DE" {{ old('entry_mode', $paymentSetting->entry_mode) == 'DE' ? 'selected' : '' }}>DE (Direct Entry)</option>
-                                        <option value="TRANSFER" {{ old('entry_mode', $paymentSetting->entry_mode) == 'TRANSFER' ? 'selected' : '' }}>TRANSFER</option>
+                                    @php $selectedModes = $paymentSetting->entry_mode ?? []; @endphp
+                                    <select name="entry_mode[]" multiple class="form-select" style="min-height: 100px;">
+                                        @foreach(['UTME', 'DE', 'TRANSFER'] as $mode)
+                                            <option value="{{ $mode }}" {{ in_array($mode, $selectedModes) ? 'selected' : '' }}>
+                                                {{ $mode }}
+                                            </option>
+                                        @endforeach
                                     </select>
+                                    <small class="text-muted">Ctrl/Cmd + Click to select multiple.</small>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Specific Student (Matric No.)</label>
@@ -216,13 +220,38 @@
                 }
             }
 
-            allowInstallment.addEventListener('change', function () {
-                const show = this.value === '1';
+            // Helper to toggle state
+            function toggleInstallmentFields() {
+                const show = allowInstallment.value === '1';
                 installmentSection.forEach(sec => sec.classList.toggle('d-none', !show));
-                if (show && instalmentContainer.children.length === 0) generatePercentageInputs();
-            });
 
+                if (show) {
+                    numberInput.removeAttribute('disabled');
+                    numberInput.setAttribute('required', 'required');
+                    // On edit, we might already have children (populated by PHP), so don't clear/regenerate blindly
+                    if (instalmentContainer.children.length === 0) generatePercentageInputs();
+                } else {
+                    numberInput.setAttribute('disabled', 'disabled');
+                    numberInput.removeAttribute('required');
+                    // Optional: we can clear existing inputs to ensure they aren't submitted
+                    instalmentContainer.innerHTML = '';
+                }
+            }
+
+            allowInstallment.addEventListener('change', toggleInstallmentFields);
             numberInput.addEventListener('input', generatePercentageInputs);
+
+            // Run initial check to set correct disabled/required state based on DB value
+            // We do NOT want to clear innerHTML if it's already "Yes" and populated by Blade
+            const initialShow = allowInstallment.value === '1';
+            if (initialShow) {
+                numberInput.removeAttribute('disabled');
+                numberInput.setAttribute('required', 'required');
+                // Don't call generatePercentageInputs() here because PHP already rendered them!
+            } else {
+                numberInput.setAttribute('disabled', 'disabled');
+                numberInput.removeAttribute('required');
+            }
         });
     </script>
 @endsection

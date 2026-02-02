@@ -33,6 +33,8 @@ class PaymentSetting extends Model
 
     protected $casts = [
         'level' => 'array',
+        'entry_mode' => 'array',
+        'student_type' => 'array',
     ];
 
     protected static function boot()

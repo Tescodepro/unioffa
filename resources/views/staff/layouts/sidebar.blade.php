@@ -155,7 +155,7 @@
                 @endif
 
                 <!-- ICT AND ADMINISTRATOR ONLY MENUS -->
-                @if (in_array(auth()->user()->userType->name, ['ict', 'vice-chancellor', 'registrar','administrator']))
+                @if (in_array(auth()->user()->userType->name, ['ict']))
                     <!-- STUDENT MANAGEMENT -->
                     <li class="{{ openMenuClass('staff/ict/students*') }}">
                         <h6 class="submenu-hdr"><span>Student Management</span></h6>
@@ -213,6 +213,22 @@
                                 <a href="{{ route('ict.news.index') }}" class="{{ activeClass('ict.news.index') }}">
                                     <i class="ti ti-news"></i>
                                     <span>News</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endif
+
+                <!-- APPLICATION CONFIGURATION (ICT ONLY) -->
+                @if (in_array(auth()->user()->userType->name, ['ict']))
+                    <li class="{{ openMenuClass('staff/ict/application-settings*') }}">
+                        <h6 class="submenu-hdr"><span>App Configuration</span></h6>
+                        <ul>
+                            <li>
+                                <a href="{{ route('ict.application_settings.index') }}"
+                                    class="{{ activeClass('ict.application_settings.index') }}">
+                                    <i class="ti ti-settings"></i>
+                                    <span>App Settings</span>
                                 </a>
                             </li>
                         </ul>

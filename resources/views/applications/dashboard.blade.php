@@ -144,8 +144,17 @@
                                         class="card-footer bg-light d-flex justify-content-between align-items-center py-3">
                                         <a href="{{ route('application.form', ['user_application_id' => $application->id]) }}"
                                             class="theme-btn">
-                                            <i class="fas fa-arrow-right me-1"></i> Continue Your Application
+                                            <i class="fas fa-arrow-right me-1"></i> Continue
                                         </a>
+
+                                        @if ($application->is_approved != 1)
+                                            <button type="button" class="theme-btn"
+                                                style="background-color: #dc3545; border-color: #dc3545;"
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                data-url="{{ route('application.delete', $application->id) }}">
+                                                <i class="fas fa-trash-alt me-1"></i> Delete
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -158,10 +167,48 @@
                 @endif
 
 
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this application? This action cannot be undone.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form id="deleteForm" method="POST" action="">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger">Delete Application</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const deleteModal = document.getElementById('deleteModal');
+                        deleteModal.addEventListener('show.bs.modal', function(event) {
+                            const button = event.relatedTarget;
+                            const url = button.getAttribute('data-url');
+                            const form = document.getElementById('deleteForm');
+                            form.setAttribute('action', url);
+                        });
+                    });
+                </script>
+
+
 
 
                 <div class="team-details-info application-form">
-                    <form action="{{ route('application.start') }}" method="POST">
+                    <form id="startApplicationForm" action="{{ route('application.start') }}" method="POST">
                         @csrf
 
                         <!-- HEADER SECTION -->
@@ -187,7 +234,7 @@
                                                 data-description="{{ $setting->description }}"
                                                 data-fee="{{ $setting->application_fee }}"
                                                 data-acceptance="{{ $setting->acceptance_fee }}"
-                                                data-modules="{{ $setting->modules_enable }}">
+                                                data-modules="{{ json_encode($setting->modules_enable) }}">
                                                 {{ $setting->academic_session }} – {{ $setting->name }}
                                             </option>
                                         @endforeach
@@ -362,7 +409,7 @@
             instructionsText.textContent = setting.description;
 
             // Show modules in simple format
-            const modules = JSON.parse(setting.modules_enable);
+            const modules = setting.modules_enable;
             modulesList.innerHTML = '';
             modulesSection.style.display = 'none';
 
@@ -424,7 +471,7 @@
         });
 
         // Form validation
-        document.querySelector('form').addEventListener('submit', function(e) {
+        document.getElementById('startApplicationForm').addEventListener('submit', function(e) {
             if (!select.value) {
                 e.preventDefault();
                 alert('Please select an application round first.');

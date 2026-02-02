@@ -56,8 +56,10 @@ class UserTypeMiddleware
         }
 
         // 4️⃣ Allow any staff type to access shared staff routes
-        if (in_array($userType, ['administrator', 'dean', 'lecturer','hod','registrar', 'vice-chancellor', 'bursary', 'ict']) &&
-            in_array($type, ['administrator', 'dean', 'lecturer','hod','registrar', 'vice-chancellor', 'bursary', 'ict'])) {
+        if (
+            in_array($userType, ['administrator', 'dean', 'lecturer', 'hod', 'registrar', 'vice-chancellor', 'bursary', 'ict']) &&
+            in_array($type, ['administrator', 'dean', 'lecturer', 'hod', 'registrar', 'vice-chancellor', 'bursary', 'ict'])
+        ) {
             return $next($request);
         }
         // 5️⃣ Strict check for other cases

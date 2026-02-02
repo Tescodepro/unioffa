@@ -90,6 +90,40 @@
 
                 @include('layouts.flash-message')
 
+                {{-- SUMMARY CARDS --}}
+                @php
+                    $totalRequired = $paymentSettings->sum('amount');
+                    $totalPaid = $paymentSettings->sum('amount_paid');
+                    $totalBalance = $paymentSettings->sum('balance');
+                @endphp
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white h-100 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-white-50">Total Required</h6>
+                                <h3 class="fw-bold mb-0">₦{{ number_format($totalRequired, 2) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white h-100 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-white-50">Total Paid</h6>
+                                <h3 class="fw-bold mb-0">₦{{ number_format($totalPaid, 2) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white h-100 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-white-50">Total Balance</h6>
+                                <h3 class="fw-bold mb-0">₦{{ number_format($totalBalance, 2) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Required Payments -->
                 <div class="card mb-4">
                     <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
@@ -116,25 +150,22 @@
                                             <td>{{ number_format($payment->balance, 2) }}</td>
                                             <td>
                                                 @if ($payment->balance > 0)
-                                                    <button type="button" class="btn btn-sm btn-primary"
-                                                        data-bs-toggle="modal"
+                                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
                                                         data-bs-target="#paymentModal{{ $payment->id }}">
                                                         Pay Now
                                                     </button>
 
                                                     <!-- Payment Confirmation Modal -->
-                                                    <div class="modal fade" id="paymentModal{{ $payment->id }}"
-                                                        tabindex="-1"
-                                                        aria-labelledby="paymentModalLabel{{ $payment->id }}"
-                                                        aria-hidden="true">
+                                                    <div class="modal fade" id="paymentModal{{ $payment->id }}" tabindex="-1"
+                                                        aria-labelledby="paymentModalLabel{{ $payment->id }}" aria-hidden="true">
                                                         <div class="modal-dialog">
                                                             <div class="modal-content">
                                                                 <div class="modal-header">
                                                                     <h5 class="modal-title"
                                                                         id="paymentModalLabel{{ $payment->id }}">
                                                                         Confirm Payment</h5>
-                                                                    <button type="button" class="btn-close"
-                                                                        data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                        aria-label="Close"></button>
                                                                 </div>
 
                                                                 <form action="{{ route('application.payment.process') }}"
@@ -168,11 +199,9 @@
                                                                                     <label for="amount{{ $payment->id }}"
                                                                                         class="form-label">Select Amount
                                                                                         to Pay</label>
-                                                                                    <select name="amount"
-                                                                                        id="amount{{ $payment->id }}"
+                                                                                    <select name="amount" id="amount{{ $payment->id }}"
                                                                                         class="form-select" required>
-                                                                                        <option value="" disabled
-                                                                                            selected>Choose amount
+                                                                                        <option value="" disabled selected>Choose amount
                                                                                         </option>
 
                                                                                         @foreach ($payment->installment_scheme as $key => $installmentAmount)
@@ -181,22 +210,19 @@
                                                                                                     $key + 1;
                                                                                             @endphp
                                                                                             @if ($payment->balance >= $installmentAmount)
-                                                                                                <option
-                                                                                                    value="{{ $installmentAmount }}">
+                                                                                                <option value="{{ $installmentAmount }}">
                                                                                                     {{ number_format($installmentAmount, 2) }}
                                                                                                     (Balance for
                                                                                                     Installment
                                                                                                     {{ $installmentNumber }})
                                                                                                 </option>
                                                                                             @elseif($installmentAmount == $payment->balance)
-                                                                                                <option
-                                                                                                    value="{{ $installmentAmount }}">
+                                                                                                <option value="{{ $installmentAmount }}">
                                                                                                     {{ number_format($installmentAmount, 2) }}
                                                                                                     (Complete Payment)
                                                                                                 </option>
                                                                                             @else
-                                                                                                <option
-                                                                                                    value="{{ $installmentAmount }}">
+                                                                                                <option value="{{ $installmentAmount }}">
                                                                                                     {{ number_format($installmentAmount, 2) }}
                                                                                                 </option>
                                                                                             @endif
@@ -219,16 +245,14 @@
 
                                                                             <input type="hidden" name="fee_type"
                                                                                 value="{{ $payment->payment_type }}">
-                                                                            <input type="hidden" name="gateway"
-                                                                                value="oneapp">
+                                                                            <input type="hidden" name="gateway" value="oneapp">
                                                                         </div>
                                                                     </div>
 
                                                                     <div class="modal-footer">
                                                                         <button type="button" class="btn btn-secondary"
                                                                             data-bs-dismiss="modal">Cancel</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary">Confirm
+                                                                        <button type="submit" class="btn btn-primary">Confirm
                                                                             Payment</button>
                                                                     </div>
                                                                 </form>
@@ -261,12 +285,12 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Fix iOS modal backdrop issue
             const modals = document.querySelectorAll('.modal');
 
-            modals.forEach(function(modal) {
-                modal.addEventListener('show.bs.modal', function(e) {
+            modals.forEach(function (modal) {
+                modal.addEventListener('show.bs.modal', function (e) {
                     // Move modal to body end to fix z-index
                     if (!modal.hasAttribute('data-moved')) {
                         document.body.appendChild(modal);
@@ -274,7 +298,7 @@
                     }
 
                     // Force backdrop to be behind modal
-                    setTimeout(function() {
+                    setTimeout(function () {
                         const backdrop = document.querySelector('.modal-backdrop');
                         if (backdrop) {
                             backdrop.style.zIndex = '1040';

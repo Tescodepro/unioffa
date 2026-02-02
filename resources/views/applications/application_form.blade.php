@@ -339,7 +339,7 @@
                                                             <select class="form-select" name="jamb_type" id="jamb_type" required>
                                                                 <option value="">Select Type</option>
                                                                 <option value="utme" {{ old('jamb_type', $jambDetails ? ($jambDetails->jamb_type ?? '') : '') == 'utme' ? 'selected' : '' }}>UTME</option>
-                                                                <option value="direct_entry" {{ old('jamb_type', $jambDetails ? ($jambDetails->jamb_type ?? '') : '') == 'direct_entry' ? 'selected' : '' }}>Direct Entry</option>
+                                                                <!-- <option value="direct_entry" {{ old('jamb_type', $jambDetails ? ($jambDetails->jamb_type ?? '') : '') == 'direct_entry' ? 'selected' : '' }}>Direct Entry</option> -->
                                                             </select>
                                                         </div>
                                                     </div>
@@ -470,29 +470,70 @@
                                                         </div>
                                                     </div>
                                                     
-                                                    <h6>Subject Grades</h6>
-                                                    <div class="row">
+                                                    <h6>Subjects and Grades (Select 3 Subjects)</h6>
+                                                    <div id="alevel_subjects_container">
                                                         @php
-                                                            $alevels = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government'];
-                                                            $alevel_grades = ['A', 'B', 'C', 'D', 'E', 'F'];
-                                                            $savedAlevelGrades = $alevel ? json_decode($alevel->grades, true) : [];
+                                                            $savedAlevelSubjects = $alevel ? (is_array($alevel->subjects) ? $alevel->subjects : json_decode($alevel->subjects, true)) : [];
+                                                            $savedAlevelGrades = $alevel ? (is_array($alevel->grades) ? $alevel->grades : json_decode($alevel->grades, true)) : [];
+                                                            
+                                                            // Using the same subject list as secondary/O-level for now, or define specific A-level/IJMB subjects
+                                                            $alevelSubjects = config('subjects.secondary_subjects'); 
+                                                            $alevelGradeOptions = ['A', 'B', 'C', 'D', 'E', 'F'];
                                                         @endphp
-                                                        
-                                                        @foreach($alevels as $subject)
-                                                            @php
-                                                                $subjectKey = strtolower(str_replace(' ', '_', $subject));
-                                                            @endphp
-                                                            <div class="col-md-6 mb-3">
-                                                                <label class="form-label">{{ $subject }}</label>
-                                                                <select class="form-select" name="alevel_grades[{{ $subjectKey }}]">
-                                                                    <option value="">Select Grade</option>
-                                                                    @foreach($alevel_grades as $grade)
-                                                                        <option value="{{ $grade }}" {{ ($savedAlevelGrades[$subjectKey] ?? '') == $grade ? 'selected' : '' }}>{{ $grade }}</option>
-                                                                    @endforeach
-                                                                </select>
+
+                                                        @if(count($savedAlevelSubjects) > 0)
+                                                            @foreach($savedAlevelSubjects as $index => $savedSubject)
+                                                                <div class="row mb-2 alevel-row">
+                                                                    <div class="col-md-6">
+                                                                        <select class="form-select" name="alevel_subjects[]" required>
+                                                                            <option value="">Select Subject</option>
+                                                                            @foreach($alevelSubjects as $subject)
+                                                                                <option value="{{ $subject }}" {{ $savedSubject == $subject ? 'selected' : '' }}>{{ $subject }}</option>
+                                                                            @endforeach
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-md-4">
+                                                                        <select class="form-select" name="alevel_grades[]" required>
+                                                                            <option value="">Select Grade</option>
+                                                                            @foreach($alevelGradeOptions as $grade)
+                                                                                <option value="{{ $grade }}" {{ ($savedAlevelGrades[$index] ?? '') == $grade ? 'selected' : '' }}>{{ $grade }}</option>
+                                                                            @endforeach
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-md-2">
+                                                                        <button type="button" class="btn btn-danger btn-remove-alevel">Remove</button>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        @else
+                                                            {{-- Default 3 empty rows? or just 1? User asked to pick 3. Let's start with 1 and allow adding up to 3 --}}
+                                                            <div class="row mb-2 alevel-row">
+                                                                <div class="col-md-6">
+                                                                    <select class="form-select" name="alevel_subjects[]" required>
+                                                                        <option value="">Select Subject</option>
+                                                                        @foreach($alevelSubjects as $subject)
+                                                                            <option value="{{ $subject }}">{{ $subject }}</option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <select class="form-select" name="alevel_grades[]" required>
+                                                                        <option value="">Select Grade</option>
+                                                                        @foreach($alevelGradeOptions as $grade)
+                                                                            <option value="{{ $grade }}">{{ $grade }}</option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <button type="button" class="btn btn-danger btn-remove-alevel">Remove</button>
+                                                                </div>
                                                             </div>
-                                                        @endforeach
+                                                        @endif
                                                     </div>
+
+                                                    <button type="button" id="add_alevel_subject_btn" class="btn btn-primary mb-3">Add Subject</button>
+                                                    <div id="alevel_subject_error" class="text-danger" style="display: none;">You can only add up to 3 subjects.</div>
+
                                                     <div class="text-center mt-4">
                                                         <button type="submit" name="action" value="save_continue" class="theme-btn me-2">
                                                             Save & Continue
@@ -928,72 +969,78 @@
     </script>
    
     <script>
-        const subjects = {!! json_encode(['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Further Mathematics', 'Economics', 'Government', 'Literature']) !!};
-        const grades = {!! json_encode(['A1','B2','B3','C4','C5','C6','D7','E8','F9']) !!};
+        document.addEventListener("DOMContentLoaded", function() {
+            // O-Level Script
+            const olevelContainer = document.getElementById('olevel_subjects_container');
+            const addSubjectBtn = document.getElementById('add_subject_btn');
 
-        document.getElementById('add_subject_btn').addEventListener('click', function() {
-            const container = document.getElementById('olevel_subjects_container');
+            if (olevelContainer && addSubjectBtn) {
+                const subjects = {!! json_encode(['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Further Mathematics', 'Economics', 'Government', 'Literature']) !!};
+                const grades = {!! json_encode(['A1','B2','B3','C4','C5','C6','D7','E8','F9']) !!};
 
-            const row = document.createElement('div');
-            row.className = 'row mb-2 olevel-row';
+                addSubjectBtn.addEventListener('click', function() {
+                    const row = document.createElement('div');
+                    row.className = 'row mb-2 olevel-row';
 
-            const subjectCol = document.createElement('div');
-            subjectCol.className = 'col-md-6';
-            const subjectSelect = document.createElement('select');
-            subjectSelect.className = 'form-select';
-            subjectSelect.name = 'olevel_subjects[]';
-            subjectSelect.required = true;
-            const defaultOption = document.createElement('option');
-            defaultOption.value = '';
-            defaultOption.text = 'Select Subject';
-            subjectSelect.appendChild(defaultOption);
-            subjects.forEach(s => {
-                const option = document.createElement('option');
-                option.value = s;
-                option.text = s;
-                subjectSelect.appendChild(option);
-            });
-            subjectCol.appendChild(subjectSelect);
+                    const subjectCol = document.createElement('div');
+                    subjectCol.className = 'col-md-6';
+                    const subjectSelect = document.createElement('select');
+                    subjectSelect.className = 'form-select';
+                    subjectSelect.name = 'olevel_subjects[]';
+                    subjectSelect.required = true;
+                    // ... (rest of option creation logic simplified for brevity, referencing original logic) ...
+                     const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.text = 'Select Subject';
+                    subjectSelect.appendChild(defaultOption);
+                    subjects.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s;
+                        option.text = s;
+                        subjectSelect.appendChild(option);
+                    });
+                    subjectCol.appendChild(subjectSelect);
 
-            const gradeCol = document.createElement('div');
-            gradeCol.className = 'col-md-4';
-            const gradeSelect = document.createElement('select');
-            gradeSelect.className = 'form-select';
-            gradeSelect.name = 'olevel_grades[]';
-            gradeSelect.required = true;
-            const defaultGrade = document.createElement('option');
-            defaultGrade.value = '';
-            defaultGrade.text = 'Select Grade';
-            gradeSelect.appendChild(defaultGrade);
-            grades.forEach(g => {
-                const option = document.createElement('option');
-                option.value = g;
-                option.text = g;
-                gradeSelect.appendChild(option);
-            });
-            gradeCol.appendChild(gradeSelect);
+                    const gradeCol = document.createElement('div');
+                    gradeCol.className = 'col-md-4';
+                    const gradeSelect = document.createElement('select');
+                    gradeSelect.className = 'form-select';
+                    gradeSelect.name = 'olevel_grades[]';
+                    gradeSelect.required = true;
+                     const defaultGrade = document.createElement('option');
+                    defaultGrade.value = '';
+                    defaultGrade.text = 'Select Grade';
+                    gradeSelect.appendChild(defaultGrade);
+                    grades.forEach(g => {
+                        const option = document.createElement('option');
+                        option.value = g;
+                        option.text = g;
+                        gradeSelect.appendChild(option);
+                    });
+                    gradeCol.appendChild(gradeSelect);
 
-            const removeCol = document.createElement('div');
-            removeCol.className = 'col-md-2';
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'btn btn-danger btn-remove';
-            removeBtn.innerText = 'Remove';
-            removeBtn.addEventListener('click', () => row.remove());
-            removeCol.appendChild(removeBtn);
+                    const removeCol = document.createElement('div');
+                    removeCol.className = 'col-md-2';
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-danger btn-remove';
+                    removeBtn.innerText = 'Remove';
+                    removeBtn.addEventListener('click', () => row.remove());
+                    removeCol.appendChild(removeBtn);
 
-            row.appendChild(subjectCol);
-            row.appendChild(gradeCol);
-            row.appendChild(removeCol);
+                    row.appendChild(subjectCol);
+                    row.appendChild(gradeCol);
+                    row.appendChild(removeCol);
 
-            container.appendChild(row);
-        });
+                    olevelContainer.appendChild(row);
+                });
 
-        // Remove button for initial row
-        document.querySelectorAll('.btn-remove').forEach(btn => {
-            btn.addEventListener('click', function() {
-                btn.closest('.olevel-row').remove();
-            });
+                document.querySelectorAll('.btn-remove').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        btn.closest('.olevel-row').remove();
+                    });
+                });
+            }
         });
     </script>
     
@@ -1012,137 +1059,245 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            // Toggle UTME/Direct Entry fields
-            function toggleFields() {
-                let type = document.getElementById('jamb_type').value;
-                const utmeFields = document.getElementById('utme_fields');
-                const directEntryFields = document.getElementById('direct_entry_fields');
-                const directEntryScore = document.getElementById('direct_entry_score');
+            const jambTypeSelect = document.getElementById('jamb_type');
+            
+            if (jambTypeSelect) {
+                // Toggle UTME/Direct Entry fields
+                function toggleFields() {
+                    let type = jambTypeSelect.value;
+                    const utmeFields = document.getElementById('utme_fields');
+                    const directEntryFields = document.getElementById('direct_entry_fields');
+                    const directEntryScore = document.getElementById('direct_entry_score');
 
-                utmeFields.style.display = type === 'utme' ? 'block' : 'none';
-                directEntryFields.style.display = type === 'direct_entry' ? 'block' : 'none';
-                
-                // Dynamically toggle required attribute
-                if (type === 'direct_entry') {
-                    directEntryScore.setAttribute('required', 'required');
-                } else {
-                    directEntryScore.removeAttribute('required');
+                    if (utmeFields) utmeFields.style.display = type === 'utme' ? 'block' : 'none';
+                    if (directEntryFields) directEntryFields.style.display = type === 'direct_entry' ? 'block' : 'none';
+                    
+                    if (directEntryScore) {
+                        if (type === 'direct_entry') {
+                            directEntryScore.setAttribute('required', 'required');
+                        } else {
+                            directEntryScore.removeAttribute('required');
+                        }
+                    }
                 }
+
+                jambTypeSelect.addEventListener('change', toggleFields);
+                toggleFields(); // Initialize
             }
-            document.getElementById('jamb_type').addEventListener('change', toggleFields);
-            toggleFields(); // Initialize on page load
 
             // JAMB Subject Management
-            const jambSubjects = {!! json_encode(config('subjects.secondary_subjects')) !!};
+            const jambSubjectsConfig = {!! json_encode(config('subjects.secondary_subjects')) !!};
             const maxJambSubjects = 4;
+            const jambSubjectsContainer = document.getElementById('jamb_subjects_container');
+            const addJambBtn = document.getElementById('add_jamb_subject_btn');
 
-            // Function to calculate total score
-            function calculateTotalScore() {
-                const scoreInputs = document.querySelectorAll('.jamb-subject-score');
-                let total = 0;
-                scoreInputs.forEach(input => {
-                    const value = parseInt(input.value) || 0;
-                    total += value;
+            if (jambSubjectsContainer && addJambBtn) {
+                 // Function to calculate total score
+                function calculateTotalScore() {
+                    const scoreInputs = document.querySelectorAll('.jamb-subject-score');
+                    let total = 0;
+                    scoreInputs.forEach(input => {
+                        const value = parseInt(input.value) || 0;
+                        total += value;
+                    });
+                    const totalScoreEl = document.getElementById('total_score');
+                    if(totalScoreEl) totalScoreEl.value = total > 0 ? total : '';
+                }
+
+                addJambBtn.addEventListener('click', function() {
+                    const currentRows = jambSubjectsContainer.querySelectorAll('.jamb-row').length;
+
+                    if (currentRows >= maxJambSubjects) {
+                        const err = document.getElementById('jamb_subject_error');
+                        if(err) err.style.display = 'block';
+                        return;
+                    }
+
+                    const row = document.createElement('div');
+                    row.className = 'row mb-2 jamb-row';
+
+                    const subjectCol = document.createElement('div');
+                    subjectCol.className = 'col-md-6';
+                    const subjectSelect = document.createElement('select');
+                    subjectSelect.className = 'form-select';
+                    subjectSelect.name = 'jamb_subjects[]';
+                    subjectSelect.required = true;
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.text = 'Select Subject';
+                    subjectSelect.appendChild(defaultOption);
+                    jambSubjectsConfig.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s;
+                        option.text = s;
+                        subjectSelect.appendChild(option);
+                    });
+                    subjectCol.appendChild(subjectSelect);
+
+                    const scoreCol = document.createElement('div');
+                    scoreCol.className = 'col-md-4';
+                    const scoreInput = document.createElement('input');
+                    scoreInput.type = 'number';
+                    scoreInput.className = 'form-control jamb-subject-score';
+                    scoreInput.name = 'jamb_subject_scores[]';
+                    scoreInput.min = '0';
+                    scoreInput.max = '100';
+                    scoreInput.required = true;
+                    scoreInput.addEventListener('input', calculateTotalScore);
+                    scoreCol.appendChild(scoreInput);
+
+                    const removeCol = document.createElement('div');
+                    removeCol.className = 'col-md-2';
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-danger btn-remove-jamb';
+                    removeBtn.innerText = 'Remove';
+                    removeBtn.addEventListener('click', () => {
+                        row.remove();
+                        calculateTotalScore();
+                        const err = document.getElementById('jamb_subject_error');
+                        if (jambSubjectsContainer.querySelectorAll('.jamb-row').length < maxJambSubjects && err) {
+                            err.style.display = 'none';
+                        }
+                    });
+                    removeCol.appendChild(removeBtn);
+
+                    row.appendChild(subjectCol);
+                    row.appendChild(scoreCol);
+                    row.appendChild(removeCol);
+
+                    jambSubjectsContainer.appendChild(row);
+                    calculateTotalScore();
                 });
-                document.getElementById('total_score').value = total > 0 ? total : '';
+
+                // Remove button for initial rows
+                document.querySelectorAll('.btn-remove-jamb').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        btn.closest('.jamb-row').remove();
+                        calculateTotalScore();
+                        const err = document.getElementById('jamb_subject_error');
+                        if (document.getElementById('jamb_subjects_container').querySelectorAll('.jamb-row').length < maxJambSubjects && err) {
+                            err.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Attach input event listeners to existing score inputs
+                document.querySelectorAll('.jamb-subject-score').forEach(input => {
+                    input.addEventListener('input', calculateTotalScore);
+                });
+
+                 // Initial calculation
+                calculateTotalScore();
             }
 
-            // Add new subject row
-            document.getElementById('add_jamb_subject_btn').addEventListener('click', function() {
-                const container = document.getElementById('jamb_subjects_container');
-                const currentRows = container.querySelectorAll('.jamb-row').length;
-
-                if (currentRows >= maxJambSubjects) {
-                    document.getElementById('jamb_subject_error').style.display = 'block';
-                    return;
-                }
-
-                const row = document.createElement('div');
-                row.className = 'row mb-2 jamb-row';
-
-                const subjectCol = document.createElement('div');
-                subjectCol.className = 'col-md-6';
-                const subjectSelect = document.createElement('select');
-                subjectSelect.className = 'form-select';
-                subjectSelect.name = 'jamb_subjects[]';
-                subjectSelect.required = true;
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.text = 'Select Subject';
-                subjectSelect.appendChild(defaultOption);
-                jambSubjects.forEach(s => {
-                    const option = document.createElement('option');
-                    option.value = s;
-                    option.text = s;
-                    subjectSelect.appendChild(option);
-                });
-                subjectCol.appendChild(subjectSelect);
-
-                const scoreCol = document.createElement('div');
-                scoreCol.className = 'col-md-4';
-                const scoreInput = document.createElement('input');
-                scoreInput.type = 'number';
-                scoreInput.className = 'form-control jamb-subject-score';
-                scoreInput.name = 'jamb_subject_scores[]';
-                scoreInput.min = '0';
-                scoreInput.max = '100';
-                scoreInput.required = true;
-                scoreInput.addEventListener('input', calculateTotalScore);
-                scoreCol.appendChild(scoreInput);
-
-                const removeCol = document.createElement('div');
-                removeCol.className = 'col-md-2';
-                const removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.className = 'btn btn-danger btn-remove-jamb';
-                removeBtn.innerText = 'Remove';
-                removeBtn.addEventListener('click', () => {
-                    row.remove();
-                    calculateTotalScore();
-                    if (container.querySelectorAll('.jamb-row').length < maxJambSubjects) {
-                        document.getElementById('jamb_subject_error').style.display = 'none';
-                    }
-                });
-                removeCol.appendChild(removeBtn);
-
-                row.appendChild(subjectCol);
-                row.appendChild(scoreCol);
-                row.appendChild(removeCol);
-
-                container.appendChild(row);
-                calculateTotalScore();
-            });
-
-            // Remove button for initial rows and attach score calculation
-            document.querySelectorAll('.btn-remove-jamb').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    btn.closest('.jamb-row').remove();
-                    calculateTotalScore();
-                    if (document.getElementById('jamb_subjects_container').querySelectorAll('.jamb-row').length < maxJambSubjects) {
-                        document.getElementById('jamb_subject_error').style.display = 'none';
-                    }
-                });
-            });
-
-            // Attach input event listeners to existing score inputs for total calculation
-            document.querySelectorAll('.jamb-subject-score').forEach(input => {
-                input.addEventListener('input', calculateTotalScore);
-            });
-
             // Form submission validation
-            document.getElementById('jamb_form').addEventListener('submit', function(event) {
-                const jambType = document.getElementById('jamb_type').value;
-                if (jambType === 'utme') {
-                    const subjectRows = document.getElementById('jamb_subjects_container').querySelectorAll('.jamb-row').length;
-                    if (subjectRows === 0) {
-                        event.preventDefault();
-                        alert('Please add at least one subject for UTME.');
+            const jambForm = document.getElementById('jamb_form');
+            if (jambForm) {
+                jambForm.addEventListener('submit', function(event) {
+                    const jambType = document.getElementById('jamb_type').value;
+                    if (jambType === 'utme') {
+                        const subjectRows = document.getElementById('jamb_subjects_container').querySelectorAll('.jamb-row').length;
+                        if (subjectRows === 0) {
+                            event.preventDefault();
+                            alert('Please add at least one subject for UTME.');
+                        }
                     }
-                }
-            });
+                });
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // A-Level Subject Management
+            const alevelSubjects = {!! json_encode(config('subjects.secondary_subjects')) !!};
+            const maxAlevelSubjects = 3; 
 
-            // Initial calculation on page load
-            calculateTotalScore();
+            // Add new subject row
+            const addBtn = document.getElementById('add_alevel_subject_btn');
+            if(addBtn){
+                addBtn.addEventListener('click', function() {
+                    const container = document.getElementById('alevel_subjects_container');
+                    const currentRows = container.querySelectorAll('.alevel-row').length;
+
+                    if (currentRows >= maxAlevelSubjects) {
+                        document.getElementById('alevel_subject_error').style.display = 'block';
+                        return;
+                    }
+
+                    const row = document.createElement('div');
+                    row.className = 'row mb-2 alevel-row';
+
+                    // Subject Column
+                    const subjectCol = document.createElement('div');
+                    subjectCol.className = 'col-md-6';
+                    const subjectSelect = document.createElement('select');
+                    subjectSelect.className = 'form-select';
+                    subjectSelect.name = 'alevel_subjects[]';
+                    subjectSelect.required = true;
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.text = 'Select Subject';
+                    subjectSelect.appendChild(defaultOption);
+                    alevelSubjects.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s;
+                        option.text = s;
+                        subjectSelect.appendChild(option);
+                    });
+                    subjectCol.appendChild(subjectSelect);
+
+                    // Grade Column
+                    const gradeCol = document.createElement('div');
+                    gradeCol.className = 'col-md-4';
+                    const gradeSelect = document.createElement('select');
+                    gradeSelect.className = 'form-select';
+                    gradeSelect.name = 'alevel_grades[]';
+                    gradeSelect.required = true;
+                    const defaultGradeOption = document.createElement('option');
+                    defaultGradeOption.value = '';
+                    defaultGradeOption.text = 'Select Grade';
+                    gradeSelect.appendChild(defaultGradeOption);
+                    ['A', 'B', 'C', 'D', 'E', 'F'].forEach(g => {
+                        const option = document.createElement('option');
+                        option.value = g;
+                        option.text = g;
+                        gradeSelect.appendChild(option);
+                    });
+                    gradeCol.appendChild(gradeSelect);
+
+                    // Remove Column
+                    const removeCol = document.createElement('div');
+                    removeCol.className = 'col-md-2';
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-danger btn-remove-alevel';
+                    removeBtn.innerText = 'Remove';
+                    removeBtn.addEventListener('click', () => {
+                        row.remove();
+                        if (container.querySelectorAll('.alevel-row').length < maxAlevelSubjects) {
+                            document.getElementById('alevel_subject_error').style.display = 'none';
+                        }
+                    });
+                    removeCol.appendChild(removeBtn);
+
+                    row.appendChild(subjectCol);
+                    row.appendChild(gradeCol);
+                    row.appendChild(removeCol);
+
+                    container.appendChild(row);
+                });
+            }
+
+            // Remove button for initial rows
+            document.querySelectorAll('.btn-remove-alevel').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    btn.closest('.alevel-row').remove();
+                    if (document.getElementById('alevel_subjects_container').querySelectorAll('.alevel-row').length < maxAlevelSubjects) {
+                        document.getElementById('alevel_subject_error').style.display = 'none';
+                    }
+                });
+            });
         });
     </script>
 </body>

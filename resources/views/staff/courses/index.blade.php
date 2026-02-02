@@ -2,10 +2,7 @@
 
 @section('title', 'Courses')
 
-@push('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
-@endpush
+
 
 @section('content')
     <div class="main-wrapper">
@@ -48,12 +45,12 @@
                                 <td>{{ $course->department->department_name ?? 'N/A' }}</td>
 
                                 <!-- ✅ Other Departments Column -->
-                               <td>
+                                <td>
                                     @php
                                         $otherDeptIds = $course->other_departments ?? [];
                                         $otherDeptNames = \App\Models\Department::whereIn('id', $otherDeptIds)
-                                                            ->pluck('department_name')
-                                                            ->toArray();
+                                            ->pluck('department_name')
+                                            ->toArray();
                                     @endphp
 
                                     @if(count($otherDeptNames) > 0)
@@ -98,50 +95,34 @@
 @endsection
 
 @push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- DataTables & Buttons -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const table = $('#coursesTable').DataTable({
                 dom: 'Bfrtip',
-                buttons: [{
-                        extend: 'copy',
-                        className: 'btn btn-sm btn-secondary'
-                    },
-                    {
-                        extend: 'csv',
-                        className: 'btn btn-sm btn-secondary'
-                    },
-                    {
-                        extend: 'excel',
-                        className: 'btn btn-sm btn-secondary'
-                    },
-                    {
-                        extend: 'pdf',
-                        className: 'btn btn-sm btn-secondary'
-                    },
-                    {
-                        extend: 'print',
-                        className: 'btn btn-sm btn-secondary'
-                    }
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
                 ],
                 responsive: true
             });
 
-            $('#filterDepartment').on('change', function() {
+            $('#filterDepartment').on('change', function () {
                 table.column(4).search(this.value).draw();
             });
-            $('#filterSemester').on('change', function() {
+            $('#filterSemester').on('change', function () {
                 table.column(6).search(this.value).draw();
             });
-            $('#filterActive').on('change', function() {
+            $('#filterActive').on('change', function () {
                 table.column(7).search(this.value).draw();
             });
         });

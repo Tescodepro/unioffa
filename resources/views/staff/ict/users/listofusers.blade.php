@@ -67,7 +67,7 @@
                 <!-- Table -->
                 <div class="card">
                     <div class="card-body table-responsive">
-                        <table class="table table-striped align-middle">
+                        <table class="table table-striped align-middle" id="users-table">
                             <thead>
                                 <tr>
                                     <th>Username</th>
@@ -305,8 +305,35 @@
 @endsection
 
 @push('scripts')
+    <!-- DataTables & Buttons -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#users-table').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ],
+                paging: false, // Keep false to allow Laravel pagination
+                searching: false, // Search is handled by the filter form above
+                info: false,
+                ordering: true,
+            });
+        });
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
             // Edit User Modal Logic
             const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
 

@@ -93,22 +93,22 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Student Type (Programme)</label>
-                                    <select name="student_type" class="form-select">
-                                        <option value="">All Programmes</option>
+                                    <select name="student_type[]" multiple class="form-select" style="min-height: 100px;">
                                         <option value="REGULAR">REGULAR</option>
                                         <option value="TOPUP">TOPUP</option>
                                         <option value="IDELDE">IDELDE</option>
                                         <option value="IDELUTME">IDELUTME</option>
                                     </select>
+                                    <small class="text-muted">Ctrl/Cmd + Click to select multiple.</small>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Entry Mode</label>
-                                    <select name="entry_mode" class="form-select">
-                                        <option value="">All Entry Modes</option>
+                                    <select name="entry_mode[]" multiple class="form-select" style="min-height: 100px;">
                                         <option value="UTME">UTME</option>
                                         <option value="DE">DE (Direct Entry)</option>
                                         <option value="TRANSFER">TRANSFER</option>
                                     </select>
+                                    <small class="text-muted">Ctrl/Cmd + Click to select multiple.</small>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Specific Student (Matric No.)</label>
@@ -183,7 +183,8 @@
                         input.type = 'number';
                         input.name = 'list_instalment_percentage[]';
                         input.step = '0.1';
-                        input.required = true;
+                        // Required only if visible
+                        input.required = true; 
                         input.className = 'form-control mt-1';
                         input.value = i === count - 1 ? (100 - equalSplit * (count - 1)) : equalSplit;
                         div.appendChild(label);
@@ -193,13 +194,35 @@
                 }
             }
 
-            allowInstallment.addEventListener('change', function () {
-                const show = this.value === '1';
+            function toggleInstallmentFields() {
+                const show = allowInstallment.value === '1';
                 installmentSection.forEach(sec => sec.classList.toggle('d-none', !show));
-                if (show) generatePercentageInputs();
-            });
+                
+                // Toggle required and disabled states to prevent validation errors on hidden fields
+                if (show) {
+                    numberInput.removeAttribute('disabled');
+                    numberInput.setAttribute('required', 'required');
+                    if (instalmentContainer.children.length === 0) generatePercentageInputs();
+                } else {
+                    numberInput.setAttribute('disabled', 'disabled');
+                    numberInput.removeAttribute('required');
+                    instalmentContainer.innerHTML = ''; // Clear generated inputs so they aren't validated
+                }
+            }
 
+            allowInstallment.addEventListener('change', toggleInstallmentFields);
             numberInput.addEventListener('input', generatePercentageInputs);
+            
+            // Initial check
+            // We manually call this to ensure initial state is correct (e.g. if browser cached value)
+            if (allowInstallment.value === '1') {
+                 // If accidentally cached as 1 but fields hidden by default HTML, this fixes it
+                 toggleInstallmentFields();
+            } else {
+                 // Ensure disabled is set if default is 0
+                 numberInput.setAttribute('disabled', 'disabled');
+                 numberInput.removeAttribute('required');
+            }
         });
     </script>
 @endsection

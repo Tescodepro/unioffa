@@ -104,7 +104,7 @@
                 {{-- TABLE --}}
                 <div class="card p-3 shadow-sm">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped align-middle">
+                        <table class="table table-bordered table-striped align-middle" id="payment-settings-table">
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -134,8 +134,12 @@
                                             <td>{{ ucfirst($setting->payment_type) }}</td>
                                             <td>{{ number_format($setting->amount, 2) }}</td>
                                             <td>{{ $setting->session }}</td>
-                                            <td>{{ $setting->student_type ?? 'All' }}</td>
-                                            <td>{{ $setting->entry_mode ?? 'All' }}</td>
+                                            <td>
+                                                {{ is_array($setting->student_type) ? implode(', ', $setting->student_type) : ($setting->student_type ?? 'All') }}
+                                            </td>
+                                            <td>
+                                                {{ is_array($setting->entry_mode) ? implode(', ', $setting->entry_mode) : ($setting->entry_mode ?? 'All') }}
+                                            </td>
                                             <td>
                                                 @if ($setting->installmental_allow_status)
                                                     <span class="badge bg-success">Allowed</span>
@@ -184,4 +188,33 @@
             </div>
         </div>
     </div>
+    </div>
 @endsection
+
+@push('scripts')
+    <!-- DataTables & Buttons -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#payment-settings-table').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ],
+                paging: false, // Keep false to allow Laravel pagination
+                searching: false, // Search is handled by the filter form above
+                info: false,
+                ordering: true,
+            });
+        });
+    </script>
+@endpush

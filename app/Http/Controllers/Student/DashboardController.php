@@ -88,20 +88,19 @@ class DashboardController extends Controller
         if (!$currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
+
         $student = $user->student;
-        if (($student->entry_mode == 'DE' or $student->entry_mode == 'TRANSFER') and ($student->level == 200 or $student->level == 300) and $student->admission_session == $currentSession) {
-            $student->level = 100;
-        }
+
         // ✅ 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
             ->where('session', $currentSession) // session must always match
-            ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
-                $query->where('payment_type', '!=', 'matriculation');
-            })
+            // ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
+            //     $query->where('payment_type', '!=', 'matriculation');
+            // }) -- REMOVED HARDCODED EXCLUSION
             ->when($student->programme, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
                     $sub->whereNull('student_type')
-                        ->orWhere('student_type', $student->programme);
+                        ->orWhereJsonContains('student_type', $student->programme);
                 });
             }, function ($q) {
                 // If student type is null, only accept settings where student_type is null
@@ -136,10 +135,10 @@ class DashboardController extends Controller
                 $q->whereNull('matric_number')
                     ->orWhere('matric_number', $student->matric_no);
             })
-            // ->where(function ($q) use ($student) {
-            //     $q->whereNull('entry_mode')
-            //         ->orWhere('entry_mode', $student->entry_mode);
-            // })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('entry_mode')
+                    ->orWhereJsonContains('entry_mode', $student->entry_mode);
+            })
             ->get();
 
         if ($paymentSettings->isEmpty()) {

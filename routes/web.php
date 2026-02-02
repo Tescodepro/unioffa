@@ -25,9 +25,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Here is where you can register web routes for your application. These
 | routes are loaded by the
-RouteServiceProvider within a group which contains the "web" middleware group. Now create something great!
+| RouteServiceProvider within a group which contains the "web" middleware group. Now create something great!
 |
-
 */
 
 // Public News Route (no auth required)
@@ -79,6 +78,7 @@ Route::prefix('admission')->group(function () {
         Route::post('/form/save-course-of-study/{user_application_id}', 'saveCourseOfStudy')->middleware('user.type:applicant')->name('application.course_of_study.submit');
         Route::post('/form/save-documents/{user_application_id}', 'saveDocuments')->middleware('user.type:applicant')->name('application.documents.submit');
         Route::post('/form/handle-form-submission/{user_application_id}', 'handleFormSubmission')->middleware('user.type:applicant')->name('application.handle_form_submission');
+        Route::delete('/application/{user_application_id}', 'deleteApplication')->middleware('user.type:applicant')->name('application.delete');
         Route::get('/admission-letter/{applicationId}', 'downloadAdmissionLetter')->name('student.admission.letter')->middleware('auth');
         Route::get('/forgot-password', 'showForgotPasswordForm')->name('application.forgot.password');
         Route::post('/forgot-password', 'postForgotPassword')->name('password.email');
@@ -302,6 +302,14 @@ Route::prefix('staff')->group(function () {
             Route::delete('users/{id}/force-delete', 'forceDeleteUser')->name('ict.staff.users.destroy');
             Route::resource('news', NewsController::class)->names('ict.news');
 
+        });
+
+        Route::controller(\App\Http\Controllers\Staff\Ict\ApplicationSettingController::class)->group(function () {
+            Route::get('/application-settings', 'index')->name('ict.application_settings.index');
+            Route::get('/application-settings/create', 'create')->name('ict.application_settings.create');
+            Route::post('/application-settings', 'store')->name('ict.application_settings.store');
+            Route::get('/application-settings/{id}/edit', 'edit')->name('ict.application_settings.edit');
+            Route::post('/application-settings/{id}', 'update')->name('ict.application_settings.update');
         });
     });
 });

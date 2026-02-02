@@ -373,13 +373,12 @@ class ApplicationController extends Controller
             $application->applicationSetting->acceptance_fee = 25000;
         }
 
-        $modules = json_decode($application->applicationSetting->modules_enable, true);
+        $modules = $application->applicationSetting->modules_enable;
 
         // Load each module's data
         $profile = Profile::where('user_application_id', $user_application_id)->first();
         $olevel = Olevel::where('user_application_id', $user_application_id)->first();
-        // $alevel = Alevel::where('user_application_id', $user_application_id)->first();
-        $alevel = [];
+        $alevel = Alevel::where('user_application_id', $user_application_id)->first();
         $courseOfStudy = CourseOfStudy::where('user_application_id', $user_application_id)->first();
         $documents = Document::where('user_application_id', $user_application_id)->get()->keyBy('type');
         $jambDetails = JambDetail::where('user_application_id', $user_application_id)->first();
@@ -487,6 +486,7 @@ class ApplicationController extends Controller
         $request->validate([
             'alevel_exam_type' => 'nullable|in:ijmb,jupeb,cambridge',
             'alevel_year' => 'nullable|integer|min:2010|max:2025',
+            'alevel_subjects' => 'nullable|array',
             'alevel_grades' => 'nullable|array',
         ]);
 
@@ -498,7 +498,8 @@ class ApplicationController extends Controller
                     'user_id' => Auth::id(),
                     'exam_type' => $request->alevel_exam_type,
                     'exam_year' => $request->alevel_year,
-                    'grades' => json_encode($request->alevel_grades ?? []),
+                    'subjects' => $request->alevel_subjects ?? [],
+                    'grades' => $request->alevel_grades ?? [],
                 ]
             );
 
@@ -530,7 +531,7 @@ class ApplicationController extends Controller
     public function saveDocuments(Request $request, $user_application_id)
     {
         $application = UserApplications::findOrFail($user_application_id);
-        $modules = json_decode($application->applicationSetting->modules_enable, true);
+        $modules = $application->applicationSetting->modules_enable;
         $requiredDocs = $modules['documents'] ?? [];
 
         $rules = [];
@@ -776,6 +777,54 @@ class ApplicationController extends Controller
         return redirect()->route('application.login')->with('success', 'Password updated successfully! Please login.');
     }
 
+    public function deleteApplication($user_application_id)
+    {
+        $user = Auth::user();
+
+        $application = UserApplications::where('user_id', $user->id)
+            ->where('id', $user_application_id)
+            ->firstOrFail();
+
+        // Prevent deletion if approved
+        if ($application->is_approved == 1) {
+            return redirect()->back()->with('error', 'Approved applications cannot be deleted.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Delete related records
+            // Note: If you have foreign keys with cascading deletes, this manual cleanup might be redundant but safe.
+            Profile::where('user_application_id', $user_application_id)->delete();
+            Olevel::where('user_application_id', $user_application_id)->delete();
+            Alevel::where('user_application_id', $user_application_id)->delete();
+            JambDetail::where('user_application_id', $user_application_id)->delete();
+            CourseOfStudy::where('user_application_id', $user_application_id)->delete();
+            EducationHistory::where('user_application_id', $user_application_id)->delete();
+
+            // Delete Documents and their files
+            $documents = Document::where('user_application_id', $user_application_id)->get();
+            foreach ($documents as $doc) {
+                if (Storage::exists($doc->file_path)) {
+                    Storage::delete($doc->file_path);
+                }
+                $doc->delete();
+            }
+
+            // Finally delete the application
+            $application->delete();
+
+            DB::commit();
+
+            return redirect()->route('application.dashboard')->with('success', 'Application deleted successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Application Deletion Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while deleting the application.');
+        }
+    }
+
     public function downloadApplicantDetails($applicationId)
     {
         $userId = Auth::id();
@@ -796,19 +845,19 @@ class ApplicationController extends Controller
 
         // Process olevels
         foreach ($application->olevels as $olevel) {
-            $subjects = is_string($olevel->subjects) ? json_decode($olevel->subjects, true) : $olevel->subjects;
-            $grades = is_string($olevel->grades) ? json_decode($olevel->grades, true) : $olevel->grades;
-            $olevel->subjects = array_combine($subjects ?? [], $grades ?? []) ?: [];
+            $subjects = $olevel->subjects ?? [];
+            $grades = $olevel->grades ?? [];
+            $olevel->subjects = array_combine($subjects, $grades) ?: [];
         }
 
         // Process JAMB details
         if ($application->jambDetail) {
-            $subjects = is_string($application->jambDetail->subjects) ? json_decode($application->jambDetail->subjects, true) : $application->jambDetail->subjects;
-            $scores = is_string($application->jambDetail->subject_scores) ? json_decode($application->jambDetail->subject_scores, true) : $application->jambDetail->subject_scores;
-            $application->jambDetail->subject_scores = array_combine($subjects ?? [], $scores ?? []) ?: [];
+            $subjects = $application->jambDetail->subjects ?? [];
+            $scores = $application->jambDetail->subject_scores ?? [];
+            $application->jambDetail->subject_scores = array_combine($subjects, $scores) ?: [];
         }
 
-        $modules = json_decode($application->applicationSetting->modules_enable, true);
+        $modules = $application->applicationSetting->modules_enable;
 
         $data = [
             'application' => $application,
