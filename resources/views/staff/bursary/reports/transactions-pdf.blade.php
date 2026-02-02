@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>University of Offa — Transactions Report</title>
@@ -10,27 +11,32 @@
             color: #222;
             margin: 20px;
         }
+
         .header {
             text-align: center;
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
+
         .header img {
             width: 70px;
             height: 70px;
             object-fit: contain;
         }
+
         .header h1 {
             margin: 5px 0;
             font-size: 20px;
             text-transform: uppercase;
         }
+
         .header h2 {
             margin: 0;
             font-size: 16px;
             font-weight: normal;
         }
+
         .header p {
             margin: 3px 0;
             font-size: 12px;
@@ -41,19 +47,30 @@
             border-collapse: collapse;
             margin-top: 25px;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #333;
             padding: 6px 8px;
             text-align: left;
         }
+
         th {
             background: #f0f0f0;
             font-weight: bold;
         }
 
-        .text-success { color: green; }
-        .text-danger { color: red; }
-        .text-warning { color: #e0a800; }
+        .text-success {
+            color: green;
+        }
+
+        .text-danger {
+            color: red;
+        }
+
+        .text-warning {
+            color: #e0a800;
+        }
 
         .footer {
             text-align: right;
@@ -72,15 +89,17 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- Header -->
     <div class="header">
-        <img src="{{ public_path('assets/images/logo.png') }}" alt="University Logo">
-        <h1>University of Offa</h1>
-        <p><strong>Motto:</strong> Knowledge, Integrity, and Service</p>
-        <p>PMB 1020, Offa, Kwara State, Nigeria</p>
-        <p>Email: info@unioffa.edu.ng | Website: www.unioffa.edu.ng</p>
+        <img src="{{ public_path(\App\Models\SystemSetting::get('logo_path', 'assets/images/logo.png')) }}" alt="Logo">
+        <h1>{{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}</h1>
+        <p><strong>Motto:</strong>
+            {{ \App\Models\SystemSetting::get('school_motto', 'Knowledge, Integrity, and Service') }}</p>
+        <p>{{ \App\Models\SystemSetting::get('school_address', 'PMB 1020, Offa, Kwara State, Nigeria') }}</p>
+        <p>Email: {{ \App\Models\SystemSetting::get('contact_email', 'info@unioffa.edu.ng') }}</p>
     </div>
 
     <!-- Report Title -->
@@ -135,4 +154,5 @@
     </div>
 
 </body>
+
 </html>

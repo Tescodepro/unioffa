@@ -221,14 +221,21 @@
 
                 <!-- APPLICATION CONFIGURATION (ICT ONLY) -->
                 @if (in_array(auth()->user()->userType->name, ['ict']))
-                    <li class="{{ openMenuClass('staff/ict/application-settings*') }}">
-                        <h6 class="submenu-hdr"><span>App Configuration</span></h6>
+                    <li class="{{ openMenuClass(['staff/ict/application-settings*', 'staff/ict/system-settings*']) }}">
+                        <h6 class="submenu-hdr"><span>Configuration</span></h6>
                         <ul>
                             <li>
                                 <a href="{{ route('ict.application_settings.index') }}"
                                     class="{{ activeClass('ict.application_settings.index') }}">
                                     <i class="ti ti-settings"></i>
                                     <span>App Settings</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('ict.system_settings.index') }}"
+                                    class="{{ activeClass('ict.system_settings.index') }}">
+                                    <i class="ti ti-adjustments"></i>
+                                    <span>System Settings</span>
                                 </a>
                             </li>
                         </ul>

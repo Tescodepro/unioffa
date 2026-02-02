@@ -148,10 +148,12 @@
     @endphp
 
     <!-- Letterhead -->
-    <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="letterhead">
+    <img src="{{ public_path(\App\Models\SystemSetting::get('letterhead_path', 'portal_assets/img/users/letter_head.png')) }}"
+        class="letterhead">
 
     <!-- Watermark -->
-    <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="watermark">
+    <img src="{{ public_path(\App\Models\SystemSetting::get('letterhead_path', 'portal_assets/img/users/letter_head.png')) }}"
+        class="watermark">
 
     <div class="content">
         <div class="student-info">
@@ -223,9 +225,10 @@
 
         <!-- Signature Block -->
         <div class="signature-block">
-            <img src="{{ public_path('portal_assets/img/users/signature.png') }}" alt="Registrar's Signature"
-                style="height: 20px;">
-            <p class="signature-name">Mr. Salaudeen OYEWALE</p>
+            <img src="{{ public_path(\App\Models\SystemSetting::get('registrar_signature_path', 'portal_assets/img/users/signature.png')) }}"
+                alt="Registrar's Signature" style="height: 20px;">
+            <p class="signature-name">{{ \App\Models\SystemSetting::get('registrar_name', 'Mr. Salaudeen OYEWALE') }}
+            </p>
             <p class="signature-title">Ag. Registrar</p>
         </div>
     </div>

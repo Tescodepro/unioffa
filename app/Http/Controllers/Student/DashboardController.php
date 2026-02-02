@@ -499,14 +499,8 @@ class DashboardController extends Controller
             $totalUnits += $unit;
 
             // 5.0 grading scale
-            $points = match (true) {
-                $score >= 70 => 5,
-                $score >= 60 => 4,
-                $score >= 50 => 3,
-                $score >= 45 => 2,
-                $score >= 40 => 1,
-                default => 0
-            };
+            // Dynamic grading system
+            $points = \App\Models\GradingSystem::getPoint($score);
 
             $totalGradePoints += ($unit * $points);
 

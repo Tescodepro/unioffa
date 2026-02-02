@@ -311,5 +311,11 @@ Route::prefix('staff')->group(function () {
             Route::get('/application-settings/{id}/edit', 'edit')->name('ict.application_settings.edit');
             Route::post('/application-settings/{id}', 'update')->name('ict.application_settings.update');
         });
+
+        Route::controller(\App\Http\Controllers\Staff\SystemSettingController::class)->group(function () {
+            Route::get('/system-settings', 'index')->name('ict.system_settings.index');
+            Route::post('/system-settings', 'update')->name('ict.system_settings.update');
+            Route::post('/system-settings/grading', 'updateGrading')->name('ict.system_settings.grading.update');
+        });
     });
 });
