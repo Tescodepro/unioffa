@@ -653,7 +653,7 @@ class ApplicationController extends Controller
         $student = $application->user;
         $profile = $application->profile;
 
-        $department = AdmissionList::where('user_id', $profile->user_id)
+        $department = AdmissionList::where('user_id', $student->id)
             ->where('session_admitted', $application->academic_session)
             ->join('departments', 'admission_lists.approved_department_id', '=', 'departments.id')
             ->select('departments.department_name', 'departments.qualification')
