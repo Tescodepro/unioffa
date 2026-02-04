@@ -38,7 +38,7 @@ class DashboardController extends Controller
             try {
                 // 1. VERIFY PAYMENT (only if not verified)
                 if ($txn->payment_status != 1) {
-                    $verifyResponse = $verifier->verify($txn->refernce_number); // ✅ FIXED TYPO
+                    $verifyResponse = $verifier->verify($txn->refernce_number);
                     // Update status if successful
                     if (isset($verifyResponse['status']) && $verifyResponse['status'] === 'success') {
                         $txn->update(['payment_status' => 1]);
@@ -51,7 +51,7 @@ class DashboardController extends Controller
                     $user = User::find($txn->user_id);
                     if (!$user->student) {
                         $newStudent = $studentMigration->migrate($txn->user_id);
-                        $user->load('student.department.faculty'); // ✅ RELOAD RELATIONSHIPS
+                        $user->load('student.department.faculty');
                     }
                 }
 
@@ -59,12 +59,23 @@ class DashboardController extends Controller
                 if ($txn->payment_type == 'tuition' && $txn->payment_status == 1) {
                     $student = $user->student;
                     if ($student) {
-                        $generated = $matricService->generateIfNeeded($student);
-                        if ($generated) {
-                            Log::info("Matric number generated for student {$student->id} from dashboard verification");
-                            // Reload student to get updated matric number
-                            $student->refresh();
-                            $user->load('student.department.faculty');
+                        // Check if tuition is actually cleared (>= 56%)
+                        // We use a fresh instance or the service to check status for the transaction's session
+                        $paymentService = new \App\Services\PaymentStatusService();
+                        $status = $paymentService->getStatus($student, $txn->session);
+
+                        // If tuition is returned in status, it is NOT fully cleared (pending balance > 0 and < 56%)
+                        // If tuition is missing from status, it is considered cleared (>= 56% paid)
+                        $tuitionPending = collect($status)->firstWhere('payment_type', 'tuition');
+
+                        if (!$tuitionPending) {
+                            $generated = $matricService->generateIfNeeded($student);
+                            if ($generated) {
+                                Log::info("Matric number generated for student {$student->id} from dashboard verification");
+                                // Reload student to get updated matric number
+                                $student->refresh();
+                                $user->load('student.department.faculty');
+                            }
                         }
                     }
                 }

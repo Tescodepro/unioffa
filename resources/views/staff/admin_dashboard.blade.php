@@ -151,10 +151,11 @@
                                     <tbody>
                                         @foreach ($students as $student)
                                             @php
-                                                $modules = json_decode(
-                                                    $student->application_modules_enable ?? '[]',
-                                                    true,
-                                                );
+                                                $modules = $student->application_modules_enable;
+                                                if (is_string($modules)) {
+                                                    $modules = json_decode($modules, true);
+                                                }
+                                                $modules = is_array($modules) ? $modules : [];
                                             @endphp
                                             <tr>
                                                 <td>{{ $student->registration_no }}</td>

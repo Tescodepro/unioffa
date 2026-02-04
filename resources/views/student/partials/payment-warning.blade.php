@@ -31,8 +31,8 @@
                                 <div class="progress" style="height: 6px;">
                                     <div class="progress-bar bg-success" id="progressBar" role="progressbar"
                                         style="width: {{ $pay['percentage_paid'] }}%;"
-                                        aria-valuenow="{{ $pay['percentage_paid'] }}" aria-valuemin="0"
-                                        aria-valuemax="100"></div>
+                                        aria-valuenow="{{ $pay['percentage_paid'] }}" aria-valuemin="0" aria-valuemax="100">
+                                    </div>
                                 </div>
                                 <small>{{ $pay['percentage_paid'] }}%</small>
                             @else
@@ -51,7 +51,7 @@
 
     <div class="mt-3">
         <p class="fw-bold mb-1">
-            Outstanding Balance: 
+            Outstanding Balance:
             <span class="text-danger">₦{{ number_format($payment_status['outstanding'], 2) }}</span>
         </p>
         <p class="text-muted mb-0">Please clear your dues to enable course registration.</p>

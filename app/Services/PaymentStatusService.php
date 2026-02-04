@@ -23,7 +23,10 @@ class PaymentStatusService
         }
 
         $paymentSettings = PaymentSetting::query()
-            ->where('student_type', $student->programme)
+            ->where(function ($q) use ($student) {
+                $q->whereNull('student_type')
+                    ->orWhereJsonContains('student_type', $student->programme);
+            })
             ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
                 $query->where('payment_type', '!=', 'matriculation');
             })
@@ -48,6 +51,10 @@ class PaymentStatusService
             ->where(function ($q) use ($student) {
                 $q->whereNull('matric_number')
                     ->orWhere('matric_number', $student->matric_number);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('entry_mode')
+                    ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
             ->whereNotIn('payment_type', ['accommodation', 'maintenance']) // 🚫 exclude these
             ->get();
