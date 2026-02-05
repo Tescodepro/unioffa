@@ -12,7 +12,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Services\HostelAssignmentService;
 use App\Services\MatricNumberGenerationService;
-use App\Services\PaymentVerificationService;
+use App\Services\PaymentService;
 use App\Services\StudentMigrationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -29,25 +29,30 @@ class DashboardController extends Controller
             ->latest()
             ->take(35)
             ->get();
-
         // Initialize services ONCE outside loop
-        $verifier = new PaymentVerificationService;
         $studentMigration = new StudentMigrationService;
         $matricService = new MatricNumberGenerationService;
         foreach ($recentTransactions as $txn) {
             try {
                 // 1. VERIFY PAYMENT (only if not verified)
                 if ($txn->payment_status != 1) {
-                    $verifyResponse = $verifier->verify($txn->refernce_number);
-                    // Update status if successful
-                    if (isset($verifyResponse['status']) && $verifyResponse['status'] === 'success') {
+                    $gateway = $txn->payment_method ?? 'paystack';
+                    $paymentService = new PaymentService($gateway);
+                    $verifyResponse = $paymentService->verifyPayment($txn->refernce_number);
+
+                    if ($verifyResponse['success']) {
                         $txn->update(['payment_status' => 1]);
+                        Log::info("Transaction {$txn->refernce_number} marked as success via dashboard verification ({$gateway}).");
+                    } else {
+                        // Mark as failed if verification explicitly fails
+                        $txn->update(['payment_status' => 2]);
+                        Log::warning("Transaction {$txn->refernce_number} failed verification ({$gateway}). Message: " . ($verifyResponse['message'] ?? 'Unknown error'));
                     }
                     $txn->refresh();
                 }
 
                 // 2. ACCEPTANCE PAYMENT - CREATE STUDENT RECORD
-                if ($txn->payment_type == 'acceptance' && !$user->student) {
+                if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && !$user->student) {
                     $user = User::find($txn->user_id);
                     if (!$user->student) {
                         $newStudent = $studentMigration->migrate($txn->user_id);
@@ -56,7 +61,7 @@ class DashboardController extends Controller
                 }
 
                 // 3. TUITION PAYMENT - GENERATE MATRIC NUMBER IF VERIFIED AND STUDENT HAS NO VALID MATRIC
-                if ($txn->payment_type == 'tuition' && $txn->payment_status == 1) {
+                if ($txn->payment_type == 'tuition' && $txn->payment_status == 1 && $user->student) {
                     $student = $user->student;
                     if ($student) {
                         // Check if tuition is actually cleared (>= 56%)
