@@ -109,7 +109,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted">
+                            <td colspan="5" class="text-center text-muted">
                                 You have not registered any course yet.
                             </td>
                         </tr>
@@ -204,7 +204,7 @@
                 ordering: true,
                 columnDefs: [{
                     orderable: false,
-                    targets: 5
+                    targets: 4
                 }]
             });
 
