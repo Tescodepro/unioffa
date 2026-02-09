@@ -327,7 +327,8 @@ class IctStudentController extends Controller
             'department_id' => 'required|uuid',
             'programme' => 'required|string|max:255',
             'level' => 'required|integer',
-            'sex' => 'required|string'
+            'sex' => 'required|string',
+            'entry_mode' => 'required|string|in:TOPUP,IDELUTME,IDELDE,UTME,TRANSFER,DIPLOMA,DE',
         ]);
 
         // Update user
@@ -345,7 +346,8 @@ class IctStudentController extends Controller
             'department_id' => $request->department_id,
             'programme' => $request->programme,
             'level' => $request->level,
-            'sex' => $request->sex
+            'sex' => $request->sex,
+            'entry_mode' => $request->entry_mode,
         ]);
 
         return redirect()->route('ict.students.index')
