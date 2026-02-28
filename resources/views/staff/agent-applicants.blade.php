@@ -88,7 +88,7 @@
 
 
                                             <td>
-                                                @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
+                                                @if (auth()->user()->hasPermission('manage_agents'))
                                                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
                                                         data-bs-target="#statusModal{{ $agent->id }}">
                                                         Change Status

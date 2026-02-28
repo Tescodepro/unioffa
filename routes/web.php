@@ -155,6 +155,12 @@ Route::prefix('staff')->group(function () {
             Route::post('recommend/{userId}', 'recommendStudent')->name('admin.recommend');
             Route::get('/export-applicants', 'exportApplicants')->name('admin.exportApplicants');
             Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admin.applicants.details');
+        });
+    });
+
+    // Agent Application Management (Access controlled dynamically by 'manage_agents' permission)
+    Route::middleware(['auth', 'dynamic.permission'])->group(function () {
+        Route::controller(AdminGeneralController::class)->group(function () {
             Route::get('/agent-applicants', 'showAgentDetail')->name('admin.agent.applicants');
             Route::post('/agent-applicants/update-status', 'changeAgentStatus')->name('admin.agent.application.update_status');
         });
