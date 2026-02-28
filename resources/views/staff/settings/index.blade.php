@@ -24,16 +24,19 @@
                     <div class="card-header py-3">
                         <ul class="nav nav-tabs card-header-tabs" id="settingsTab" role="tablist">
                             @foreach($settings as $group => $items)
-                                <li class="nav-item">
-                                    <a class="nav-link {{ $loop->first ? 'active' : '' }}" id="{{ $group }}-tab"
-                                        data-toggle="tab" href="#{{ $group }}" role="tab">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link {{ $loop->first ? 'active' : '' }}" id="{{ $group }}-tab"
+                                        data-bs-toggle="tab" data-bs-target="#{{ $group }}" type="button" role="tab"
+                                        aria-controls="{{ $group }}" aria-selected="{{ $loop->first ? 'true' : 'false' }}">
                                         {{ ucfirst($group) }}
-                                    </a>
+                                    </button>
                                 </li>
                             @endforeach
-                            <li class="nav-item">
-                                <a class="nav-link" id="grading-tab" data-toggle="tab" href="#grading" role="tab">Grading
-                                    System</a>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="grading-tab" data-bs-toggle="tab" data-bs-target="#grading"
+                                    type="button" role="tab" aria-controls="grading" aria-selected="false">
+                                    Grading System
+                                </button>
                             </li>
                         </ul>
                     </div>

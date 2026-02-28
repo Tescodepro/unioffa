@@ -159,6 +159,25 @@ class User extends Authenticatable
         return in_array($this->userType->name, $roleNames);
     }
 
+    public function hasPermission($permission)
+    {
+        $this->loadMissing('userType.permissions');
+        return $this->userType?->permissions->contains('identifier', $permission) ?? false;
+    }
+
+    /**
+     * Application types (entry modes) assigned to this programme-director.
+     */
+    public function assignedApplicationTypes()
+    {
+        return $this->belongsToMany(
+            ApplicationSetting::class,
+            'user_application_type_assignments',
+            'user_id',
+            'application_setting_id'
+        );
+    }
+
     /**
      * Get the attributes that should be cast.
      *

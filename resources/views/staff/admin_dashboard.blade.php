@@ -8,6 +8,26 @@
 @endpush
 
 @section('content')
+    @php
+        $userType = auth()->user()->userType?->name ?? '';
+        if (in_array($userType, ['vice-chancellor'])) {
+            $dashRoute = 'vc.admission.applicants';
+            $detailRoute = 'vc.applicants.details';
+            $admitRoute = 'vc.admit';
+        } elseif (in_array($userType, ['registrar'])) {
+            $dashRoute = 'registrar.admission.applicants';
+            $detailRoute = 'registrar.applicants.details';
+            $admitRoute = 'registrar.admit';
+        } elseif (in_array($userType, ['programme-director'])) {
+            $dashRoute = 'programme-director.admission.applicants';
+            $detailRoute = 'programme-director.applicants.details';
+            $admitRoute = 'programme-director.admit';
+        } else {
+            $dashRoute = 'admin.dashboard';
+            $detailRoute = 'admin.applicants.details';
+            $admitRoute = 'admin.admit';
+        }
+    @endphp
     <div class="main-wrapper">
 
         @include('staff.layouts.header')
@@ -19,9 +39,9 @@
                 <!-- Page Header -->
                 <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                     <div class="my-auto mb-2">
-                        <h3 class="page-title mb-1">Administrator Dashboard</h3>
+                        <h3 class="page-title mb-1">Admission — Applicants</h3>
                     </div>
-                    <form method="GET" action="{{ route('admin.dashboard') }}" class="d-flex">
+                    <form method="GET" action="{{ route($dashRoute) }}" class="d-flex">
                         <select name="academic_session" class="form-control me-2" onchange="this.form.submit()">
                             @foreach ($sessions as $session)
                                 <option value="{{ $session }}" {{ $selectedSession == $session ? 'selected' : '' }}>
@@ -95,13 +115,12 @@
                         <h4 class="card-title">Filter Applicants</h4>
                     </div>
                     <div class="card-body">
-                        <form method="GET" action="{{ route('admin.dashboard') }}" class="row g-3">
+                        <form method="GET" action="{{ route($dashRoute) }}" class="row g-3">
                             <div class="col-md-6">
                                 <select name="campus_id" class="form-control" onchange="this.form.submit()">
                                     <option value="">-- Choose Campus --</option>
                                     @foreach ($campuses as $campus)
-                                        <option value="{{ $campus->id }}"
-                                            {{ $selectedCampusId == $campus->id ? 'selected' : '' }}>
+                                        <option value="{{ $campus->id }}" {{ $selectedCampusId == $campus->id ? 'selected' : '' }}>
                                             {{ $campus->name }}
                                         </option>
                                     @endforeach
@@ -112,8 +131,7 @@
                                 <select name="application_id" class="form-control" onchange="this.form.submit()">
                                     <option value="">-- Choose Application Type --</option>
                                     @foreach ($applicationTypes as $appType)
-                                        <option value="{{ $appType->id }}"
-                                            {{ $selectedApplicationId == $appType->id ? 'selected' : '' }}>
+                                        <option value="{{ $appType->id }}" {{ $selectedApplicationId == $appType->id ? 'selected' : '' }}>
                                             {{ $appType->name }} ({{ $appType->academic_session }})
                                         </option>
                                     @endforeach
@@ -197,13 +215,13 @@
                                                 </td>
                                                 <td>
                                                     @if ($student->application_id)
-    <a href="{{ route('admin.applicants.details', [$student->id, $student->application_id]) }}"
-       class="btn btn-sm btn-success">
-        View Details
-    </a>
-@else
-    <span class="badge bg-secondary">No Application</span>
-@endif
+                                                        <a href="{{ route($detailRoute, [$student->id, $student->application_id]) }}"
+                                                            class="btn btn-sm btn-success">
+                                                            View Details
+                                                        </a>
+                                                    @else
+                                                        <span class="badge bg-secondary">No Application</span>
+                                                    @endif
 
                                                 </td>
 
@@ -216,26 +234,22 @@
 
                                                             {{-- If Registrar or Vice-Chancellor --}}
                                                         @elseif (auth()->user()->hasUserType(['registrar', 'vice-chancellor']))
-                                                            <button type="button" class="btn btn-sm btn-success"
-                                                                data-bs-toggle="modal"
+                                                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                                 data-bs-target="#admitModal{{ $student->id }}">
                                                                 Admit
                                                             </button>
 
                                                             {{-- If Administrator --}}
                                                         @elseif (auth()->user()->hasUserType('administrator'))
-                                                            <button type="button" class="btn btn-sm btn-warning"
-                                                                data-bs-toggle="modal"
+                                                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
                                                                 data-bs-target="#recommendModal{{ $student->id }}">
                                                                 Recommend
                                                             </button>
                                                         @endif
 
                                                         {{-- Admission Modal (Registrar / VC) --}}
-                                                        <div class="modal fade" id="admitModal{{ $student->id }}"
-                                                            tabindex="-1"
-                                                            aria-labelledby="admitModalLabel{{ $student->id }}"
-                                                            aria-hidden="true">
+                                                        <div class="modal fade" id="admitModal{{ $student->id }}" tabindex="-1"
+                                                            aria-labelledby="admitModalLabel{{ $student->id }}" aria-hidden="true">
                                                             <div class="modal-dialog modal-lg modal-dialog-centered">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header bg-success text-white">
@@ -245,12 +259,11 @@
                                                                     </div>
 
                                                                     <form method="POST"
-                                                                        action="{{ route('admin.admit', $student->id) }}"
+                                                                        action="{{ route($admitRoute, $student->id) }}"
                                                                         id="admitForm{{ $student->id }}"> <!-- Body -->
                                                                         <div class="modal-body">
                                                                             <center>
-                                                                                <h4
-                                                                                    class="text-danger fw-bold align-items-center">
+                                                                                <h4 class="text-danger fw-bold align-items-center">
                                                                                     ⚠️ You are about to admit this applicant
                                                                                     into the university. </h4>
                                                                                 <hr>
@@ -274,31 +287,26 @@
                                                                                     Choice:</strong>
                                                                                 {{ $student->admissionListDepartmet->department_name ?? 'N/A' }}
                                                                             </div>
-                                                                            <div class="mb-3"> <label
-                                                                                    class="form-label">Final Course of
-                                                                                    Study *</label> <select
-                                                                                    class="form-select"
+                                                                            <div class="mb-3"> <label class="form-label">Final Course of
+                                                                                    Study *</label> <select class="form-select"
                                                                                     name="final_course"
-                                                                                    form="admitForm{{ $student->id }}"
-                                                                                    required>
+                                                                                    form="admitForm{{ $student->id }}" required>
                                                                                     <option value="">-- Select Final
                                                                                         Course --</option>
                                                                                     @foreach ($faculties as $faculty)
-                                                                                        <optgroup
-                                                                                            label="{{ $faculty->faculty_name }}">
+                                                                                        <optgroup label="{{ $faculty->faculty_name }}">
                                                                                             @foreach ($departments->where('faculty_id', $faculty->id) as $dept)
-                                                                                                <option
-                                                                                                    value="{{ $dept->id }}">
+                                                                                                <option value="{{ $dept->id }}">
                                                                                                     {{ $dept->department_name }}
                                                                                                 </option>
                                                                                             @endforeach
                                                                                         </optgroup>
                                                                                     @endforeach
                                                                                 </select> </div>
-                                                                            <div class="mb-3"> <label
-                                                                                    class="form-label">Admission Status
-                                                                                    *</label> <select class="form-select"
-                                                                                    name="status" required>
+                                                                            <div class="mb-3"> <label class="form-label">Admission
+                                                                                    Status
+                                                                                    *</label> <select class="form-select" name="status"
+                                                                                    required>
                                                                                     <option value="">-- Select Final
                                                                                         Course --</option>
                                                                                     <option value="pending">pending
@@ -309,11 +317,10 @@
                                                                                         admitted</option>
                                                                                 </select> </div>
                                                                         </div> <!-- Footer with form -->
-                                                                        <div class="modal-footer"> @csrf <input
-                                                                                type="hidden" name="application_id"
+                                                                        <div class="modal-footer"> @csrf <input type="hidden"
+                                                                                name="application_id"
                                                                                 value="{{ $student->application_id }}">
-                                                                            <button type="submit"
-                                                                                class="btn btn-success">Confirm
+                                                                            <button type="submit" class="btn btn-success">Confirm
                                                                                 Admit</button> <button type="button"
                                                                                 class="btn btn-secondary"
                                                                                 data-bs-dismiss="modal">Cancel</button>
@@ -324,10 +331,8 @@
                                                         </div>
 
                                                         {{-- Recommendation Modal (Administrator) --}}
-                                                        <div class="modal fade" id="recommendModal{{ $student->id }}"
-                                                            tabindex="-1"
-                                                            aria-labelledby="recommendModalLabel{{ $student->id }}"
-                                                            aria-hidden="true">
+                                                        <div class="modal fade" id="recommendModal{{ $student->id }}" tabindex="-1"
+                                                            aria-labelledby="recommendModalLabel{{ $student->id }}" aria-hidden="true">
                                                             <div class="modal-dialog modal-lg modal-dialog-centered">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header bg-warning text-white">
@@ -341,8 +346,7 @@
                                                                         id="admitForm{{ $student->id }}"> <!-- Body -->
                                                                         <div class="modal-body">
                                                                             <center>
-                                                                                <h4
-                                                                                    class="text-danger fw-bold align-items-center">
+                                                                                <h4 class="text-danger fw-bold align-items-center">
                                                                                     ⚠️ You are about to recommend this
                                                                                     applicant to the university for
                                                                                     admission</h4>
@@ -368,21 +372,16 @@
                                                                                 {{ $student->admissionListDepartmet->department_name ?? 'N/A' }}
                                                                             </div>
 
-                                                                            <div class="mb-3"> <label
-                                                                                    class="form-label">Final Course of
+                                                                            <div class="mb-3"> <label class="form-label">Final Course of
                                                                                     Study *</label>
-                                                                                <select class="form-select"
-                                                                                    name="final_course"
-                                                                                    orm="admitForm{{ $student->id }}"
-                                                                                    required>
+                                                                                <select class="form-select" name="final_course"
+                                                                                    orm="admitForm{{ $student->id }}" required>
                                                                                     <option value="">-- Select Final
                                                                                         Course --</option>
                                                                                     @foreach ($faculties as $faculty)
-                                                                                        <optgroup
-                                                                                            label="{{ $faculty->faculty_name }}">
+                                                                                        <optgroup label="{{ $faculty->faculty_name }}">
                                                                                             @foreach ($departments->where('faculty_id', $faculty->id) as $dept)
-                                                                                                <option
-                                                                                                    value="{{ $dept->id }}">
+                                                                                                <option value="{{ $dept->id }}">
                                                                                                     {{ $dept->department_name }}
                                                                                                 </option>
                                                                                             @endforeach
@@ -390,11 +389,10 @@
                                                                                     @endforeach
                                                                                 </select>
                                                                             </div>
-                                                                            <div class="mb-3"> <label
-                                                                                    class="form-label">Admission Status
+                                                                            <div class="mb-3"> <label class="form-label">Admission
+                                                                                    Status
                                                                                     *</label>
-                                                                                <select class="form-select" name="status"
-                                                                                    required>
+                                                                                <select class="form-select" name="status" required>
                                                                                     <option value="">-- Select Final
                                                                                         Course --</option>
                                                                                     <option value="recommended" selected>
@@ -409,8 +407,7 @@
                                                                                 value="{{ $student->application_id }}">
                                                                             <button type="submit"
                                                                                 class="btn btn-success">Recommend</button>
-                                                                            <button type="button"
-                                                                                class="btn btn-secondary"
+                                                                            <button type="button" class="btn btn-secondary"
                                                                                 data-bs-dismiss="modal">Cancel</button>
                                                                         </div>
                                                                     </form>
@@ -457,7 +454,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#usersTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: [

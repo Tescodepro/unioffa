@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('title', 'Result Management')
 
 @section('content')
@@ -9,172 +8,165 @@
 
         <div class="page-wrapper">
             <div class="content">
-                <h3 class="mb-4">Result Management (Download & Upload)</h3>
+
+                {{-- Page Header --}}
+                <div class="d-md-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h3 class="page-title mb-1">Result Management</h3>
+                        <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Upload Results</li>
+                        </ol></nav>
+                    </div>
+                </div>
+
+                @include('layouts.flash-message')
+
+                {{-- Upload Report --}}
+                @if (session('upload_report'))
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <h6 class="fw-semibold mb-2"><i class="ti ti-clipboard-list me-1"></i> Upload Summary</h6>
+                        <ul class="mb-0 ps-3">
+                            @foreach (session('upload_report.uploaded', []) as $msg)
+                                <li class="text-success">{{ $msg }}</li>
+                            @endforeach
+                            @foreach (session('upload_report.skipped_not_student', []) as $msg)
+                                <li class="text-danger">{{ $msg }}</li>
+                            @endforeach
+                            @foreach (session('upload_report.skipped_not_registered', []) as $msg)
+                                <li class="text-warning">{{ $msg }}</li>
+                            @endforeach
+                            @foreach (session('upload_report.errors', []) as $msg)
+                                <li class="text-danger">{{ $msg }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
 
                 <div class="row g-4">
-                    <!-- ====================== DOWNLOAD CARD ====================== -->
-                    <div class="col-lg-12 mb-4">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-header bg-light">
-                                <h5 class="card-title mb-0">Download Result Sheet</h5>
+
+                    {{-- ── DOWNLOAD CARD ──────────────────────────────────────── --}}
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header border-0 bg-light">
+                                <h5 class="card-title mb-0"><i class="ti ti-download me-2 text-primary"></i>Download Result Sheet</h5>
                             </div>
                             <div class="card-body">
+                                <p class="text-muted small mb-3">Download a blank Excel template pre-filled with registered students for a course.</p>
                                 <form action="{{ route('staff.results.download') }}" method="GET">
                                     <div class="mb-3">
-                                        <label for="download_course_id" class="form-label">Select Course</label>
-                                        <select id="download_course_id" name="course_id"
-                                            class="form-select form-select-sm select2" required>
+                                        <label for="download_course_id" class="form-label">Course</label>
+                                        <select id="download_course_id" name="course_id" class="form-select select2" required>
                                             <option value="">Choose Course</option>
                                             @foreach ($courses as $course)
-                                                <option value="{{ $course->id }}">{{ $course->course_title }}
-                                                    ({{ $course->course_code }})
-                                                </option>
+                                                <option value="{{ $course->id }}">{{ $course->course_title }} ({{ $course->course_code }})</option>
                                             @endforeach
                                         </select>
                                     </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-sm-6">
                                             <label for="download_session" class="form-label">Session</label>
-                                            <select name="session" id="download_session" 
-                                                class="form-select form-select-sm select2" required>
+                                            <select name="session" id="download_session" class="form-select select2" required>
                                                 <option value="">Select Session</option>
                                                 @foreach ($sessions as $session)
                                                     <option value="{{ $session->name }}">{{ $session->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
-
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-sm-6">
                                             <label for="download_semester" class="form-label">Semester</label>
-                                            <select name="semester" id="download_semester"
-                                                class="form-select form-select-sm select2" required>
+                                            <select name="semester" id="download_semester" class="form-select select2" required>
                                                 <option value="">Select Semester</option>
-                                                @php
-                                                    var_dump($semesters);
-                                                @endphp
                                                 @foreach ($semesters as $semester)
                                                     <option value="{{ $semester->code }}">{{ $semester->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </div>
-
                                     <button type="submit" class="btn btn-primary w-100">
-                                        <i class="fa fa-download me-1"></i> Download Excel Sheet
+                                        <i class="ti ti-download me-1"></i> Download Excel Sheet
                                     </button>
                                 </form>
                             </div>
                         </div>
                     </div>
 
-                    <!-- ====================== UPLOAD CARD ====================== -->
-                    @include('layouts.flash-message')
-                    @if (session('upload_report'))
-                        <div class="alert alert-info mt-3">
-                            <h6>Upload Summary</h6>
-                            <ul>
-                                @foreach (session('upload_report.uploaded', []) as $msg)
-                                    <li class="text-success">{{ $msg }}</li>
-                                @endforeach
-
-                                @foreach (session('upload_report.skipped_not_student', []) as $msg)
-                                    <li class="text-danger">{{ $msg }}</li>
-                                @endforeach
-
-                                @foreach (session('upload_report.skipped_not_registered', []) as $msg)
-                                    <li class="text-warning">{{ $msg }}</li>
-                                @endforeach
-
-                                @foreach (session('upload_report.errors', []) as $msg)
-                                    <li class="text-danger">{{ $msg }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-
-                    <div class="col-lg-12 mb-4">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-header bg-light">
-                                <h5 class="card-title mb-0">Upload Result Sheet</h5>
+                    {{-- ── UPLOAD CARD ────────────────────────────────────────── --}}
+                    <div class="col-lg-6">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header border-0 bg-light">
+                                <h5 class="card-title mb-0"><i class="ti ti-upload me-2 text-success"></i>Upload Result Sheet</h5>
                             </div>
                             <div class="card-body">
-                                <form action="{{ route('staff.results.process') }}" method="POST"
-                                    enctype="multipart/form-data">
+                                <div class="alert alert-warning py-2 small mb-3">
+                                    <i class="ti ti-info-circle me-1"></i>
+                                    Ensure the uploaded Excel file has columns named <code>Matric No, CA, Examination</code>.
+                                    The system will automatically normalize these headers.
+                                </div>
+                                <form action="{{ route('staff.results.process') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
-                                    <p><strong>Note:</strong> Ensure the uploaded excel file has columns named
-                                        <code>Matric No, CA, Examination</code>. The system will automatically normalize these headers.
-                                    </p>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-12">
                                             <label for="course_id" class="form-label">Course</label>
-                                            <select id="course_id" name="course_id"
-                                                class="form-select form-select-sm select2" required>
+                                            <select id="course_id" name="course_id" class="form-select select2" required>
                                                 <option value="">Select Course</option>
                                                 @foreach ($courses as $course)
-                                                    <option value="{{ $course->id }}">{{ $course->course_title }}
-                                                        ({{ $course->course_code }})
-                                                    </option>
+                                                    <option value="{{ $course->id }}">{{ $course->course_title }} ({{ $course->course_code }})</option>
                                                 @endforeach
                                             </select>
                                             @if($courses->isEmpty())
                                                 <small class="text-muted">No courses assigned to you yet.</small>
                                             @endif
                                         </div>
-
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-sm-6">
                                             <label for="session" class="form-label">Session</label>
-                                            <select name="session" id="session" 
-                                                class="form-select form-select-sm select2" required>
+                                            <select name="session" id="session" class="form-select select2" required>
                                                 <option value="">Select Session</option>
                                                 @foreach ($sessions as $session)
                                                     <option value="{{ $session->name }}">{{ $session->name }}</option>
                                                 @endforeach
                                             </select>
                                             @if($sessions->isEmpty())
-                                                <small class="text-muted">No active sessions available for result upload.</small>
+                                                <small class="text-muted">No active sessions available.</small>
                                             @endif
                                         </div>
-
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-sm-6">
                                             <label for="semester" class="form-label">Semester</label>
-                                            <select name="semester" id="semester" 
-                                                class="form-select form-select-sm select2" required>
+                                            <select name="semester" id="semester" class="form-select select2" required>
                                                 <option value="">Select Semester</option>
                                                 @foreach ($semesters as $semester)
                                                     <option value="{{ $semester->name }}">{{ $semester->name }}</option>
                                                 @endforeach
                                             </select>
                                             @if($semesters->isEmpty())
-                                                <small class="text-muted">No active semesters available for result upload.</small>
+                                                <small class="text-muted">No active semesters available.</small>
                                             @endif
                                         </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="file" class="form-label">Upload Excel File</label>
+                                        <div class="col-12">
+                                            <label for="file" class="form-label">Excel File</label>
                                             <input type="file" name="file" id="file"
-                                                class="form-control form-control-sm" accept=".xlsx,.xls" required>
-                                            <small class="text-muted">Ensure columns are: <strong>Matric No, CA,
-                                                    Examination</strong></small>
+                                                class="form-control" accept=".xlsx,.xls" required>
+                                            <small class="text-muted">Columns: <strong>Matric No, CA, Examination</strong></small>
                                         </div>
                                     </div>
 
-                                    <button type="submit" class="btn btn-success w-100" 
+                                    <button type="submit" class="btn btn-success w-100"
                                         @if($courses->isEmpty() || $sessions->isEmpty() || $semesters->isEmpty()) disabled @endif>
-                                        <i class="fa fa-upload me-1"></i> Upload Results
+                                        <i class="ti ti-upload me-1"></i> Upload Results
                                     </button>
-                                    
+
                                     @if($courses->isEmpty() || $sessions->isEmpty() || $semesters->isEmpty())
                                         <small class="text-danger d-block mt-2 text-center">
-                                            Cannot upload results. Missing required data (courses, sessions, or semesters).
+                                            Cannot upload: missing courses, sessions, or semesters.
                                         </small>
                                     @endif
                                 </form>
                             </div>
                         </div>
                     </div>
-                </div>
+
+                </div>{{-- end row --}}
 
             </div>
         </div>
@@ -183,21 +175,8 @@
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            // Initialize select2
-            $('.select2').select2({
-                placeholder: 'Select an option',
-                allowClear: true
-            });
-
-            // Optional: DataTable initialization if you have a results table
-            if ($('#resultsTable').length) {
-                $('#resultsTable').DataTable({
-                    dom: 'Bfrtip',
-                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
-                    responsive: true
-                });
-            }
+        $(document).ready(function () {
+            $('.select2').select2({ placeholder: 'Select an option', allowClear: true });
         });
     </script>
 @endpush

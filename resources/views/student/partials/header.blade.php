@@ -4,13 +4,13 @@
     <div class="header-left active mt-2">
         <center>
             <a href="" class="logo logo-normal">
-                <img src="{{ asset('assets/img/logo/logo_white.svg') }}" style="height: 50px;" alt="Logo">
+                <img src="{{ asset($schoolLogo) }}" style="height: 50px;" alt="{{ $schoolName }}">
             </a>
             <a href="" class="logo-small">
-                <img src="{{ asset('assets/img/logo/logo_white.svg') }}" style="height: 50px;" alt="Logo">
+                <img src="{{ asset($schoolLogo) }}" style="height: 50px;" alt="{{ $schoolName }}">
             </a>
             <a href="" class="dark-logo">
-                <img src="{{ asset('assets/img/logo/logo_white.svg') }}" style="height: 50px;" alt="Logo">
+                <img src="{{ asset($schoolLogo) }}" style="height: 50px;" alt="{{ $schoolName }}">
             </a>
         </center>
     </div>
@@ -30,18 +30,18 @@
             <!-- Search -->
             <div class="nav-item nav-search-inputs me-auto">
                 {{-- <div class="top-nav-search">
-							<a href="javascript:void(0);" class="responsive-search">
-								<i class="fa fa-search"></i>
-							</a>
-							<form action="#" class="dropdown">
-								<div class="searchinputs" id="dropdownMenuClickable">
-									<input type="text" placeholder="Search">
-									<div class="search-addon">
-										<button type="submit"><i class="ti ti-command"></i></button>
-									</div>
-								</div>
-							</form>
-						</div> --}}
+                    <a href="javascript:void(0);" class="responsive-search">
+                        <i class="fa fa-search"></i>
+                    </a>
+                    <form action="#" class="dropdown">
+                        <div class="searchinputs" id="dropdownMenuClickable">
+                            <input type="text" placeholder="Search">
+                            <div class="search-addon">
+                                <button type="submit"><i class="ti ti-command"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div> --}}
             </div>
             <!-- /Search -->
             <div class="d-flex align-items-center">
@@ -53,8 +53,8 @@
                                 $passport =
                                     auth()->user()->profile_picture &&
                                     file_exists(public_path(auth()->user()->profile_picture))
-                                        ? asset(auth()->user()->profile_picture)
-                                        : asset('portal_assets/img/users/placeholder.jpeg');
+                                    ? asset(auth()->user()->profile_picture)
+                                    : asset('portal_assets/img/users/placeholder.jpeg');
                             @endphp
                             <img src="{{ $passport }}" alt="img avatar">
                         </span>
@@ -70,11 +70,12 @@
                                 </div>
                             </div>
                             <hr class="m-0">
-                            <a class="dropdown-item d-inline-flex align-items-center p-2" href="{{ route('students.profile') }}"> <i
-                                    class="ti ti-user-circle me-2"></i>My Profile</a>
+                            <a class="dropdown-item d-inline-flex align-items-center p-2"
+                                href="{{ route('students.profile') }}"> <i class="ti ti-user-circle me-2"></i>My
+                                Profile</a>
                             <hr class="m-0">
-                            <a class="dropdown-item d-inline-flex align-items-center p-2" href="{{ route('students.logout') }}"><i
-                                    class="ti ti-login me-2"></i>Logout</a>
+                            <a class="dropdown-item d-inline-flex align-items-center p-2"
+                                href="{{ route('students.logout') }}"><i class="ti ti-login me-2"></i>Logout</a>
                         </div>
                     </div>
                 </div>

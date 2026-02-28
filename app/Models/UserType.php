@@ -11,7 +11,7 @@ class UserType extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'name'];
+    protected $fillable = ['id', 'name', 'dashboard_route'];
 
     public function users()
     {
@@ -21,6 +21,11 @@ class UserType extends Model
     public function campus()
     {
         return $this->belongsTo(Campus::class, 'campus_id');
+    }
+
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class, 'permission_user_type');
     }
 
     protected static function boot()

@@ -33,12 +33,12 @@ class AuthController extends Controller
             $subject = 'Login Notification';
 
             $content = [
-                'title' => Auth::user()->full_name.',',
+                'title' => Auth::user()->full_name . ',',
                 'body' => 'We noticed a login to your Offa University account.<br><br>
 
             Details:<br>  
-            - Date: '.now()->format('Y-m-d H:i:s').'<br>  
-            - IP Address: '.request()->ip().' <br><br>
+            - Date: ' . now()->format('Y-m-d H:i:s') . '<br>  
+            - IP Address: ' . request()->ip() . ' <br><br>
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
@@ -47,28 +47,15 @@ class AuthController extends Controller
 
             // Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
-            // 🔹 Check user type and redirect to correct dashboard
-            switch ($user->userType->name) {
-                case 'administrator':
-                    return redirect()->route('admin.dashboard')->with('success', "Welcome $name");
-                case 'vice-chancellor':
-                    return redirect()->route('admin.dashboard')->with('success', "Welcome $name");
-                case 'registrar':
-                    return redirect()->route('admin.dashboard')->with('success', "Welcome $name");
-                case 'bursary':
-                    return redirect()->route('burser.dashboard')->with('success', "Welcome $name");
-                case 'ict':
-                    return redirect()->route('ict.dashboard')->with('success', "Welcome $name");
-                case 'dean':
-                    return redirect()->route('lecturer.dean.dashboard')->with('success', "Welcome $name");
-                case 'lecturer':
-                    return redirect()->route('lecturer.dashboard')->with('success', "Welcome $name");
-                case 'hod':
-                    return redirect()->route('lecturer.dashboard')->with('success', "Welcome $name");
-                default:
-                    Auth::logout();
-                    return redirect()->route('staff.login')->with('error', 'Unauthorized access.');
+            // 🔹 Redirect based on the user type's configured dashboard route
+            $route = $user->userType->dashboard_route ?? null;
+
+            if (!$route || !\Illuminate\Support\Facades\Route::has($route)) {
+                Auth::logout();
+                return redirect()->route('staff.login')->with('error', 'Unauthorized access.');
             }
+
+            return redirect()->route($route)->with('success', "Welcome $name");
         }
         return back()->with('error', 'The provided credentials do not match our records.');
     }
@@ -80,5 +67,5 @@ class AuthController extends Controller
         return redirect()->route('staff.login')->with('success', 'Logged out successfully.');
     }
 
-    
+
 }

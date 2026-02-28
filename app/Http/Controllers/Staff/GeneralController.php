@@ -21,39 +21,78 @@ class GeneralController extends Controller
 {
     public function index_admin(Request $request)
     {
-        $sessions = UserApplications::select('academic_session')->distinct()->pluck('academic_session');
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $isProgDir = $user->hasRole('programme-director');
+        $assignedTypeIds = $isProgDir
+            ? $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray()
+            : [];
+
+        $sessionsQuery = UserApplications::select('academic_session')->distinct();
+        if ($isProgDir) {
+            $sessionsQuery->whereIn('application_setting_id', $assignedTypeIds);
+        }
+        $sessions = $sessionsQuery->pluck('academic_session');
 
         $selectedSession = $request->get('academic_session', $sessions->first());
 
-        // Get all campuses & application types for filters
+        // Get all campuses
         $campuses = Campus::all();
-        $applicationTypes = ApplicationSetting::all();
+
+        // Filter application types for programme-directors
+        if ($isProgDir) {
+            $applicationTypes = ApplicationSetting::whereIn('id', $assignedTypeIds)->get();
+        } else {
+            $applicationTypes = ApplicationSetting::all();
+        }
 
         // Read selected filters
         $selectedCampusId = $request->get('campus_id');
         $selectedApplicationId = $request->get('application_id');
 
+        // If they select an application ID they don't own, override
+        if ($isProgDir && $selectedApplicationId && !in_array($selectedApplicationId, $assignedTypeIds)) {
+            $selectedApplicationId = null;
+        }
+
         // Applicants per campus (with count)
         $campusApplicants = Campus::withCount([
-            'users as applicant_count' => function ($q) {
+            'users as applicant_count' => function ($q) use ($isProgDir, $assignedTypeIds, $selectedSession) {
                 $q->whereHas('userType', fn($q2) => $q2->where('name', 'applicant'))
-                    ->whereHas('applications', fn($q3) => $q3->whereNotNull('submitted_by'));
+                    ->whereHas('applications', function ($q3) use ($isProgDir, $assignedTypeIds, $selectedSession) {
+                        $q3->whereNotNull('submitted_by')
+                            ->where('academic_session', $selectedSession);
+                        if ($isProgDir) {
+                            $q3->whereIn('application_setting_id', $assignedTypeIds);
+                        }
+                    });
             },
         ])->get();
 
-        // Applicants per application type
-        $applicationApplicants = ApplicationSetting::withCount([
+        // Applicants per application type (only showing assigned ones for prog-dirs)
+        $applicationApplicantsQuery = ApplicationSetting::withCount([
             'userApplications as applicant_count' => function ($q) use ($selectedSession) {
                 $q->where('academic_session', $selectedSession)
                     ->whereNotNull('submitted_by');
             }
-        ])->get();
+        ]);
+        if ($isProgDir) {
+            $applicationApplicantsQuery->whereIn('id', $assignedTypeIds);
+        }
+        $applicationApplicants = $applicationApplicantsQuery->get();
 
-        // Admitted + not admitted stats
-        $admittedCount = AdmissionList::where('admission_status', 'admitted')->count();
-        $notAdmittedCount = AdmissionList::where('admission_status', '!=', 'admitted')
-            ->orWhereNull('admission_status')
-            ->count();
+        // Admitted + not admitted stats (scoped)
+        $admittedQuery = AdmissionList::where('admission_status', 'admitted')->where('session_admitted', $selectedSession);
+        $notAdmittedQuery = AdmissionList::where(function ($q) {
+            $q->where('admission_status', '!=', 'admitted')->orWhereNull('admission_status');
+        })->where('session_admitted', $selectedSession);
+
+        if ($isProgDir) {
+            $admittedQuery->whereHas('user.userApplications', fn($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
+            $notAdmittedQuery->whereHas('user.userApplications', fn($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
+        }
+
+        $admittedCount = $admittedQuery->count();
+        $notAdmittedCount = $notAdmittedQuery->count();
 
         // Query students with filters
         $students = User::whereHas('userType', fn($q) => $q->where('name', 'applicant'))
@@ -62,9 +101,17 @@ class GeneralController extends Controller
                 'transactions',
                 'admissionList',
                 'department',
-                'courseOfStudy.firstDepartment',   // <-- Add this
-                'courseOfStudy.secondDepartment',  // <-- And this
+                'courseOfStudy.firstDepartment',
+                'courseOfStudy.secondDepartment',
             ])
+            // SCOPE TO PROG-DIR ASSIGNMENTS OR SELECTED FILTER
+            ->whereHas('applications', function ($qa) use ($isProgDir, $assignedTypeIds, $selectedApplicationId) {
+                if ($selectedApplicationId) {
+                    $qa->where('application_setting_id', $selectedApplicationId);
+                } elseif ($isProgDir) {
+                    $qa->whereIn('application_setting_id', $assignedTypeIds);
+                }
+            })
             ->when($selectedCampusId, fn($q) => $q->where('campus_id', $selectedCampusId))
             ->when($selectedApplicationId, function ($q) use ($selectedApplicationId) {
                 $q->whereHas('applications', fn($qa) => $qa->where('application_setting_id', $selectedApplicationId));
@@ -114,6 +161,15 @@ class GeneralController extends Controller
     {
         $user_application_id = $request->application_id;
         $user_application = UserApplications::findOrFail($user_application_id);
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user->hasRole('programme-director')) {
+            $assignedTypes = $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray();
+            if (!in_array($user_application->application_setting_id, $assignedTypes)) {
+                return back()->with('error', 'Unauthorized: You cannot admit students for this application type.');
+            }
+        }
+
         $user_application->is_approved = 1;
         $user_application->save();
 
@@ -125,16 +181,16 @@ class GeneralController extends Controller
         $admission->save();
 
         $department = Department::find($request->final_course);
-        $user = User::findOrFail($userId);
+        $studentUser = User::findOrFail($userId);
 
         $applicationSetting = ApplicationSetting::find($user_application->application_setting_id);
 
-        $to = $user->email;
+        $to = $studentUser->email;
 
         $subject = 'Offer of Admission - Offa University';
 
         $content = [
-            'title' => 'Dear ' . $user->full_name . ',',
+            'title' => 'Dear ' . $studentUser->full_name . ',',
             'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study ' . ($department->department_name ?? 'your chosen course') . '. for the ' . $user_application->academic_session . ' academic session admission. log in to your portal for further information',
             'footer' => '',
         ];
@@ -175,14 +231,22 @@ class GeneralController extends Controller
             ->where('user_id', $userId)
             ->firstOrFail();
 
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user->hasRole('programme-director')) {
+            $assignedTypes = $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray();
+            if (!in_array($application->application_setting_id, $assignedTypes)) {
+                abort(403, 'Unauthorized: You cannot view this application type.');
+            }
+        }
+
         // Process olevels to fix double-encoded JSON and pair subjects with grades
         foreach ($application->olevels as $olevel) {
-            $subjects = is_string($olevel->subjects) ? json_decode($olevel->subjects, true) : $olevel->subjects;
-            $subjects = is_string($subjects) ? json_decode($subjects, true) : $subjects;
+            $subjects = is_array($olevel->subjects) ? $olevel->subjects : json_decode((string) $olevel->subjects, true);
+            $subjects = is_array($subjects) ? $subjects : json_decode((string) $subjects, true);
             $subjects = is_array($subjects) ? $subjects : [];
 
-            $grades = is_string($olevel->grades) ? json_decode($olevel->grades, true) : $olevel->grades;
-            $grades = is_string($grades) ? json_decode($grades, true) : $grades;
+            $grades = is_array($olevel->grades) ? $olevel->grades : json_decode((string) $olevel->grades, true);
+            $grades = is_array($grades) ? $grades : json_decode((string) $grades, true);
             $grades = is_array($grades) ? $grades : [];
 
             $olevel->subjects = array_combine($subjects, $grades) ?: [];
@@ -190,20 +254,39 @@ class GeneralController extends Controller
 
         // Process jambDetail to fix double-encoded JSON and pair subjects with scores
         if ($application->jambDetail) {
-            $subjects = is_string($application->jambDetail->subjects) ? json_decode($application->jambDetail->subjects, true) : $application->jambDetail->subjects;
-            $subjects = is_string($subjects) ? json_decode($subjects, true) : $subjects;
+            $subjects = is_array($application->jambDetail->subjects) ? $application->jambDetail->subjects : json_decode((string) $application->jambDetail->subjects, true);
+            $subjects = is_array($subjects) ? $subjects : json_decode((string) $subjects, true);
             $subjects = is_array($subjects) ? $subjects : [];
 
-            $scores = is_string($application->jambDetail->subject_scores) ? json_decode($application->jambDetail->subject_scores, true) : $application->jambDetail->subject_scores;
-            $scores = is_string($scores) ? json_decode($scores, true) : $scores;
+            $scores = is_array($application->jambDetail->subject_scores) ? $application->jambDetail->subject_scores : json_decode((string) $application->jambDetail->subject_scores, true);
+            $scores = is_array($scores) ? $scores : json_decode((string) $scores, true);
             $scores = is_array($scores) ? $scores : [];
 
             $application->jambDetail->subject_scores = array_combine($subjects, $scores) ?: [];
         }
 
-        $modules = json_decode($application->applicationSetting->modules_enable, true);
+        $modules = is_array($application->applicationSetting->modules_enable)
+            ? $application->applicationSetting->modules_enable
+            : json_decode($application->applicationSetting->modules_enable, true);
 
-        return view('staff.applicant_details', compact('application', 'modules'));
+        $departments = \App\Models\Department::orderBy('department_name')->get();
+
+        $userType = auth()->user()->userType?->name ?? '';
+        if ($userType === 'vice-chancellor') {
+            $admitRoute = 'vc.admit';
+            $backRoute = 'vc.admission.applicants';
+        } elseif ($userType === 'registrar') {
+            $admitRoute = 'registrar.admit';
+            $backRoute = 'registrar.admission.applicants';
+        } else {
+            $admitRoute = 'admin.admit';
+            $backRoute = 'admin.dashboard';
+        }
+
+        return view('staff.applicant_details', compact('application', 'modules', 'departments'), [
+            'admitRoute' => $admitRoute,
+            'backRoute' => $backRoute,
+        ]);
     }
 
     public function showAgentDetail()

@@ -9,12 +9,21 @@
 
         <div class="page-wrapper">
             <div class="content">
-                <h3 class="mb-4">Manage Result Status</h3>
+                {{-- Page Header --}}
+                <div class="d-md-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h3 class="page-title mb-1">Manage Result Status</h3>
+                        <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Manage Result Status</li>
+                        </ol></nav>
+                    </div>
+                </div>
 
                 {{-- Filter Form --}}
                 <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fa fa-filter me-2"></i> Select Criteria</h5>
+                    <div class="card-header border-0 bg-light">
+                        <h5 class="card-title mb-0"><i class="ti ti-filter me-2 text-primary"></i> Select Criteria</h5>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('results.manage.status') }}" method="GET" class="row g-3">
@@ -164,15 +173,14 @@
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#statusModal{{ str_replace('/', '', $row->matric_no) }}">
                                                             @if (auth()->user()->userType->name == 'vice-chancellor')
-                                                                <i class="fa fa-share"></i> Publish
+                                                                <i class="ti ti-send"></i> Publish
                                                             @else
-                                                                <i class="fa fa-edit"></i> Update
+                                                                <i class="ti ti-pencil"></i> Update
                                                             @endif
                                                         </button>
-                                                        {{-- Link to individual transcript --}}
                                                         <a href="{{ route('transcript.search', ['matric' => $row->matric_no]) }}"
                                                             class="btn btn-sm btn-info text-white">
-                                                            <i class="fa fa-eye"></i> View
+                                                            <i class="ti ti-eye"></i> View
                                                         </a>
                                                     </td>
                                                 </tr>

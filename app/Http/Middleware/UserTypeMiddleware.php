@@ -9,64 +9,71 @@ use Illuminate\Http\Request;
 class UserTypeMiddleware
 {
     /**
-     * Handle an incoming request.
+     * All staff types in the system.
+     * The special keyword 'staff' in a route means "any of these types".
      */
-    public function handle(Request $request, Closure $next, $type)
+    const STAFF_TYPES = [
+        'administrator',
+        'dean',
+        'lecturer',
+        'hod',
+        'registrar',
+        'vice-chancellor',
+        'bursary',
+        'ict',
+        'center-director',
+        'programme-director',
+    ];
+
+    /**
+     * Handle an incoming request.
+     *
+     * $type can be:
+     *   - A single type:              'user.type:dean'
+     *   - Pipe-separated list:        'user.type:dean|hod|lecturer'
+     *   - The keyword 'staff':        'user.type:staff'  → any staff type is allowed
+     */
+    public function handle(Request $request, Closure $next, string $type)
     {
-        // 1️⃣ Check if user is logged in
+        $allowedTypes = explode('|', $type);
+
+        // Expand the 'staff' keyword to all known staff types
+        if (in_array('staff', $allowedTypes)) {
+            $allowedTypes = self::STAFF_TYPES;
+        }
+
+        // 1️⃣ Not logged in → send to correct login page
         if (!Auth::check()) {
-            // Redirect based on user type
-            switch ($type) {
-                case 'applicant':
-                    $redirectRoute = route('application.login');
-                    break;
-                case 'student':
-                    $redirectRoute = route('student.login');
-                    break;
-                case 'administrator':
-                case 'bursary':
-                case 'registrar':
-                case 'vice-chancellor':
-                case 'ict':
-                case 'dean':
-                case 'hod':
-                case 'lecturer':
-                    $redirectRoute = route('staff.login');
-                    break;
-                default:
-                    $redirectRoute = route('home'); // fallback
-                    break;
-            }
+            $firstType = $allowedTypes[0] ?? 'staff';
+            $redirectRoute = match (true) {
+                $firstType === 'applicant' => route('application.login'),
+                $firstType === 'student' => route('student.login'),
+                default => route('staff.login'),
+            };
 
             return redirect($redirectRoute)
                 ->with('error', 'You need to be logged in to access this page.');
         }
 
-
-        // 2️⃣ Get the logged-in user type
+        // 2️⃣ Logged in but no user type set (corrupt account)
         $userType = Auth::user()->userType->name ?? null;
         if (!$userType) {
             Auth::logout();
-            return redirect()->route('staff.login')->with('error', 'Invalid user type.');
+            return redirect()->route('staff.login')
+                ->with('error', 'Your account has no user type assigned. Please contact the administrator.');
         }
 
-        // 3️⃣ Allow student to also access applicant routes
-        if ($userType === 'student' && in_array($type, ['student', 'applicant'])) {
+        // 3️⃣ Student can access both student and applicant routes
+        if ($userType === 'student' && array_intersect(['student', 'applicant'], $allowedTypes)) {
             return $next($request);
         }
 
-        // 4️⃣ Allow any staff type to access shared staff routes
-        if (
-            in_array($userType, ['administrator', 'dean', 'lecturer', 'hod', 'registrar', 'vice-chancellor', 'bursary', 'ict']) &&
-            in_array($type, ['administrator', 'dean', 'lecturer', 'hod', 'registrar', 'vice-chancellor', 'bursary', 'ict'])
-        ) {
-            return $next($request);
-        }
-        // 5️⃣ Strict check for other cases
-        // If none of the above conditions are met, deny access (abort with a message or redirect as needed)
-        if ($userType !== $type) {
-            Auth::logout();
-            return redirect()->back()->with('error', 'You do not have permission to access this page.');
+        // 4️⃣ Type check — DO NOT log out on failure, just redirect to their dashboard
+        if (!in_array($userType, $allowedTypes)) {
+            // Redirect to the staff login page only if they have no session-based
+            // dashboard to go back to; otherwise send them back so they stay logged in.
+            return redirect()->back()
+                ->with('error', 'You do not have permission to access this page.');
         }
 
         return $next($request);

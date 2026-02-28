@@ -130,7 +130,7 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <h1>University of Offa</h1>
+        <h1>{{ $schoolName }}</h1>
         <h2>Official Academic Transcript</h2>
         <p>Office of the Registrar</p>
     </div>

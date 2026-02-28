@@ -378,36 +378,21 @@ class IctStudentController extends Controller
 
     public function getAllUsers(Request $request)
     {
-        // Get filter inputs
-        $search = $request->input('search');
-        $email = $request->input('email');
-        $phone = $request->input('phone');
-        $username = $request->input('username');
-        $name = $request->input('name');
+        // Only keep the two lightweight server-side pre-filters.
+        // All text searching is handled client-side by DataTables.
         $userTypeId = $request->input('user_type_id');
+        $campusId = $request->input('campus_id');
 
-        // Query with filters
-        $users = User::withTrashed()->with('userType')
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('first_name', 'like', "%$search%")
-                        ->orWhere('middle_name', 'like', "%$search%")
-                        ->orWhere('last_name', 'like', "%$search%")
-                        ->orWhere('email', 'like', "%$search%")
-                        ->orWhere('phone', 'like', "%$search%")
-                        ->orWhere('username', 'like', "%$search%");
-                });
-            })
-            ->when($email, fn($q) => $q->where('email', 'like', "%$email%"))
-            ->when($phone, fn($q) => $q->where('phone', 'like', "%$phone%"))
-            ->when($username, fn($q) => $q->where('username', 'like', "%$username%"))
-            ->when($name, fn($q) => $q->where('first_name', 'like', "%$name%")->orWhere('last_name', 'like', "%$name%")->orWhere('middle_name', 'like', "%$name%"))
+        $users = User::withTrashed()->with(['userType', 'campus'])
             ->when($userTypeId, fn($q) => $q->where('user_type_id', $userTypeId))
-            ->paginate(20);
+            ->when($campusId, fn($q) => $q->where('campus_id', $campusId))
+            ->orderBy('first_name')
+            ->get();
 
-        $userTypes = \App\Models\UserType::orderBy('name')->get();
+        $userTypes = UserType::orderBy('name')->get();
+        $campuses = Campus::orderBy('name')->get();
 
-        return view('staff.ict.users.listofusers', compact('users', 'userTypes'));
+        return view('staff.ict.users.listofusers', compact('users', 'userTypes', 'campuses'));
     }
 
     public function updateUsers(Request $request, $id)
@@ -420,6 +405,9 @@ class IctStudentController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'phone' => 'nullable|string|max:20',
             'user_type_id' => 'required|exists:user_types,id',
+            'campus_id' => 'nullable|exists:campuses,id',
+            'application_types' => 'nullable|array',
+            'application_types.*' => 'exists:application_settings,id',
         ]);
 
         $user = User::findOrFail($id);
@@ -432,7 +420,16 @@ class IctStudentController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'user_type_id' => $request->user_type_id,
+            'campus_id' => $request->campus_id ?: null,
         ]);
+
+        $userType = UserType::find($request->user_type_id);
+        if ($userType && $userType->name === 'programme-director') {
+            $user->assignedApplicationTypes()->sync($request->application_types ?? []);
+        } else {
+            // If they are no longer a programme director, clear their assigned types
+            $user->assignedApplicationTypes()->sync([]);
+        }
 
         return back()->with('success', 'User updated successfully.');
     }
@@ -447,9 +444,12 @@ class IctStudentController extends Controller
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20|unique:users,phone',
             'user_type_id' => 'required|exists:user_types,id',
+            'campus_id' => 'nullable|exists:campuses,id',
+            'application_types' => 'nullable|array',
+            'application_types.*' => 'exists:application_settings,id',
         ]);
 
-        User::create([
+        $user = User::create([
             'username' => $request->username,
             'first_name' => $request->first_name,
             'middle_name' => $request->middle_name,
@@ -457,9 +457,14 @@ class IctStudentController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'user_type_id' => $request->user_type_id,
-            // you can also set a default password if needed:
+            'campus_id' => $request->campus_id ?: null,
             'password' => bcrypt('password123'),
         ]);
+
+        $userType = UserType::find($request->user_type_id);
+        if ($userType && $userType->name === 'programme-director' && $request->has('application_types')) {
+            $user->assignedApplicationTypes()->sync($request->application_types);
+        }
 
         return back()->with('success', 'User added successfully.');
     }

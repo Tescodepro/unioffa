@@ -3,11 +3,11 @@
         <div id="sidebar-menu" class="sidebar-menu">
             <ul>
                 <li>
-                    <a href="{{ route('students.dashboard') }}" 
-                       class="d-flex align-items-center border bg-white rounded p-2 mb-4">
-                        <img src="{{ asset('assets/img/logo/logo_white.svg') }}" 
-                             class="avatar avatar-md img-fluid rounded" alt="Profile">
-                        <span class="text-dark ms-2 fw-normal">University of Offa</span>
+                    <a href="{{ route('students.dashboard') }}"
+                        class="d-flex align-items-center border bg-white rounded p-2 mb-4">
+                        <img src="{{ asset($schoolLogo) }}" class="avatar avatar-md img-fluid rounded"
+                            alt="{{ $schoolName }}">
+                        <span class="text-dark ms-2 fw-normal">{{ $schoolName }}</span>
                     </a>
                 </li>
             </ul>
@@ -18,8 +18,8 @@
                     <h6 class="submenu-hdr"><span>Main</span></h6>
                     <ul>
                         <li>
-                            <a href="{{ route('students.dashboard') }}" 
-                               class="{{ request()->routeIs('students.dashboard') ? 'active' : '' }}">
+                            <a href="{{ route('students.dashboard') }}"
+                                class="{{ request()->routeIs('students.dashboard') ? 'active' : '' }}">
                                 <i class="ti ti-layout-dashboard"></i>
                                 <span>Dashboard</span>
                             </a>
@@ -32,8 +32,8 @@
                     <h6 class="submenu-hdr"><span>Academics</span></h6>
                     <ul>
                         <li>
-                            <a href="{{ route('students.course.registration') }}" 
-                               class="{{ request()->routeIs('students.course.registration') ? 'active' : '' }}">
+                            <a href="{{ route('students.course.registration') }}"
+                                class="{{ request()->routeIs('students.course.registration') ? 'active' : '' }}">
                                 <i class="ti ti-book"></i>
                                 <span>Course Registration</span>
                             </a>
@@ -48,19 +48,20 @@
                 </li>
 
                 <!-- FINANCIAL SERVICES -->
-                <li class="{{ request()->is('students/load_payment*') || request()->is('students/payment/history*') ? 'open' : '' }}">
+                <li
+                    class="{{ request()->is('students/load_payment*') || request()->is('students/payment/history*') ? 'open' : '' }}">
                     <h6 class="submenu-hdr"><span>Financial Services</span></h6>
                     <ul>
                         <li>
-                            <a href="{{ route('students.load_payment') }}" 
-                               class="{{ request()->routeIs('students.load_payment') ? 'active' : '' }}">
+                            <a href="{{ route('students.load_payment') }}"
+                                class="{{ request()->routeIs('students.load_payment') ? 'active' : '' }}">
                                 <i class="ti ti-wallet"></i>
                                 <span>School Fees</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('students.payment.history') }}" 
-                               class="{{ request()->routeIs('students.payment.history') ? 'active' : '' }}">
+                            <a href="{{ route('students.payment.history') }}"
+                                class="{{ request()->routeIs('students.payment.history') ? 'active' : '' }}">
                                 <i class="ti ti-history"></i>
                                 <span>Payment History</span>
                             </a>
@@ -72,8 +73,11 @@
                 <li class="{{ request()->is('students/hostel*') ? 'open' : '' }}">
                     <h6 class="submenu-hdr"><span>Hostel Services</span></h6>
                     <ul>
-                        <li><a href="{{ route('students.hostel.index')  }}" class="{{ request()->is('students/hostel/apply') ? 'active' : '' }}"><i class="ti ti-building"></i><span>Apply for Hostel</span></a></li>
-                        {{-- <li><a href="#" class="{{ request()->is('students/hostel/status') ? 'active' : '' }}"><i class="ti ti-info-circle"></i><span>Hostel Status</span></a></li> --}}
+                        <li><a href="{{ route('students.hostel.index')  }}"
+                                class="{{ request()->is('students/hostel/apply') ? 'active' : '' }}"><i
+                                    class="ti ti-building"></i><span>Apply for Hostel</span></a></li>
+                        {{-- <li><a href="#" class="{{ request()->is('students/hostel/status') ? 'active' : '' }}"><i
+                                    class="ti ti-info-circle"></i><span>Hostel Status</span></a></li> --}}
                     </ul>
                 </li>
 
@@ -82,8 +86,8 @@
                     <h6 class="submenu-hdr"><span>Other</span></h6>
                     <ul>
                         <li>
-                            <a href="{{ route('students.admission.letter') }}" 
-                               class="{{ request()->routeIs('students.admission.letter') ? 'active' : '' }}">
+                            <a href="{{ route('students.admission.letter') }}"
+                                class="{{ request()->routeIs('students.admission.letter') ? 'active' : '' }}">
                                 <i class="ti ti-user"></i>
                                 <span>Admission Letter</span>
                             </a>
@@ -96,8 +100,8 @@
                     <h6 class="submenu-hdr"><span>Profile</span></h6>
                     <ul>
                         <li>
-                            <a href="{{ route('students.profile') }}" 
-                               class="{{ request()->routeIs('students.profile') ? 'active' : '' }}">
+                            <a href="{{ route('students.profile') }}"
+                                class="{{ request()->routeIs('students.profile') ? 'active' : '' }}">
                                 <i class="ti ti-user"></i>
                                 <span>My Profile</span>
                             </a>

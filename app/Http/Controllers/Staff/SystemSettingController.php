@@ -26,15 +26,23 @@ class SystemSettingController extends Controller
             $setting = SystemSetting::where('key', $key)->first();
 
             if ($setting) {
-                if ($request->hasFile($key)) {
-                    // Handle File Upload
+                if ($request->hasFile($key) && $request->file($key)->isValid()) {
                     $file = $request->file($key);
-                    $path = $file->storeAs('uploads/settings', $key . '.' . $file->getClientOriginalExtension(), 'public');
-                    // We need to make sure the value stored is accessible via asset() or public_path() depending on usage.
-                    // For now, let's store 'storage/uploads/settings/...' which is common for symlinked storage.
-                    // But existing code uses direct public_path('assets/...').
-                    // We will just store the relative path 'storage/...' or just the filename? 
-                    // Let's store 'storage/uploads/settings/filename.ext'
+                    $filename = $key . '.' . $file->getClientOriginalExtension();
+
+                    // Delete old file if it was a previously uploaded one (starts with storage/)
+                    if ($setting->value && str_starts_with($setting->value, 'storage/')) {
+                        Storage::disk('public')->delete(
+                            str_replace('storage/', '', $setting->value)
+                        );
+                    }
+
+                    // Store in public disk: storage/app/public/uploads/settings/
+                    // After storage:link this is accessible at: public/storage/uploads/settings/
+                    $path = $file->storeAs('uploads/settings', $filename, 'public');
+
+                    // Store value as 'storage/uploads/settings/filename.ext'
+                    // This works directly with asset('storage/uploads/settings/filename.ext')
                     $setting->value = 'storage/' . $path;
                 } else {
                     $setting->value = $value;
