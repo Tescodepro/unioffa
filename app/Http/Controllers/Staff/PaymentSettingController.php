@@ -18,28 +18,31 @@ class PaymentSettingController extends Controller
 
         // Apply filters
         if ($request->filled('payment_type')) {
-            $query->where('payment_type', $request->payment_type);
+            $query->where('payment_type', $request->input('payment_type'));
         }
 
         if ($request->filled('session')) {
-            $query->where('session', $request->session);
+            $query->where('session', $request->input('session'));
         }
 
         if ($request->filled('faculty_id')) {
-            $query->where('faculty_id', $request->faculty_id);
+            $query->where('faculty_id', $request->input('faculty_id'));
         }
 
         if ($request->filled('department_id')) {
-            $query->where('department_id', $request->department_id);
+            $query->where('department_id', $request->input('department_id'));
         }
 
         if ($request->filled('installmental_allow_status')) {
-            $query->where('installmental_allow_status', $request->installmental_allow_status);
+            $query->where('installmental_allow_status', $request->input('installmental_allow_status'));
         }
         if ($request->filled('matric_number')) {
-            $query->where('matric_number', $request->matric_number);
+            $query->where('matric_number', $request->input('matric_number'));
         }
 
+        if ($request->filled('semester')) {
+            $query->where('semester', $request->input('semester'));
+        }
 
         $settings = $query->paginate(20);
 
@@ -75,6 +78,7 @@ class PaymentSettingController extends Controller
             'payment_type' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'session' => 'required|string|max:255',
+            'semester' => 'nullable|string|max:255',
             'student_type' => 'nullable|array',
             'entry_mode' => 'nullable|array',
             'matric_number' => 'nullable|string|max:255',
@@ -111,6 +115,7 @@ class PaymentSettingController extends Controller
             'payment_type' => $validated['payment_type'],
             'amount' => $validated['amount'],
             'session' => $validated['session'],
+            'semester' => $validated['semester'] ?? null,
             'student_type' => $validated['student_type'] ?? [],
             'entry_mode' => $validated['entry_mode'] ?? [],
             'matric_number' => $validated['matric_number'] ?? null,
@@ -149,6 +154,7 @@ class PaymentSettingController extends Controller
             'payment_type' => 'required|string',
             'amount' => 'required|numeric|min:0',
             'session' => 'required|string',
+            'semester' => 'nullable|string|max:255',
             'student_type' => 'nullable|array',
             'entry_mode' => 'nullable|array',
             'description' => 'nullable|string',
@@ -193,6 +199,7 @@ class PaymentSettingController extends Controller
             'payment_type' => $validated['payment_type'],
             'amount' => $validated['amount'],
             'session' => $validated['session'],
+            'semester' => $validated['semester'] ?? null,
             'student_type' => $validated['student_type'] ?? [],
             'entry_mode' => $validated['entry_mode'] ?? [],
             'description' => $validated['description'],

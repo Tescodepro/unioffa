@@ -26,6 +26,7 @@ class PaymentSetting extends Model
         'student_type',
         'entry_mode',
         'session',
+        'semester',
         'installmental_allow_status',
         'number_of_instalment',
         'list_instalment_percentage',

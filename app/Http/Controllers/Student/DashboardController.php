@@ -98,6 +98,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user()->load('student.department.faculty');
         $currentSession = activeSession()->name ?? null;
+        $currentSemester = activeSemester()->name ?? null;
         if (!$user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
@@ -117,9 +118,6 @@ class DashboardController extends Controller
         // ✅ 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
             ->where('session', $currentSession) // session must always match
-            // ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
-            //     $query->where('payment_type', '!=', 'matriculation');
-            // }) -- REMOVED HARDCODED EXCLUSION
             ->when($student->programme, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
                     $sub->whereNull('student_type')
@@ -162,6 +160,12 @@ class DashboardController extends Controller
                 $q->whereNull('entry_mode')
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
+            ->where(function ($q) use ($currentSemester) {
+                // If the setting has no semester, it applies globally/whole session.
+                // If it has a semester, it only applies when that is the active semester.
+                $q->whereNull('semester')
+                    ->orWhere('semester', $currentSemester);
+            })
             ->get();
 
         if ($paymentSettings->isEmpty()) {
@@ -174,11 +178,15 @@ class DashboardController extends Controller
             ->where('session', $currentSession)
             ->where('payment_status', 1)
             ->get()
-            ->groupBy('payment_type');
+            ->groupBy(function ($item) {
+                // Group by both payment type and semester, so they don't overlap
+                return $item->payment_type . '_' . ($item->semester ?: 'global');
+            });
 
         // ✅ 3. Dynamic computation using DB installment fields
         $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions) {
-            $txns = $transactions->get($payment->payment_type, collect());
+            $groupKey = $payment->payment_type . '_' . ($payment->semester ?: 'global');
+            $txns = $transactions->get($groupKey, collect());
             $amountPaid = $txns->sum('amount');
             $installmentCount = $txns->count();
 

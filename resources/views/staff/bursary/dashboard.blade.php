@@ -127,6 +127,207 @@
                     </div>
                 </div>
 
+                {{-- === Per-Center Revenue Cards === --}}
+                @if(count($campusBreakdown) > 0)
+                    @php
+                        $centerAccents = ['primary', 'success', 'warning', 'info', 'danger', 'secondary'];
+                        $centerIdx = 0;
+                    @endphp
+
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="mb-0 fw-semibold">
+                            <i class="ti ti-building me-2 text-primary"></i> Revenue by Center
+                        </h5>
+                        <span class="badge bg-light text-muted border">Successful payments only</span>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        @foreach($campusBreakdown as $campusName => $types)
+                            @php
+                                $accent = $centerAccents[$centerIdx % count($centerAccents)];
+                                $centerIdx++;
+                                $campusTotal = collect($types)->sum('amount');
+                                $campusTxns = collect($types)->sum('total');
+                            @endphp
+                            <div class="col-xl-6 col-lg-6">
+                                <div class="card h-100 border-0 shadow-sm overflow-hidden">
+                                    {{-- Colored top bar --}}
+                                    <div class="bg-{{ $accent }} px-4 py-4 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="avatar avatar-md rounded-circle bg-white bg-opacity-25 text-white">
+                                                <i class="ti ti-map-pin fs-18"></i>
+                                            </span>
+                                            <h5 class="mb-0 text-white fw-bold">{{ $campusName }}</h5>
+                                        </div>
+                                        <span class="badge bg-white bg-opacity-25 text-white fs-12 px-3 py-2">
+                                            {{ $campusTxns }} transaction{{ $campusTxns != 1 ? 's' : '' }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Grand total strip --}}
+                                    <div
+                                        class="px-4 py-3 bg-{{ $accent }} bg-opacity-10 d-flex align-items-center justify-content-between border-bottom">
+                                        <span class="text-muted fw-semibold">Total Collected</span>
+                                        <span class="fs-4 fw-bold text-{{ $accent }}">₦{{ number_format($campusTotal, 2) }}</span>
+                                    </div>
+
+                                    {{-- Per-type breakdown --}}
+                                    <div class="card-body p-0">
+                                        <table class="table align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="ps-4 py-3">Payment Type</th>
+                                                    <th class="text-center py-3">Transactions</th>
+                                                    <th class="text-end pe-4 py-3">Amount (₦)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($types as $pt => $cell)
+                                                    <tr>
+                                                        <td class="ps-4 py-3">
+                                                            <span
+                                                                class="badge bg-{{ $accent }}-subtle text-{{ $accent }} border border-{{ $accent }}-subtle fs-12 px-3 py-2">
+                                                                {{ ucfirst($pt) }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
+                                                        <td class="text-end pe-4 fw-bold">₦{{ number_format($cell['amount'], 2) }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+
+                        {{-- Unassigned / No Center card --}}
+                        @if(count($unassignedBreakdown) > 0)
+                            @php
+                                $unassignedTotal = collect($unassignedBreakdown)->sum('amount');
+                                $unassignedTxns = collect($unassignedBreakdown)->sum('total');
+                            @endphp
+                            <div class="col-xl-6 col-lg-6">
+                                <div class="card h-100 border-0 shadow-sm overflow-hidden">
+                                    {{-- Dark header for unassigned --}}
+                                    <div class="px-4 py-4 d-flex align-items-center justify-content-between"
+                                        style="background: #4b5563;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="avatar avatar-md rounded-circle text-white"
+                                                style="background:rgba(255,255,255,0.15);">
+                                                <i class="ti ti-map-pin-off fs-18"></i>
+                                            </span>
+                                            <h5 class="mb-0 text-white fw-bold">Unassigned / No Center</h5>
+                                        </div>
+                                        <span class="badge text-white fs-12 px-3 py-2" style="background:rgba(255,255,255,0.15);">
+                                            {{ $unassignedTxns }} transaction{{ $unassignedTxns != 1 ? 's' : '' }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Grand total strip --}}
+                                    <div class="px-4 py-3 d-flex align-items-center justify-content-between border-bottom"
+                                        style="background: rgba(75,85,99,0.08);">
+                                        <span class="text-muted fw-semibold">Total Collected</span>
+                                        <span class="fs-4 fw-bold"
+                                            style="color:#4b5563;">₦{{ number_format($unassignedTotal, 2) }}</span>
+                                    </div>
+
+                                    {{-- Per-type breakdown --}}
+                                    <div class="card-body p-0">
+                                        <table class="table align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="ps-4 py-3">Payment Type</th>
+                                                    <th class="text-center py-3">Transactions</th>
+                                                    <th class="text-end pe-4 py-3">Amount (₦)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($unassignedBreakdown as $pt => $cell)
+                                                    <tr>
+                                                        <td class="ps-4 py-3">
+                                                            <span class="badge border px-3 py-2 fs-12"
+                                                                style="background:rgba(75,85,99,0.1);color:#4b5563;border-color:rgba(75,85,99,0.3)!important;">
+                                                                {{ ucfirst($pt) }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
+                                                        <td class="text-end pe-4 fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Manual Transactions card --}}
+                        @if(count($manualBreakdown) > 0)
+                            @php
+                                $manualTotal = collect($manualBreakdown)->sum('amount');
+                                $manualTxns = collect($manualBreakdown)->sum('total');
+                            @endphp
+                            <div class="col-xl-6 col-lg-6">
+                                <div class="card h-100 border-0 shadow-sm overflow-hidden">
+                                    {{-- Orange/amber header for manual --}}
+                                    <div class="px-4 py-4 d-flex align-items-center justify-content-between"
+                                        style="background: #b45309;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="avatar avatar-md rounded-circle text-white"
+                                                style="background:rgba(255,255,255,0.15);">
+                                                <i class="ti ti-pencil fs-18"></i>
+                                            </span>
+                                            <h5 class="mb-0 text-white fw-bold">Manual Transactions</h5>
+                                        </div>
+                                        <span class="badge text-white fs-12 px-3 py-2" style="background:rgba(255,255,255,0.15);">
+                                            {{ $manualTxns }} transaction{{ $manualTxns != 1 ? 's' : '' }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Total strip --}}
+                                    <div class="px-4 py-3 d-flex align-items-center justify-content-between border-bottom"
+                                        style="background: rgba(180,83,9,0.08);">
+                                        <span class="text-muted fw-semibold">Total Collected</span>
+                                        <span class="fs-4 fw-bold"
+                                            style="color:#b45309;">₦{{ number_format($manualTotal, 2) }}</span>
+                                    </div>
+
+                                    {{-- Per-type breakdown --}}
+                                    <div class="card-body p-0">
+                                        <table class="table align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="ps-4 py-3">Payment Type</th>
+                                                    <th class="text-center py-3">Transactions</th>
+                                                    <th class="text-end pe-4 py-3">Amount (₦)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($manualBreakdown as $pt => $cell)
+                                                    <tr>
+                                                        <td class="ps-4 py-3">
+                                                            <span class="badge border px-3 py-2 fs-12"
+                                                                style="background:rgba(180,83,9,0.1);color:#b45309;border-color:rgba(180,83,9,0.3)!important;">
+                                                                {{ ucfirst($pt) }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
+                                                        <td class="text-end pe-4 fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>{{-- end .row --}}
+                @endif
+
+
                 <!-- Recent Transactions -->
                 <div class="card">
                     <div class="card-header border-0">

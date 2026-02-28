@@ -48,6 +48,7 @@ class PaymentController extends Controller
             'payment_type' => $request->fee_type ?? 'tuition',
             'payment_method' => $gateway,
             'session' => activeSession()->name ?? '---',
+            'semester' => activeSemester()->name ?? null,
             'meta_data' => json_encode([
                 'user_agent' => $request->userAgent(),
                 'ip_address' => $request->ip(),

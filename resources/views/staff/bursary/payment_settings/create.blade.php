@@ -10,10 +10,10 @@
         <div class="page-wrapper">
             <div class="content container-fluid">
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4>Add Payment Setting</h4>
-                    <a href="{{ route('bursary.payment-settings.index') }}" class="btn btn-secondary">
-                        <i class="ti ti-arrow-left"></i> Back
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0 fw-bold">Add Payment Setting</h4>
+                    <a href="{{ route('bursary.payment-settings.index') }}" class="btn btn-light border shadow-sm btn-sm">
+                        <i class="ti ti-arrow-left me-1"></i> Back to Settings
                     </a>
                 </div>
 
@@ -24,28 +24,38 @@
                     @csrf
 
                     {{-- SECTION 1: Payment Details --}}
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="ti ti-currency-naira me-2"></i>Payment Details</h5>
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                            <h6 class="card-title mb-0 fw-bold"><i
+                                    class="ti ti-currency-naira text-primary me-2"></i>Payment Details</h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label fw-semibold">Payment Type <span
                                             class="text-danger">*</span></label>
                                     <input type="text" name="payment_type" class="form-control"
                                         placeholder="e.g. Tuition, Acceptance Fee" required>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label fw-semibold">Amount (₦) <span
                                             class="text-danger">*</span></label>
                                     <input type="number" step="0.01" name="amount" class="form-control"
                                         placeholder="e.g. 50000" required>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label class="form-label fw-semibold">Session <span class="text-danger">*</span></label>
                                     <input type="text" name="session" class="form-control" placeholder="e.g. 2024/2025"
                                         required>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-semibold">Semester</label>
+                                    <select name="semester" class="form-select">
+                                        <option value="">All Semesters (Full Session)</option>
+                                        <option value="1st">1st Semester</option>
+                                        <option value="2nd">2nd Semester</option>
+                                        <option value="3rd">3rd Semester</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-12 mb-3">
                                     <label class="form-label">Description</label>
@@ -57,10 +67,12 @@
                     </div>
 
                     {{-- SECTION 2: Targeting (Who should pay?) --}}
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="ti ti-filter me-2"></i>Targeting (Who should pay?)</h5>
-                            <small class="text-muted">Leave fields blank to apply to all students.</small>
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div
+                            class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                            <h6 class="card-title mb-0 fw-bold"><i class="ti ti-filter text-primary me-2"></i>Targeting (Who
+                                should pay?)</h6>
+                            <span class="badge bg-light text-muted border">Leave blank for ALL</span>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -120,9 +132,10 @@
                     </div>
 
                     {{-- SECTION 3: Installment Settings --}}
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="ti ti-list-numbers me-2"></i>Installment Options</h5>
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                            <h6 class="card-title mb-0 fw-bold"><i
+                                    class="ti ti-list-numbers text-primary me-2"></i>Installment Options</h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -150,8 +163,8 @@
                     </div>
 
                     {{-- Submit Button --}}
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary btn-lg">
+                    <div class="d-flex justify-content-end mb-5">
+                        <button type="submit" class="btn btn-primary shadow-sm px-4">
                             <i class="ti ti-device-floppy me-2"></i> Save Payment Setting
                         </button>
                     </div>
@@ -184,7 +197,7 @@
                         input.name = 'list_instalment_percentage[]';
                         input.step = '0.1';
                         // Required only if visible
-                        input.required = true; 
+                        input.required = true;
                         input.className = 'form-control mt-1';
                         input.value = i === count - 1 ? (100 - equalSplit * (count - 1)) : equalSplit;
                         div.appendChild(label);
@@ -197,7 +210,7 @@
             function toggleInstallmentFields() {
                 const show = allowInstallment.value === '1';
                 installmentSection.forEach(sec => sec.classList.toggle('d-none', !show));
-                
+
                 // Toggle required and disabled states to prevent validation errors on hidden fields
                 if (show) {
                     numberInput.removeAttribute('disabled');
@@ -212,16 +225,16 @@
 
             allowInstallment.addEventListener('change', toggleInstallmentFields);
             numberInput.addEventListener('input', generatePercentageInputs);
-            
+
             // Initial check
             // We manually call this to ensure initial state is correct (e.g. if browser cached value)
             if (allowInstallment.value === '1') {
-                 // If accidentally cached as 1 but fields hidden by default HTML, this fixes it
-                 toggleInstallmentFields();
+                // If accidentally cached as 1 but fields hidden by default HTML, this fixes it
+                toggleInstallmentFields();
             } else {
-                 // Ensure disabled is set if default is 0
-                 numberInput.setAttribute('disabled', 'disabled');
-                 numberInput.removeAttribute('required');
+                // Ensure disabled is set if default is 0
+                numberInput.setAttribute('disabled', 'disabled');
+                numberInput.removeAttribute('required');
             }
         });
     </script>

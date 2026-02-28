@@ -21,6 +21,7 @@ class Transaction extends Model
         'payment_type',
         'payment_method',
         'session',
+        'semester',
     ];
 
     public function user()

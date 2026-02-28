@@ -61,9 +61,20 @@
                             <label class="form-label">Date</label>
                             <input type="date" name="date" value="{{ request('date') }}" class="form-control">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Student Name</label>
                             <input type="text" name="name" value="{{ request('name') }}" class="form-control" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Center / Campus</label>
+                            <select name="campus_id" class="form-select">
+                                <option value="">-- All Centers --</option>
+                                @foreach ($campuses as $campus)
+                                    <option value="{{ $campus->id }}" {{ request('campus_id') == $campus->id ? 'selected' : '' }}>
+                                        {{ $campus->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-1">
                             <button type="submit" class="btn btn-primary w-100">
@@ -89,6 +100,7 @@
                                     <th>Reference</th>
                                     <th>Student</th>
                                     <th>Matric No / Student ID</th>
+                                    <th>Center</th>
                                     <th>Payment Type</th>
                                     <th>Amount</th>
                                     <th>Status</th>
@@ -103,6 +115,11 @@
                                         <td><strong>{{ $txn->refernce_number }}</strong></td>
                                         <td>{{ optional($txn->user)->first_name }} {{ optional($txn->user)->last_name }}</td>
                                         <td>{{ optional($txn->user)->username }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">
+                                                {{ optional($txn->user->campus)->name ?? '—' }}
+                                            </span>
+                                        </td>
                                         <td>{{ ucfirst($txn->payment_type) }}</td>
                                         <td>{{ number_format($txn->amount, 2) }}</td>
                                         <td>
@@ -130,7 +147,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center text-muted p-4">
+                                        <td colspan="10" class="text-center text-muted p-4">
                                             No transactions found.
                                         </td>
                                     </tr>

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\{Transaction, PaymentSetting, Student, Faculty, Department, User};
+use App\Models\{Transaction, PaymentSetting, Student, Faculty, Department, User, Campus};
 use App\Services\PaymentVerificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,6 @@ class BursaryController extends Controller
         ];
 
         // Group transactions by payment_type
-
         $paymentsByType = Transaction::select(
             'payment_type',
             DB::raw('COUNT(*) as total'),
@@ -44,6 +43,92 @@ class BursaryController extends Controller
             ->groupBy('payment_type')
             ->get();
 
+        // Per-campus breakdown: each campus → each payment type → total amount + count
+        $campusBreakdownRaw = Transaction::select(
+            'campuses.name as campus_name',
+            'transactions.payment_type',
+            DB::raw('COUNT(*) as total'),
+            DB::raw('SUM(transactions.amount) as total_amount')
+        )
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->join('campuses', 'users.campus_id', '=', 'campuses.id')
+            ->where('transactions.payment_status', 1)
+            ->where(function ($q) {
+                $q->where('transactions.payment_type', '!=', 'technical')
+                    ->orWhere(function ($tq) {
+                        $tq->where('transactions.payment_type', 'technical')
+                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                    });
+            })
+            ->groupBy('campuses.name', 'transactions.payment_type')
+            ->orderBy('campuses.name')
+            ->orderBy('transactions.payment_type')
+            ->get();
+
+        // Pivot: [ campus_name => [ payment_type => ['total' => x, 'amount' => y], ...], ... ]
+        // Also collect all payment types seen across all campuses
+        $campusBreakdown = [];
+        $allPaymentTypes = [];
+
+        foreach ($campusBreakdownRaw as $row) {
+            $campusBreakdown[$row->campus_name][$row->payment_type] = [
+                'total' => $row->total,
+                'amount' => $row->total_amount,
+            ];
+            if (!in_array($row->payment_type, $allPaymentTypes)) {
+                $allPaymentTypes[] = $row->payment_type;
+            }
+        }
+        sort($allPaymentTypes);
+
+        // Transactions with no campus assigned (user.campus_id IS NULL)
+        $unassignedRaw = Transaction::select(
+            'transactions.payment_type',
+            DB::raw('COUNT(*) as total'),
+            DB::raw('SUM(transactions.amount) as total_amount')
+        )
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->whereNull('users.campus_id')
+            ->where('transactions.payment_status', 1)
+            ->where(function ($q) {
+                $q->where('transactions.payment_type', '!=', 'technical')
+                    ->orWhere(function ($tq) {
+                        $tq->where('transactions.payment_type', 'technical')
+                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                    });
+            })
+            ->groupBy('transactions.payment_type')
+            ->orderBy('transactions.payment_type')
+            ->get();
+
+        $unassignedBreakdown = [];
+        foreach ($unassignedRaw as $row) {
+            $unassignedBreakdown[$row->payment_type] = [
+                'total' => $row->total,
+                'amount' => $row->total_amount,
+            ];
+        }
+
+        // Manual transactions breakdown by payment type
+        $manualRaw = Transaction::select(
+            'payment_type',
+            DB::raw('COUNT(*) as total'),
+            DB::raw('SUM(amount) as total_amount')
+        )
+            ->where('payment_method', 'manual')
+            ->groupBy('payment_type')
+            ->orderBy('payment_type')
+            ->get();
+
+        $manualBreakdown = [];
+        foreach ($manualRaw as $row) {
+            $manualBreakdown[$row->payment_type] = [
+                'total' => $row->total,
+                'amount' => $row->total_amount,
+            ];
+        }
 
         $recentTransactions = Transaction::with('user')
             ->where(function ($q) {
@@ -58,13 +143,21 @@ class BursaryController extends Controller
             ->take(10)
             ->get();
 
-
-        return view('staff.bursary.dashboard', compact('title', 'stats', 'paymentsByType', 'recentTransactions'));
+        return view('staff.bursary.dashboard', compact(
+            'title',
+            'stats',
+            'paymentsByType',
+            'campusBreakdown',
+            'allPaymentTypes',
+            'unassignedBreakdown',
+            'manualBreakdown',
+            'recentTransactions'
+        ));
     }
     public function transactions(Request $request)
     {
         $query = Transaction::query()
-            ->with('user')
+            ->with(['user.campus'])
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
@@ -91,20 +184,26 @@ class BursaryController extends Controller
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('first_name', 'like', "%{$request->name}%")
                     ->orWhere('last_name', 'like', "%{$request->name}%");
+            });
+        }
+
+        if ($request->filled('campus_id')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('campus_id', $request->campus_id);
             });
         }
 
         $transactions = $query->latest()->paginate(20);
 
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
+        $campuses = Campus::orderBy('name')->get();
 
-
-        return view('staff.bursary.transactions', compact('transactions', 'paymentTypes'));
+        return view('staff.bursary.transactions', compact('transactions', 'paymentTypes', 'campuses'));
     }
     public function exportTransactions(Request $request, $format)
     {
         $query = Transaction::query()
-            ->with('user')
+            ->with(['user.campus'])
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
@@ -131,6 +230,12 @@ class BursaryController extends Controller
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('first_name', 'like', "%{$request->name}%")
                     ->orWhere('last_name', 'like', "%{$request->name}%");
+            });
+        }
+
+        if ($request->filled('campus_id')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('campus_id', $request->campus_id);
             });
         }
 
