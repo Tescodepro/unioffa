@@ -186,8 +186,7 @@ class BursaryController extends Controller
                 'faculty',
                 'programmeType'
             ])
-                ->where('matric_number', $matricQuery)
-                ->orWhere('matric_no', $matricQuery)
+                ->where('matric_no', $matricQuery)
                 ->first();
 
             if ($student && $student->user) {
