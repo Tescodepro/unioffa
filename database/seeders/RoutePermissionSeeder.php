@@ -28,6 +28,10 @@ class RoutePermissionSeeder extends Seeder
             'admitted-students.index' => 'manage_students',
             'admitted-students.download' => 'manage_students',
 
+            // ── Academic Reports ─────────────────────────────────────────────
+            'broadsheet.sessional' => 'view_broadsheet',
+            'broadsheet.semester' => 'view_semester_result',
+
             // ── Financial / Bursary ──────────────────────────────────────────
             'burser.dashboard' => 'view_payment_summary',
             'bursary.student.history' => 'view_transactions',

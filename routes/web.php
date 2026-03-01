@@ -266,7 +266,7 @@ Route::prefix('staff')->group(function () {
         });
     });
     // Result Broadsheet & Semester Result Reports
-    Route::middleware(['user.type:dean|hod', 'dynamic.permission'])->prefix('reports/broadsheet')->group(function () {
+    Route::middleware(['user.type:staff', 'dynamic.permission'])->prefix('reports/broadsheet')->group(function () {
         Route::controller(\App\Http\Controllers\Staff\BroadsheetController::class)->group(function () {
             Route::get('/sessional', 'indexSessional')->name('broadsheet.sessional');
             Route::get('/semester', 'indexSemester')->name('broadsheet.semester');
