@@ -56,6 +56,12 @@ class BroadsheetController extends Controller
             } else {
                 session()->flash('error', 'Department not assigned to this HOD profile.');
             }
+        } elseif ($user->hasUserType('vice-chancellor')) {
+            $departments = Department::all();
+        } elseif ($user->hasUserType('registrar')) {
+            $departments = Department::all();
+        } elseif ($user->hasUserType('ict')) {
+            $departments = Department::all();
         }
 
         $sessions = AcademicSession::orderBy('name', 'DESC')->get();
