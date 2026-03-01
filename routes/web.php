@@ -238,6 +238,7 @@ Route::prefix('staff')->group(function () {
     Route::middleware(['auth', 'dynamic.permission'])->prefix('burser')->group(function () {
         Route::controller(BursaryController::class)->group(function () {
             Route::get('/dashboard', 'dashboard')->name('burser.dashboard');
+            Route::get('/student-history', 'searchStudentHistory')->name('bursary.student.history');
             Route::get('/transactions', 'transactions')->name('bursary.transactions');
             Route::get('/transactions/export/{format}', 'exportTransactions')->name('bursary.transactions.export');
             Route::get('/transactions/{id}/verify', 'verifySingle')->name('bursary.transactions.verify');

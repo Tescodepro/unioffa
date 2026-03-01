@@ -167,6 +167,39 @@ class BursaryController extends Controller
             'selectedSession'
         ));
     }
+
+    public function searchStudentHistory(Request $request)
+    {
+        $title = 'Student Payment History';
+        $student = null;
+        $transactions = collect();
+
+        $matricQuery = $request->query('matric_number');
+
+        if ($matricQuery) {
+            $student = Student::with([
+                'user.transactions' => function ($q) {
+                    $q->orderBy('created_at', 'desc');
+                },
+                'user.campus',
+                'department',
+                'faculty',
+                'programmeType'
+            ])
+                ->where('matric_number', $matricQuery)
+                ->orWhere('matric_no', $matricQuery)
+                ->first();
+
+            if ($student && $student->user) {
+                $transactions = $student->user->transactions;
+            } else {
+                return back()->with('error', 'No student found with the provided matric number.');
+            }
+        }
+
+        return view('staff.bursary.student_history', compact('title', 'student', 'transactions', 'matricQuery'));
+    }
+
     public function transactions(Request $request)
     {
         $query = Transaction::query()

@@ -332,6 +332,15 @@ class MenuItemSeeder extends Seeder
             ],
             [
                 'section' => 'Finance',
+                'label' => 'Student History',
+                'icon' => 'ti ti-history',
+                'route_name' => 'bursary.student.history',
+                'route_pattern' => 'staff/burser/student-history*',
+                'permission_identifier' => 'view_transactions',
+                'sort_order' => 55,
+            ],
+            [
+                'section' => 'Finance',
                 'label' => 'Payment Settings',
                 'icon' => 'ti ti-settings',
                 'route_name' => 'bursary.payment-settings.index',
