@@ -27,16 +27,20 @@ class GenericExport implements FromCollection
                 $data = $view->getData()['data'] ?? collect();
 
                 // Add header row
-                $rows[] = ['Faculty', 'Total Transactions', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
+                $rows[] = ['Center', 'Faculty', 'Total Students', 'Total Transactions', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
 
-                foreach ($data as $item) {
-                    $rows[] = [
-                        $item['faculty'],
-                        $item['total_transactions'],
-                        $item['expected'],
-                        $item['received'],
-                        $item['outstanding'],
-                    ];
+                foreach ($data as $campus => $items) {
+                    foreach ($items as $item) {
+                        $rows[] = [
+                            $campus,
+                            $item['faculty'],
+                            $item['total_students'],
+                            $item['total_transactions'],
+                            $item['expected'],
+                            $item['received'],
+                            $item['outstanding'],
+                        ];
+                    }
                 }
                 break;
 
@@ -44,17 +48,21 @@ class GenericExport implements FromCollection
                 $view = $controller->reportByDepartment(request());
                 $data = $view->getData()['data'] ?? collect();
 
-                $rows[] = ['Faculty', 'Department', 'Total Transactions', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
+                $rows[] = ['Center', 'Faculty', 'Department', 'Total Students', 'Total Transactions', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
 
-                foreach ($data as $item) {
-                    $rows[] = [
-                        $item['faculty'],
-                        $item['department'],
-                        $item['total_transactions'],
-                        $item['expected'],
-                        $item['received'],
-                        $item['outstanding'],
-                    ];
+                foreach ($data as $campus => $items) {
+                    foreach ($items as $item) {
+                        $rows[] = [
+                            $campus,
+                            $item['faculty'],
+                            $item['department'],
+                            $item['total_students'],
+                            $item['total_transactions'],
+                            $item['expected'],
+                            $item['received'],
+                            $item['outstanding'],
+                        ];
+                    }
                 }
                 break;
 
@@ -62,15 +70,19 @@ class GenericExport implements FromCollection
                 $view = $controller->reportByLevel(request());
                 $data = $view->getData()['data'] ?? collect();
 
-                $rows[] = ['Level', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
+                $rows[] = ['Center', 'Level', 'Total Students', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
 
-                foreach ($data as $item) {
-                    $rows[] = [
-                        $item['level'],
-                        $item['expected'],
-                        $item['received'],
-                        $item['outstanding'],
-                    ];
+                foreach ($data as $campus => $items) {
+                    foreach ($items as $item) {
+                        $rows[] = [
+                            $campus,
+                            $item['level'],
+                            $item['total_students'],
+                            $item['expected'],
+                            $item['received'],
+                            $item['outstanding'],
+                        ];
+                    }
                 }
                 break;
 

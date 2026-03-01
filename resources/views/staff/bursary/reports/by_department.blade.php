@@ -37,36 +37,43 @@
                     </div>
                 </div>
 
-                <div class="card p-3 shadow-sm">
-                    <div class="table-responsive">
-                        <table id="department-report-table" class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Faculty</th>
-                                    <th>Department</th>
-                                    <th>Total Transactions</th>
-                                    <th>Expected (₦)</th>
-                                    <th>Received (₦)</th>
-                                    <th>Outstanding (₦)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($data as $key => $row)
+                @foreach($data as $campus => $departments)
+                    <div class="card p-3 shadow-sm mb-4">
+                        <h5 class="mb-3 text-primary border-bottom pb-2">{{ $campus }}</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped report-table">
+                                <thead>
                                     <tr>
-                                        <td>{{ $key + 1 }}</td>
-                                        <td>{{ $row['faculty'] }}</td>
-                                        <td>{{ $row['department'] }}</td>
-                                        <td>{{ $row['total_transactions'] }}</td>
-                                        <td>{{ number_format($row['expected'], 2) }}</td>
-                                        <td>{{ number_format($row['received'], 2) }}</td>
-                                        <td>{{ number_format($row['outstanding'], 2) }}</td>
+                                        <th>#</th>
+                                        <th>Faculty</th>
+                                        <th>Department</th>
+                                        <th>Total Students</th>
+                                        <th>Total Transactions</th>
+                                        <th>Expected (₦)</th>
+                                        <th>Received (₦)</th>
+                                        <th>Outstanding (₦)</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach($departments as $key => $row)
+                                        <tr>
+                                            <td>{{ $key + 1 }}</td>
+                                            <td>{{ $row['faculty'] }}</td>
+                                            <td>{{ $row['department'] }}</td>
+                                            <td>{{ $row['total_students'] }}</td>
+                                            <td>{{ $row['total_transactions'] }}</td>
+                                            <td>{{ number_format($row['expected'], 2) }}</td>
+                                            <td>{{ number_format($row['received'], 2) }}</td>
+                                            <td class="{{ $row['outstanding'] > 0 ? 'text-danger fw-bold' : 'text-success' }}">
+                                                {{ number_format($row['outstanding'], 2) }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                @endforeach
 
             </div>
         </div>
@@ -86,7 +93,7 @@
 
         <script>
             $(document).ready(function () {
-                $('#department-report-table').DataTable({
+                $('.report-table').DataTable({
                     dom: 'Bfrtip',
                     buttons: [
                         'copy', 'csv', 'excel', 'pdf', 'print'

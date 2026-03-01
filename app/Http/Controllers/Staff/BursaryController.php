@@ -21,7 +21,7 @@ class BursaryController extends Controller
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
 
         // Determine the selected session (default to the current active session)
-        $selectedSession = $request->query('session', activeSession()->name ?? null);
+        $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
 
         // Basic payment stats
         $stats = [
@@ -52,6 +52,7 @@ class BursaryController extends Controller
 
         // Per-campus breakdown: each campus → each payment type → total amount + count
         $campusBreakdownRaw = Transaction::select(
+            'campuses.id as campus_id',
             'campuses.name as campus_name',
             'transactions.payment_type',
             DB::raw('COUNT(*) as total'),
@@ -69,7 +70,7 @@ class BursaryController extends Controller
                             ->whereRaw("transactions.created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
                     });
             })
-            ->groupBy('campuses.name', 'transactions.payment_type')
+            ->groupBy('campuses.id', 'campuses.name', 'transactions.payment_type')
             ->orderBy('campuses.name')
             ->orderBy('transactions.payment_type')
             ->get();
@@ -80,7 +81,13 @@ class BursaryController extends Controller
         $allPaymentTypes = [];
 
         foreach ($campusBreakdownRaw as $row) {
-            $campusBreakdown[$row->campus_name][$row->payment_type] = [
+            if (!isset($campusBreakdown[$row->campus_name])) {
+                $campusBreakdown[$row->campus_name] = [
+                    'campus_id' => $row->campus_id,
+                    'types' => []
+                ];
+            }
+            $campusBreakdown[$row->campus_name]['types'][$row->payment_type] = [
                 'total' => $row->total,
                 'amount' => $row->total_amount,
             ];
@@ -257,7 +264,7 @@ class BursaryController extends Controller
             });
         }
 
-        $transactions = $query->latest()->paginate(20);
+        $transactions = $query->latest()->paginate(100);
 
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
         $campuses = Campus::orderBy('name')->get();
@@ -412,9 +419,10 @@ class BursaryController extends Controller
     public function reportByFaculty(Request $request)
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
-        $selectedSession = $request->query('session', activeSession()->name ?? null);
+        $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
 
         $faculties = Faculty::with([
+            'departments.students.user.campus',
             'departments.students.user.transactions' => function ($query) use ($selectedSession) {
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
@@ -422,32 +430,61 @@ class BursaryController extends Controller
             }
         ])->get();
 
-        $data = $faculties->map(function ($faculty) use ($selectedSession) {
-            $transactions = collect();
-            $expected = 0;
+        $groupedData = [];
+
+        foreach ($faculties as $faculty) {
+            $facultyName = $faculty->faculty_code ?? $faculty->name;
 
             foreach ($faculty->departments as $department) {
                 foreach ($department->students as $student) {
-                    if ($student->user && $student->user->transactions) {
-                        $transactions = $transactions->merge($student->user->transactions);
+                    // Determine the center
+                    $center = $student->user?->campus?->name ?? 'Main Campus';
+
+                    // Initialize the array structure for this center and faculty if not exists
+                    if (!isset($groupedData[$center])) {
+                        $groupedData[$center] = [];
+                    }
+                    if (!isset($groupedData[$center][$facultyName])) {
+                        $groupedData[$center][$facultyName] = [
+                            'faculty' => $facultyName,
+                            'total_students' => 0,
+                            'total_transactions' => 0,
+                            'expected' => 0,
+                            'received' => 0,
+                            'outstanding' => 0,
+                        ];
                     }
 
-                    // Calculate expected fees specifically for this student and session
-                    $expected += PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                    // Count the student
+                    $groupedData[$center][$facultyName]['total_students']++;
+
+                    // Expected
+                    $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                    $groupedData[$center][$facultyName]['expected'] += $expectedForStudent;
+
+                    // Received & Transactions
+                    if ($student->user && $student->user->transactions) {
+                        $studentTransactions = $student->user->transactions;
+                        $groupedData[$center][$facultyName]['total_transactions'] += $studentTransactions->count();
+                        $groupedData[$center][$facultyName]['received'] += $studentTransactions->where('payment_status', 1)->sum('amount');
+                    }
                 }
             }
+        }
 
-            $totalReceived = $transactions->where('payment_status', 1)->sum('amount');
-            $totalTransactions = $transactions->count();
+        // Calculate outstanding and ensure proper array formatting
+        foreach ($groupedData as $center => &$facultyList) {
+            foreach ($facultyList as &$stats) {
+                $stats['outstanding'] = $stats['expected'] - $stats['received'];
+            }
+            $facultyList = array_values($facultyList); // convert associative array to indexed arrays for blade loops
+        }
 
-            return [
-                'faculty' => $faculty->faculty_code ?? $faculty->name,
-                'total_transactions' => $totalTransactions,
-                'expected' => $expected,
-                'received' => $totalReceived,
-                'outstanding' => $expected - $totalReceived,
-            ];
-        });
+        // Sort centers alphabetically so Main Campus isn't random
+        ksort($groupedData);
+
+        // Alias to $data for the view
+        $data = $groupedData;
 
         return view('staff.bursary.reports.by_faculty', compact('data', 'sessions', 'selectedSession'));
     }
@@ -455,9 +492,11 @@ class BursaryController extends Controller
     public function reportByDepartment(Request $request)
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
-        $selectedSession = $request->query('session', activeSession()->name ?? null);
+        $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
 
         $departments = Department::with([
+            'faculty',
+            'students.user.campus',
             'students.user.transactions' => function ($query) use ($selectedSession) {
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
@@ -465,31 +504,61 @@ class BursaryController extends Controller
             }
         ])->get();
 
-        $data = $departments->map(function ($dept) use ($selectedSession) {
-            $transactions = collect();
-            $expected = 0;
+        $groupedData = [];
+
+        foreach ($departments as $dept) {
+            $facultyName = $dept->faculty?->faculty_code ?? 'N/A';
+            $departmentName = $dept->department_code ?? $dept->name;
 
             foreach ($dept->students as $student) {
-                if ($student->user && $student->user->transactions) {
-                    $transactions = $transactions->merge($student->user->transactions);
+                // Determine the center
+                $center = $student->user?->campus?->name ?? 'Main Campus';
+
+                // Initialize the array structure for this center and department if not exists
+                if (!isset($groupedData[$center])) {
+                    $groupedData[$center] = [];
+                }
+                if (!isset($groupedData[$center][$departmentName])) {
+                    $groupedData[$center][$departmentName] = [
+                        'faculty' => $facultyName,
+                        'department' => $departmentName,
+                        'total_students' => 0,
+                        'total_transactions' => 0,
+                        'expected' => 0,
+                        'received' => 0,
+                        'outstanding' => 0,
+                    ];
                 }
 
-                // Calculate expected fees specifically for this student and session
-                $expected += PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                // Count the student
+                $groupedData[$center][$departmentName]['total_students']++;
+
+                // Expected
+                $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                $groupedData[$center][$departmentName]['expected'] += $expectedForStudent;
+
+                // Received & Transactions
+                if ($student->user && $student->user->transactions) {
+                    $studentTransactions = $student->user->transactions;
+                    $groupedData[$center][$departmentName]['total_transactions'] += $studentTransactions->count();
+                    $groupedData[$center][$departmentName]['received'] += $studentTransactions->where('payment_status', 1)->sum('amount');
+                }
             }
+        }
 
-            $totalReceived = $transactions->where('payment_status', 1)->sum('amount');
-            $totalTransactions = $transactions->count();
+        // Calculate outstanding and ensure proper array formatting
+        foreach ($groupedData as $center => &$departmentList) {
+            foreach ($departmentList as &$stats) {
+                $stats['outstanding'] = $stats['expected'] - $stats['received'];
+            }
+            $departmentList = array_values($departmentList); // convert associative array to indexed arrays for blade loops
+        }
 
-            return [
-                'faculty' => $dept->faculty?->faculty_code ?? 'N/A',
-                'department' => $dept->department_code ?? $dept->name,
-                'total_transactions' => $totalTransactions,
-                'expected' => $expected,
-                'received' => $totalReceived,
-                'outstanding' => $expected - $totalReceived,
-            ];
-        });
+        // Sort centers alphabetically so Main Campus isn't random
+        ksort($groupedData);
+
+        // Alias to $data for the view
+        $data = $groupedData;
 
         return view('staff.bursary.reports.by_department', compact('data', 'sessions', 'selectedSession'));
     }
@@ -498,11 +567,10 @@ class BursaryController extends Controller
     public function reportByLevel(Request $request)
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
-        $selectedSession = $request->query('session', activeSession()->name ?? null);
+        $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
 
         $levels = PaymentSetting::select('level')->distinct()->pluck('level');
-        $data = [];
-        $processedLevels = []; // Track processed levels to avoid duplicates
+        $groupedData = [];
 
         foreach ($levels as $levelData) {
             // Handle both array (from model casting) and JSON string
@@ -526,6 +594,7 @@ class BursaryController extends Controller
                 $processedLevels[] = $level;
 
                 $studentsInLevel = \App\Models\Student::with([
+                    'user.campus',
                     'user.transactions' => function ($query) use ($selectedSession) {
                         if ($selectedSession) {
                             $query->where('session', $selectedSession);
@@ -533,25 +602,52 @@ class BursaryController extends Controller
                     }
                 ])->where('level', $level)->get();
 
-                $expected = 0;
-                $received = 0;
-
                 foreach ($studentsInLevel as $student) {
-                    $expected += PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                    // Determine the center
+                    $center = $student->user?->campus?->name ?? 'Main Campus';
 
+                    if (!isset($groupedData[$center])) {
+                        $groupedData[$center] = [];
+                    }
+
+                    if (!isset($groupedData[$center][$level])) {
+                        $groupedData[$center][$level] = [
+                            'level' => $level,
+                            'total_students' => 0,
+                            'expected' => 0,
+                            'received' => 0,
+                            'outstanding' => 0,
+                        ];
+                    }
+
+                    // Count the student
+                    $groupedData[$center][$level]['total_students']++;
+
+                    // Expected
+                    $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                    $groupedData[$center][$level]['expected'] += $expectedForStudent;
+
+                    // Received
                     if ($student->user && $student->user->transactions) {
-                        $received += $student->user->transactions->where('payment_status', 1)->sum('amount');
+                        $groupedData[$center][$level]['received'] += $student->user->transactions->where('payment_status', 1)->sum('amount');
                     }
                 }
-
-                $data[] = [
-                    'level' => $level,
-                    'expected' => $expected,
-                    'received' => $received,
-                    'outstanding' => $expected - $received,
-                ];
             }
         }
+
+        // Calculate outstanding and flatten array for blades
+        foreach ($groupedData as $center => &$levelList) {
+            foreach ($levelList as &$stats) {
+                $stats['outstanding'] = $stats['expected'] - $stats['received'];
+            }
+            // Optional: Sort levels numerically/alphabetically within the center
+            ksort($levelList);
+            $levelList = array_values($levelList);
+        }
+
+        // Sort centers
+        ksort($groupedData);
+        $data = $groupedData;
 
         return view('staff.bursary.reports.by_level', compact('data', 'sessions', 'selectedSession'));
     }
@@ -560,7 +656,7 @@ class BursaryController extends Controller
     public function reportByStudent(Request $request)
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
-        $selectedSession = $request->query('session', activeSession()->name ?? null);
+        $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
 
         $students = \App\Models\Student::with([
             'user.transactions' => function ($query) use ($selectedSession) {

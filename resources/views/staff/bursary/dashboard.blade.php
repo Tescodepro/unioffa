@@ -124,6 +124,7 @@
                                         <th>Payment Type</th>
                                         <th>Total Transactions</th>
                                         <th>Total Amount (₦)</th>
+                                        <th class="text-end">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -132,6 +133,12 @@
                                             <td>{{ ucfirst($type->payment_type) }}</td>
                                             <td>{{ $type->total }}</td>
                                             <td>{{ number_format($type->total_amount, 2) }}</td>
+                                            <td class="text-end">
+                                                <a href="{{ route('bursary.transactions', ['payment_type' => $type->payment_type, 'session' => $selectedSession]) }}"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                    <i class="ti ti-eye"></i> View Transactions
+                                                </a>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -159,8 +166,8 @@
                             @php
                                 $accent = $centerAccents[$centerIdx % count($centerAccents)];
                                 $centerIdx++;
-                                $campusTotal = collect($types)->sum('amount');
-                                $campusTxns = collect($types)->sum('total');
+                                $campusTotal = collect($types['types'])->sum('amount');
+                                $campusTxns = collect($types['types'])->sum('total');
                             @endphp
                             <div class="col-xl-6 col-lg-6">
                                 <div class="card h-100 border-0 shadow-sm overflow-hidden">
@@ -191,11 +198,12 @@
                                                 <tr>
                                                     <th class="ps-4 py-3">Payment Type</th>
                                                     <th class="text-center py-3">Transactions</th>
-                                                    <th class="text-end pe-4 py-3">Amount (₦)</th>
+                                                    <th class="text-end py-3">Amount (₦)</th>
+                                                    <th class="text-end pe-4 py-3">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($types as $pt => $cell)
+                                                @foreach($types['types'] as $pt => $cell)
                                                     <tr>
                                                         <td class="ps-4 py-3">
                                                             <span
@@ -204,7 +212,12 @@
                                                             </span>
                                                         </td>
                                                         <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
-                                                        <td class="text-end pe-4 fw-bold">₦{{ number_format($cell['amount'], 2) }}
+                                                        <td class="text-end fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                        <td class="text-end pe-4">
+                                                            <a href="{{ route('bursary.transactions', ['campus_id' => $types['campus_id'], 'payment_type' => $pt, 'session' => $selectedSession]) }}"
+                                                                class="btn btn-sm btn-outline-{{ $accent }}">
+                                                                <i class="ti ti-eye"></i> View
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -253,7 +266,8 @@
                                                 <tr>
                                                     <th class="ps-4 py-3">Payment Type</th>
                                                     <th class="text-center py-3">Transactions</th>
-                                                    <th class="text-end pe-4 py-3">Amount (₦)</th>
+                                                    <th class="text-end py-3">Amount (₦)</th>
+                                                    <th class="text-end pe-4 py-3">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -266,7 +280,13 @@
                                                             </span>
                                                         </td>
                                                         <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
-                                                        <td class="text-end pe-4 fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                        <td class="text-end fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                        <td class="text-end pe-4">
+                                                            <a href="{{ route('bursary.transactions', ['campus_id' => 'unassigned', 'payment_type' => $pt, 'session' => $selectedSession]) }}"
+                                                                class="btn btn-sm btn-outline-secondary">
+                                                                <i class="ti ti-eye"></i> View
+                                                            </a>
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
@@ -314,7 +334,8 @@
                                                 <tr>
                                                     <th class="ps-4 py-3">Payment Type</th>
                                                     <th class="text-center py-3">Transactions</th>
-                                                    <th class="text-end pe-4 py-3">Amount (₦)</th>
+                                                    <th class="text-end py-3">Amount (₦)</th>
+                                                    <th class="text-end pe-4 py-3">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -327,7 +348,13 @@
                                                             </span>
                                                         </td>
                                                         <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
-                                                        <td class="text-end pe-4 fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                        <td class="text-end fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                        <td class="text-end pe-4">
+                                                            <a href="{{ route('bursary.transactions', ['payment_type' => $pt, 'session' => $selectedSession]) }}"
+                                                                class="btn btn-sm btn-outline-warning">
+                                                                <i class="ti ti-eye"></i> View
+                                                            </a>
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
