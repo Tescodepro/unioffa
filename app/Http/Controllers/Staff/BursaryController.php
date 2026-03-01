@@ -351,18 +351,21 @@ class BursaryController extends Controller
 
         $data = $faculties->map(function ($faculty) {
             $transactions = collect();
+            $expected = 0;
 
             foreach ($faculty->departments as $department) {
                 foreach ($department->students as $student) {
                     if ($student->user && $student->user->transactions) {
                         $transactions = $transactions->merge($student->user->transactions);
                     }
+
+                    // Calculate expected fees specifically for this student
+                    $expected += PaymentSetting::getFeesForStudent($student)->sum('amount');
                 }
             }
 
             $totalReceived = $transactions->where('payment_status', 1)->sum('amount');
             $totalTransactions = $transactions->count();
-            $expected = PaymentSetting::where('faculty_id', $faculty->id)->sum('amount');
 
             return [
                 'faculty' => $faculty->faculty_code ?? $faculty->name,
@@ -382,16 +385,19 @@ class BursaryController extends Controller
 
         $data = $departments->map(function ($dept) {
             $transactions = collect();
+            $expected = 0;
 
             foreach ($dept->students as $student) {
                 if ($student->user && $student->user->transactions) {
                     $transactions = $transactions->merge($student->user->transactions);
                 }
+
+                // Calculate expected fees specifically for this student
+                $expected += PaymentSetting::getFeesForStudent($student)->sum('amount');
             }
 
             $totalReceived = $transactions->where('payment_status', 1)->sum('amount');
             $totalTransactions = $transactions->count();
-            $expected = PaymentSetting::where('department_id', $dept->id)->sum('amount');
 
             return [
                 'faculty' => $dept->faculty?->faculty_code ?? 'N/A',
@@ -434,14 +440,18 @@ class BursaryController extends Controller
                 }
                 $processedLevels[] = $level;
 
-                $expected = PaymentSetting::whereJsonContains('level', $level)->sum('amount');
+                $studentsInLevel = \App\Models\Student::with('user.transactions')->where('level', $level)->get();
 
-                // Get received amount by joining transactions with users and students
-                $received = Transaction::join('users', 'transactions.user_id', '=', 'users.id')
-                    ->join('students', 'students.user_id', '=', 'users.id')
-                    ->where('students.level', $level)
-                    ->where('transactions.payment_status', 1)
-                    ->sum('transactions.amount');
+                $expected = 0;
+                $received = 0;
+
+                foreach ($studentsInLevel as $student) {
+                    $expected += PaymentSetting::getFeesForStudent($student)->sum('amount');
+
+                    if ($student->user && $student->user->transactions) {
+                        $received += $student->user->transactions->where('payment_status', 1)->sum('amount');
+                    }
+                }
 
                 $data[] = [
                     'level' => $level,
@@ -458,22 +468,29 @@ class BursaryController extends Controller
     //  REPORT BY STUDENT
     public function reportByStudent()
     {
-        $transactions = Transaction::with(['user.student.department.faculty'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $students = \App\Models\Student::with(['user.transactions', 'department.faculty'])->get();
 
-        $data = $transactions->map(function ($txn) {
+        $data = $students->map(function ($student) {
+            $expected = PaymentSetting::getFeesForStudent($student)->sum('amount');
+
+            $received = 0;
+            if ($student->user && $student->user->transactions) {
+                $received = $student->user->transactions->where('payment_status', 1)->sum('amount');
+            }
+
             return [
-                'student_name' => $txn->user?->full_name ?? 'N/A',
-                'matric_number' => $txn->user?->student?->matric_number ?? 'N/A',
-                'faculty' => $txn->user?->student?->department?->faculty?->faculty_code ?? 'N/A',
-                'department' => $txn->user?->student?->department?->department_code ?? 'N/A',
-                'amount' => $txn->amount,
-                'status' => ucfirst($txn->status ?? 'unknown'),
-                'reference' => $txn->refernce_number,
-                'date' => $txn->created_at?->format('Y-m-d') ?? 'N/A',
+                'student_name' => $student->user?->full_name ?? 'N/A',
+                'matric_number' => $student->matric_no ?? 'N/A',
+                'faculty' => $student->department?->faculty?->faculty_code ?? 'N/A',
+                'department' => $student->department?->department_code ?? 'N/A',
+                'expected' => $expected,
+                'received' => $received,
+                'outstanding' => $expected - $received,
             ];
-        });
+        })->filter(function ($item) {
+            // Optional: only show students who actually have fees expected or paid
+            return $item['expected'] > 0 || $item['received'] > 0;
+        })->values();
 
         return view('staff.bursary.reports.by_student', compact('data'));
     }

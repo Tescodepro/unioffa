@@ -58,11 +58,81 @@ class PaymentSetting extends Model
             ->values();
 
         // Define the defaults you always want available
-        $defaultTypes = collect(['acceptance', 'application']);
+        $defaultTypes = ['acceptance', 'tuition', 'medical'];
 
-        // Merge and remove duplicates
-        return $types->merge($defaultTypes)->unique()->values();
+        // Merge defaults and fetch types, remove duplicates, and resort
+        return collect($defaultTypes)->merge($types)->unique()->sort()->values();
     }
+
+    /**
+     * Get all payment settings applicable to a specific student for the current active session/semester.
+     * This replicates the exact logic used in the Student Dashboard to calculate fees.
+     */
+    public static function getFeesForStudent($student, $currentSession = null, $currentSemester = null)
+    {
+        $currentSession = $currentSession ?? activeSession()->name ?? null;
+        $currentSemester = $currentSemester ?? activeSemester()->name ?? null;
+
+        if (!$currentSession) {
+            return collect(); // Empty collection if no active session
+        }
+
+        // Determine Effective Level for Payment
+        // Rule: If student is admitted in current session AND level is 200 or 300 (DE/Transfer), pay 100 level fees.
+        $effectiveLevel = (int) $student->level;
+        if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
+            $effectiveLevel = 100;
+        }
+
+        return self::query()
+            ->where('session', $currentSession) // session must always match
+            ->when($student->programme, function ($q) use ($student) {
+                $q->where(function ($sub) use ($student) {
+                    $sub->whereNull('student_type')
+                        ->orWhereJsonContains('student_type', $student->programme);
+                });
+            }, function ($q) {
+                $q->whereNull('student_type');
+            })
+            ->when($effectiveLevel, function ($q) use ($effectiveLevel) {
+                $q->where(function ($sub) use ($effectiveLevel) {
+                    $sub->whereNull('level')
+                        ->orWhereJsonContains('level', $effectiveLevel);
+                });
+            }, function ($q) {
+                $q->whereNull('level');
+            })
+            ->when($student->department?->faculty_id, function ($q) use ($student) {
+                $q->where(function ($sub) use ($student) {
+                    $sub->whereNull('faculty_id')
+                        ->orWhere('faculty_id', $student->department->faculty_id);
+                });
+            })
+            ->when($student->department_id, function ($q) use ($student) {
+                $q->where(function ($sub) use ($student) {
+                    $sub->whereNull('department_id')
+                        ->orWhere('department_id', $student->department_id);
+                });
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('sex')
+                    ->orWhere('sex', $student->sex);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('matric_number')
+                    ->orWhere('matric_number', $student->matric_no);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('entry_mode')
+                    ->orWhereJsonContains('entry_mode', $student->entry_mode);
+            })
+            ->where(function ($q) use ($currentSemester) {
+                $q->whereNull('semester')
+                    ->orWhere('semester', $currentSemester);
+            })
+            ->get();
+    }
+
 
 
 
