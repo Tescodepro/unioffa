@@ -420,13 +420,15 @@ class BursaryController extends Controller
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
         $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
+        $excludedTypes = ['accommodation', 'application', 'acceptance', 'maintenance', 'Accommodation', 'Application', 'Acceptance', 'Maintenance'];
 
         $faculties = Faculty::with([
             'departments.students.user.campus',
-            'departments.students.user.transactions' => function ($query) use ($selectedSession) {
+            'departments.students.user.transactions' => function ($query) use ($selectedSession, $excludedTypes) {
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
                 }
+                $query->whereNotIn('payment_type', $excludedTypes);
             }
         ])->get();
 
@@ -459,7 +461,9 @@ class BursaryController extends Controller
                     $groupedData[$center][$facultyName]['total_students']++;
 
                     // Expected
-                    $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                    $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)
+                        ->whereNotIn('payment_type', $excludedTypes)
+                        ->sum('amount');
                     $groupedData[$center][$facultyName]['expected'] += $expectedForStudent;
 
                     // Received & Transactions
@@ -493,14 +497,16 @@ class BursaryController extends Controller
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
         $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
+        $excludedTypes = ['accommodation', 'application', 'acceptance', 'maintenance', 'Accommodation', 'Application', 'Acceptance', 'Maintenance'];
 
         $departments = Department::with([
             'faculty',
             'students.user.campus',
-            'students.user.transactions' => function ($query) use ($selectedSession) {
+            'students.user.transactions' => function ($query) use ($selectedSession, $excludedTypes) {
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
                 }
+                $query->whereNotIn('payment_type', $excludedTypes);
             }
         ])->get();
 
@@ -534,7 +540,9 @@ class BursaryController extends Controller
                 $groupedData[$center][$departmentName]['total_students']++;
 
                 // Expected
-                $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)
+                    ->whereNotIn('payment_type', $excludedTypes)
+                    ->sum('amount');
                 $groupedData[$center][$departmentName]['expected'] += $expectedForStudent;
 
                 // Received & Transactions
@@ -568,6 +576,7 @@ class BursaryController extends Controller
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
         $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
+        $excludedTypes = ['accommodation', 'application', 'acceptance', 'maintenance', 'Accommodation', 'Application', 'Acceptance', 'Maintenance'];
 
         $levels = PaymentSetting::select('level')->distinct()->pluck('level');
         $groupedData = [];
@@ -595,10 +604,11 @@ class BursaryController extends Controller
 
                 $studentsInLevel = \App\Models\Student::with([
                     'user.campus',
-                    'user.transactions' => function ($query) use ($selectedSession) {
+                    'user.transactions' => function ($query) use ($selectedSession, $excludedTypes) {
                         if ($selectedSession) {
                             $query->where('session', $selectedSession);
                         }
+                        $query->whereNotIn('payment_type', $excludedTypes);
                     }
                 ])->where('level', $level)->get();
 
@@ -624,7 +634,9 @@ class BursaryController extends Controller
                     $groupedData[$center][$level]['total_students']++;
 
                     // Expected
-                    $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+                    $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)
+                        ->whereNotIn('payment_type', $excludedTypes)
+                        ->sum('amount');
                     $groupedData[$center][$level]['expected'] += $expectedForStudent;
 
                     // Received
@@ -657,19 +669,23 @@ class BursaryController extends Controller
     {
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
         $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
+        $excludedTypes = ['accommodation', 'application', 'acceptance', 'maintenance', 'Accommodation', 'Application', 'Acceptance', 'Maintenance'];
 
         $students = \App\Models\Student::with([
-            'user.transactions' => function ($query) use ($selectedSession) {
+            'user.transactions' => function ($query) use ($selectedSession, $excludedTypes) {
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
                 }
+                $query->whereNotIn('payment_type', $excludedTypes);
             },
             'user.campus',
             'department.faculty'
         ])->get();
 
-        $data = $students->map(function ($student) use ($selectedSession) {
-            $expected = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
+        $data = $students->map(function ($student) use ($selectedSession, $excludedTypes) {
+            $expected = PaymentSetting::getFeesForStudent($student, $selectedSession)
+                ->whereNotIn('payment_type', $excludedTypes)
+                ->sum('amount');
 
             $received = 0;
             if ($student->user && $student->user->transactions) {
