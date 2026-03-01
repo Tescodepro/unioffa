@@ -115,7 +115,7 @@
                                         <th>Method</th>
                                         <th>Payment Status</th>
                                         <th class="text-end">Amount (₦)</th>
-                                        <th class="text-end">Action</th>
+                                        <th class="text-end">Action</th> 
                                     </tr>
                                 </thead>
                                 <tbody>
