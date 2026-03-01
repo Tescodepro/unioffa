@@ -2,25 +2,31 @@
 <table width="100%" border="1" cellspacing="0" cellpadding="5">
     <thead style="background:#f2f2f2;">
         <tr>
-            <th>Student</th>
+            <th>Student Name</th>
             <th>Matric No</th>
             <th>Level</th>
-            <th>Payment Type</th>
-            <th>Amount (₦)</th>
-            <th>Status</th>
-            <th>Date</th>
+            <th>Entry Mode</th>
+            <th>Center</th>
+            <th>Faculty</th>
+            <th>Department</th>
+            <th>Expected (₦)</th>
+            <th>Received (₦)</th>
+            <th>Outstanding (₦)</th>
         </tr>
     </thead>
     <tbody>
-        @foreach($transactions as $t)
+        @foreach($data as $row)
             <tr>
-                <td>{{ $t->student->full_name ?? 'Unknown' }}</td>
-                <td>{{ $t->student->matric_number ?? 'N/A' }}</td>
-                <td>{{ $t->student->level ?? 'N/A' }}</td>
-                <td>{{ ucfirst($t->payment_type) }}</td>
-                <td>{{ number_format($t->amount, 2) }}</td>
-                <td>{{ ucfirst($t->status) }}</td>
-                <td>{{ $t->created_at->format('d M Y, h:i A') }}</td>
+                <td>{{ $row['student_name'] }}</td>
+                <td>{{ $row['matric_number'] }}</td>
+                <td>{{ $row['level'] }}</td>
+                <td>{{ $row['entry_mode'] }}</td>
+                <td>{{ $row['center'] }}</td>
+                <td>{{ $row['faculty'] }}</td>
+                <td>{{ $row['department'] }}</td>
+                <td>{{ number_format($row['expected'], 2) }}</td>
+                <td>{{ number_format($row['received'], 2) }}</td>
+                <td>{{ number_format($row['outstanding'], 2) }}</td>
             </tr>
         @endforeach
     </tbody>

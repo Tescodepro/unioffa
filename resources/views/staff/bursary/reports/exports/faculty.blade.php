@@ -9,16 +9,12 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($faculties as $faculty)
-            @php
-                $expected = $faculty->departments->flatMap->paymentSettings->sum('amount');
-                $received = $faculty->departments->flatMap->transactions->where('status', 'success')->sum('amount');
-            @endphp
+        @foreach($data as $row)
             <tr>
-                <td>{{ $faculty->faculty_code }}</td>
-                <td>{{ number_format($expected, 2) }}</td>
-                <td>{{ number_format($received, 2) }}</td>
-                <td>{{ number_format($expected - $received, 2) }}</td>
+                <td>{{ $row['faculty'] }}</td>
+                <td>{{ number_format($row['expected'], 2) }}</td>
+                <td>{{ number_format($row['received'], 2) }}</td>
+                <td>{{ number_format($row['outstanding'], 2) }}</td>
             </tr>
         @endforeach
     </tbody>

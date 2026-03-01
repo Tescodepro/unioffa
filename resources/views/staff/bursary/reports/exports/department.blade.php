@@ -10,18 +10,13 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($departments as $dept)
-            @php
-                $expected = $dept->paymentSettings->sum('amount');
-                $received = $dept->transactions->where('status', 'success')->sum('amount');
-                $outstanding = $expected - $received;
-            @endphp
+        @foreach($data as $row)
             <tr>
-                <td>{{ $dept->department_code }}</td>
-                <td>{{ $dept->faculty->faculty_code ?? 'N/A' }}</td>
-                <td>{{ number_format($expected, 2) }}</td>
-                <td>{{ number_format($received, 2) }}</td>
-                <td>{{ number_format($outstanding, 2) }}</td>
+                <td>{{ $row['department'] }}</td>
+                <td>{{ $row['faculty'] ?? 'N/A' }}</td>
+                <td>{{ number_format($row['expected'], 2) }}</td>
+                <td>{{ number_format($row['received'], 2) }}</td>
+                <td>{{ number_format($row['outstanding'], 2) }}</td>
             </tr>
         @endforeach
     </tbody>

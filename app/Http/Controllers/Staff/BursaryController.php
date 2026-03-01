@@ -13,16 +13,22 @@ use App\Exports\{TransactionsExport, GenericExport};
 
 class BursaryController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $title = 'Bursary Dashboard';
 
+        // Fetch all sessions for the filter dropdown
+        $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
+
+        // Determine the selected session (default to the current active session)
+        $selectedSession = $request->query('session', activeSession()->name ?? null);
+
         // Basic payment stats
         $stats = [
-            'total_collected' => Transaction::where('payment_status', 1)->sum('amount'),
-            'pending_payments' => Transaction::where('payment_status', 0)->count(),
-            'failed_payments' => Transaction::where('payment_status', 2)->count(),
-            'total_transactions' => Transaction::where('payment_status', 1)->count(),
+            'total_collected' => Transaction::where('payment_status', 1)->where('session', $selectedSession)->sum('amount'),
+            'pending_payments' => Transaction::where('payment_status', 0)->where('session', $selectedSession)->count(),
+            'failed_payments' => Transaction::where('payment_status', 2)->where('session', $selectedSession)->count(),
+            'total_transactions' => Transaction::where('payment_status', 1)->where('session', $selectedSession)->count(),
         ];
 
         // Group transactions by payment_type
@@ -32,6 +38,7 @@ class BursaryController extends Controller
             DB::raw('SUM(amount) as total_amount')
         )
             ->where('payment_status', '1')
+            ->where('session', $selectedSession)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
@@ -53,6 +60,7 @@ class BursaryController extends Controller
             ->join('users', 'transactions.user_id', '=', 'users.id')
             ->join('campuses', 'users.campus_id', '=', 'campuses.id')
             ->where('transactions.payment_status', 1)
+            ->where('transactions.session', $selectedSession)
             ->where(function ($q) {
                 $q->where('transactions.payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
@@ -91,6 +99,7 @@ class BursaryController extends Controller
             ->join('users', 'transactions.user_id', '=', 'users.id')
             ->whereNull('users.campus_id')
             ->where('transactions.payment_status', 1)
+            ->where('transactions.session', $selectedSession)
             ->where(function ($q) {
                 $q->where('transactions.payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
@@ -118,6 +127,7 @@ class BursaryController extends Controller
             DB::raw('SUM(amount) as total_amount')
         )
             ->where('payment_method', 'manual')
+            ->where('session', $selectedSession)
             ->groupBy('payment_type')
             ->orderBy('payment_type')
             ->get();
@@ -131,6 +141,7 @@ class BursaryController extends Controller
         }
 
         $recentTransactions = Transaction::with('user')
+            ->where('session', $selectedSession)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhere(function ($tq) {
@@ -151,7 +162,9 @@ class BursaryController extends Controller
             'allPaymentTypes',
             'unassignedBreakdown',
             'manualBreakdown',
-            'recentTransactions'
+            'recentTransactions',
+            'sessions',
+            'selectedSession'
         ));
     }
     public function transactions(Request $request)
@@ -345,11 +358,20 @@ class BursaryController extends Controller
         return back()->with('success', 'Transaction verified successfully.');
     }
     //  REPORT BY FACULTY
-    public function reportByFaculty()
+    public function reportByFaculty(Request $request)
     {
-        $faculties = Faculty::with(['departments.students.user.transactions'])->get();
+        $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
+        $selectedSession = $request->query('session', activeSession()->name ?? null);
 
-        $data = $faculties->map(function ($faculty) {
+        $faculties = Faculty::with([
+            'departments.students.user.transactions' => function ($query) use ($selectedSession) {
+                if ($selectedSession) {
+                    $query->where('session', $selectedSession);
+                }
+            }
+        ])->get();
+
+        $data = $faculties->map(function ($faculty) use ($selectedSession) {
             $transactions = collect();
             $expected = 0;
 
@@ -359,8 +381,8 @@ class BursaryController extends Controller
                         $transactions = $transactions->merge($student->user->transactions);
                     }
 
-                    // Calculate expected fees specifically for this student
-                    $expected += PaymentSetting::getFeesForStudent($student)->sum('amount');
+                    // Calculate expected fees specifically for this student and session
+                    $expected += PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
                 }
             }
 
@@ -376,14 +398,23 @@ class BursaryController extends Controller
             ];
         });
 
-        return view('staff.bursary.reports.by_faculty', compact('data'));
+        return view('staff.bursary.reports.by_faculty', compact('data', 'sessions', 'selectedSession'));
     }
     //  REPORT BY DEPARTMENT
-    public function reportByDepartment()
+    public function reportByDepartment(Request $request)
     {
-        $departments = Department::with(['students.user.transactions'])->get();
+        $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
+        $selectedSession = $request->query('session', activeSession()->name ?? null);
 
-        $data = $departments->map(function ($dept) {
+        $departments = Department::with([
+            'students.user.transactions' => function ($query) use ($selectedSession) {
+                if ($selectedSession) {
+                    $query->where('session', $selectedSession);
+                }
+            }
+        ])->get();
+
+        $data = $departments->map(function ($dept) use ($selectedSession) {
             $transactions = collect();
             $expected = 0;
 
@@ -392,8 +423,8 @@ class BursaryController extends Controller
                     $transactions = $transactions->merge($student->user->transactions);
                 }
 
-                // Calculate expected fees specifically for this student
-                $expected += PaymentSetting::getFeesForStudent($student)->sum('amount');
+                // Calculate expected fees specifically for this student and session
+                $expected += PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
             }
 
             $totalReceived = $transactions->where('payment_status', 1)->sum('amount');
@@ -409,12 +440,15 @@ class BursaryController extends Controller
             ];
         });
 
-        return view('staff.bursary.reports.by_department', compact('data'));
+        return view('staff.bursary.reports.by_department', compact('data', 'sessions', 'selectedSession'));
     }
 
     //  REPORT BY LEVEL
-    public function reportByLevel()
+    public function reportByLevel(Request $request)
     {
+        $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
+        $selectedSession = $request->query('session', activeSession()->name ?? null);
+
         $levels = PaymentSetting::select('level')->distinct()->pluck('level');
         $data = [];
         $processedLevels = []; // Track processed levels to avoid duplicates
@@ -440,13 +474,19 @@ class BursaryController extends Controller
                 }
                 $processedLevels[] = $level;
 
-                $studentsInLevel = \App\Models\Student::with('user.transactions')->where('level', $level)->get();
+                $studentsInLevel = \App\Models\Student::with([
+                    'user.transactions' => function ($query) use ($selectedSession) {
+                        if ($selectedSession) {
+                            $query->where('session', $selectedSession);
+                        }
+                    }
+                ])->where('level', $level)->get();
 
                 $expected = 0;
                 $received = 0;
 
                 foreach ($studentsInLevel as $student) {
-                    $expected += PaymentSetting::getFeesForStudent($student)->sum('amount');
+                    $expected += PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
 
                     if ($student->user && $student->user->transactions) {
                         $received += $student->user->transactions->where('payment_status', 1)->sum('amount');
@@ -462,16 +502,27 @@ class BursaryController extends Controller
             }
         }
 
-        return view('staff.bursary.reports.by_level', compact('data'));
+        return view('staff.bursary.reports.by_level', compact('data', 'sessions', 'selectedSession'));
     }
 
     //  REPORT BY STUDENT
-    public function reportByStudent()
+    public function reportByStudent(Request $request)
     {
-        $students = \App\Models\Student::with(['user.transactions', 'department.faculty'])->get();
+        $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->pluck('name');
+        $selectedSession = $request->query('session', activeSession()->name ?? null);
 
-        $data = $students->map(function ($student) {
-            $expected = PaymentSetting::getFeesForStudent($student)->sum('amount');
+        $students = \App\Models\Student::with([
+            'user.transactions' => function ($query) use ($selectedSession) {
+                if ($selectedSession) {
+                    $query->where('session', $selectedSession);
+                }
+            },
+            'user.campus',
+            'department.faculty'
+        ])->get();
+
+        $data = $students->map(function ($student) use ($selectedSession) {
+            $expected = PaymentSetting::getFeesForStudent($student, $selectedSession)->sum('amount');
 
             $received = 0;
             if ($student->user && $student->user->transactions) {
@@ -480,7 +531,10 @@ class BursaryController extends Controller
 
             return [
                 'student_name' => $student->user?->full_name ?? 'N/A',
-                'matric_number' => $student->matric_no ?? 'N/A',
+                'matric_number' => $student->matric_number ?? $student->matric_no ?? 'N/A',
+                'level' => $student->level ?? 'N/A',
+                'entry_mode' => $student->entry_mode ?? 'N/A',
+                'center' => $student->user?->campus?->name ?? 'Main Campus',
                 'faculty' => $student->department?->faculty?->faculty_code ?? 'N/A',
                 'department' => $student->department?->department_code ?? 'N/A',
                 'expected' => $expected,
@@ -492,16 +546,34 @@ class BursaryController extends Controller
             return $item['expected'] > 0 || $item['received'] > 0;
         })->values();
 
-        return view('staff.bursary.reports.by_student', compact('data'));
+        return view('staff.bursary.reports.by_student', compact('data', 'sessions', 'selectedSession'));
     }
 
     //  EXPORT HANDLER
-    public function export($type, $format)
+    public function export(Request $request, $type, $format)
     {
         $fileName = "report_{$type}." . $format;
 
         if ($format === 'pdf') {
-            $pdf = PDF::loadView("staff.bursary.reports.exports.{$type}");
+            // First, dynamically get the data by calling the appropriate report method
+            $data = collect();
+            switch ($type) {
+                case 'faculty':
+                    $data = $this->reportByFaculty($request)->getData()['data'] ?? collect();
+                    break;
+                case 'department':
+                    $data = $this->reportByDepartment($request)->getData()['data'] ?? collect();
+                    break;
+                case 'level':
+                    $data = $this->reportByLevel($request)->getData()['data'] ?? collect();
+                    break;
+                case 'student':
+                    $data = $this->reportByStudent($request)->getData()['data'] ?? collect();
+                    break;
+            }
+
+            // Pass the generated data to the PDF view
+            $pdf = PDF::loadView("staff.bursary.reports.exports.{$type}", compact('data'));
             return $pdf->download($fileName);
         }
 

@@ -27,6 +27,19 @@
                         <h3 class="page-title mb-1">Bursary Dashboard</h3>
                         <p class="text-muted mb-0">Overview of all student payments and financial activity</p>
                     </div>
+                    <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
+                        <form method="GET" action="{{ route('burser.dashboard') }}" class="d-flex align-items-center">
+                            <label for="session" class="me-2 fw-medium text-muted mb-0">Session:</label>
+                            <select name="session" id="session" class="form-select form-select-sm w-auto"
+                                onchange="this.form.submit()">
+                                @foreach($sessions as $session)
+                                    <option value="{{ $session }}" {{ $selectedSession === $session ? 'selected' : '' }}>
+                                        {{ $session }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
                 </div>
                 <!-- /Page Header -->
 
