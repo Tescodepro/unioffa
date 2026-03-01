@@ -41,7 +41,7 @@ class AuthController extends Controller
             return back()->with('error', 'The provided credentials do not match our records.');
         }
 
-        // Retrieve authenticated user
+        // Retrieve authenticated user 
         $user = Auth::user();
 
         // Ensure student relationship exists
