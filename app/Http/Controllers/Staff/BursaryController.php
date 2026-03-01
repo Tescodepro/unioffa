@@ -182,9 +182,7 @@ class BursaryController extends Controller
                     $q->orderBy('created_at', 'desc');
                 },
                 'user.campus',
-                'department',
-                'faculty',
-                'programmeType'
+                'department.faculty'
             ])
                 ->where('matric_no', $matricQuery)
                 ->first();
@@ -197,6 +195,27 @@ class BursaryController extends Controller
         }
 
         return view('staff.bursary.student_history', compact('title', 'student', 'transactions', 'matricQuery'));
+    }
+
+    public function downloadReceipt(Request $request, $reference)
+    {
+        $transaction = Transaction::with('user')
+            ->where('refernce_number', $reference)
+            ->first();
+
+        if (!$transaction || $transaction->payment_status != 1) {
+            return back()->with('error', 'Transaction not found or not successful.');
+        }
+
+        $data = [
+            'user' => $transaction->user,
+            'transaction' => $transaction,
+            'date' => now()->format('F d, Y'),
+        ];
+
+        $pdf = Pdf::loadView('general-payment-receipt', $data)->setPaper('A4', 'portrait');
+
+        return $pdf->download('Payment_Receipt_' . ($transaction->refernce_number ?? $transaction->reference) . '.pdf');
     }
 
     public function transactions(Request $request)

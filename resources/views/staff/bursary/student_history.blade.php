@@ -68,14 +68,14 @@
                                 </div>
                                 <div class="col-md-3 col-sm-6 mb-3">
                                     <p class="text-muted mb-1 text-uppercase small">Faculty / Department</p>
-                                    <h6 class="mb-0 fw-bold">{{ $student->faculty->faculty_name ?? 'N/A' }} <br><span
-                                            class="text-muted fw-normal">{{ $student->department->department_name ?? 'N/A' }}</span>
+                                    <h6 class="mb-0 fw-bold">{{ $student->department?->faculty?->faculty_name ?? 'N/A' }} <br><span
+                                            class="text-muted fw-normal">{{ $student->department?->department_name ?? 'N/A' }}</span>
                                     </h6>
                                 </div>
                                 <div class="col-md-3 col-sm-6 mb-3">
                                     <p class="text-muted mb-1 text-uppercase small">Level / Programme</p>
                                     <h6 class="mb-0 fw-bold">{{ $student->level ?? 'N/A' }}<br><span
-                                            class="text-muted fw-normal">{{ $student->programmeType->name ?? $student->programme }}</span>
+                                            class="text-muted fw-normal">{{ $student->programme ?? 'N/A' }}</span>
                                     </h6>
                                 </div>
                                 <div class="col-md-3 col-sm-6 mb-3">
@@ -85,7 +85,7 @@
                                 <div class="col-md-3 col-sm-6 mb-3">
                                     <p class="text-muted mb-1 text-uppercase small">Admission Status</p>
                                     <h6 class="mb-0 fw-bold">
-                                        @if($student->user->status == 1)
+                                        @if($student->status == 1)
                                             <span class="badge bg-success">Active</span>
                                         @else
                                             <span class="badge bg-danger">Inactive</span>
@@ -101,7 +101,7 @@
                         <div
                             class="card-header bg-white border-0 pb-0 mb-3 px-0 d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0"><i class="ti ti-receipt text-primary me-2"></i> Payment History</h5>
-                            <span class="badge bg-primary rounded-pill fs-6">{{ $transactions->count() }} Transactions
+                            <span class="badge bg-primary">{{ $transactions->count() }} Transactions
                                 Found</span>
                         </div>
                         <div class="table-responsive">
@@ -159,7 +159,7 @@
                                             </td>
                                             <td class="text-end">
                                                 @if($txn->payment_status == 1)
-                                                    <a href="{{ route('student.receipt', $txn->id) }}" target="_blank"
+                                                    <a href="{{ route('bursary.student.receipt', $txn->reference ?? $txn->refernce_number) }}" target="_blank"
                                                         class="btn btn-sm btn-outline-primary">
                                                         <i class="ti ti-printer"></i> Receipt
                                                     </a>

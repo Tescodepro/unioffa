@@ -31,6 +31,7 @@ class RoutePermissionSeeder extends Seeder
             // ── Financial / Bursary ──────────────────────────────────────────
             'burser.dashboard' => 'view_payment_summary',
             'bursary.student.history' => 'view_transactions',
+            'bursary.student.receipt' => 'view_transactions',
             'bursary.transactions' => 'view_transactions',
             'bursary.transactions.export' => 'view_transactions',
             'bursary.transactions.verify' => 'view_transactions',
