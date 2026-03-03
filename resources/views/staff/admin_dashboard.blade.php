@@ -233,7 +233,7 @@
                                                                 Submitted</span>
 
                                                             {{-- If Registrar or Vice-Chancellor --}}
-                                                        @elseif (auth()->user()->hasUserType(['registrar', 'vice-chancellor']))
+                                                        @elseif (auth()->user()->hasUserType(['registrar', 'vice-chancellor','programme-director']))
                                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                                 data-bs-target="#admitModal{{ $student->id }}">
                                                                 Admit

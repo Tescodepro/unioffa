@@ -1,0 +1,50 @@
+{
+    "project_name": "University Management System",
+    "goal": "Rebrand and reconfigure the application for a new university.",
+    "required_changes": {
+        "1. Environment Configuration (.env)": [
+            "Update APP_NAME to the new application name.",
+            "Update APP_URL to the new domain.",
+            "Update DB_DATABASE, DB_USERNAME, DB_PASSWORD with new database credentials.",
+            "Update MONNIFY_API_KEY, PAYSTACK_PUBLIC_KEY, and other payment gateway keys for the new institution.",
+            "Update MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD, and MAIL_FROM_ADDRESS for system emails."
+        ],
+        "2. General System Settings (Database: SystemSettingSeeder.php)": [
+            "Update 'school_name', 'school_motto', 'school_address', 'contact_email', and 'contact_phone'.",
+            "Update 'registrar_name' and 'current_session' (e.g., '2024/2025' to the current academic session).",
+            "Ensure asset paths ('logo_path', 'letterhead_path', 'registrar_signature_path') point to the new university's files."
+        ],
+        "3. Academic Structure Data (Database Seeders)": [
+            "FacultyDepartmentSeeder.php: Define new faculties and their corresponding departments.",
+            "CourseSeeder.php: Include the new university's courses/programs.",
+            "CampusSeeder.php: Update the list of campuses.",
+            "SemesterSeeder.php & SessionSeeder.php: Set the active semesters and educational sessions.",
+            "HostelSeeder.php: Update with new accommodation facilities (if applicable)."
+        ],
+        "4. Financial & Payment Settings (Database Seeders)": [
+            "ApplicationSettingsSeeder.php: Update admission application fee, session year, and general application toggle.",
+            "PaymentSettingsSeeder.php: Update tuition fees, acceptance fees, and other charges by course or department.",
+            "PaymentSplitsSeeder.php / OgunStatePaymentSplitsSeeder.php: Update or remove revenue splitting configurations if they do not apply."
+        ],
+        "5. Media & Assets (public/ directory)": [
+            "Replace the main logo image (e.g., public/assets/images/logo.png).",
+            "Replace the official letterhead image (public/portal_assets/img/users/letter_head.png).",
+            "Replace the registrar's signature image (public/portal_assets/img/users/signature.png).",
+            "Update the site favicon (public/favicon.ico)."
+        ],
+        "6. Hardcoded Text in Views": [
+            "Search and replace references to 'UniOffa' and 'Offa' in specific blade templates:",
+            "- resources/views/website/partials/menu.blade.php",
+            "- resources/views/website/partials/footer.blade.php",
+            "- resources/views/applications/partials/footer.blade.php",
+            "- resources/views/staff/bursary/reports/transactions-pdf.blade.php"
+        ],
+        "7. Staff & Default Accounts": [
+            "UserSeeder.php & StaffSeeder.php: Update default admin and staff credentials, names, and email addresses (e.g., changing 'admin@unioffa.edu.ng' to the new admin email)."
+        ]
+    },
+    "deployment_steps": [
+        "run: 'php artisan migrate:fresh --seed' to apply all the updated seeders and reset the database.",
+        "run: 'php artisan optimize:clear' to clear config and view caches."
+    ]
+}
