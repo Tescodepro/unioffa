@@ -31,6 +31,7 @@
                                 <tr>
                                     <th>Reg. No.</th>
                                     <th>Applicant Name</th>
+                                    <th>Campus</th>
                                     <th>Session</th>
                                     <th>Application Type</th>
                                     <th>Missing Modules</th>
@@ -42,6 +43,7 @@
                                     <tr>
                                         <td>{{ $app->user->registration_no ?? $app->user->username }}</td>
                                         <td>{{ $app->user->full_name }}</td>
+                                        <td>{{ $app->user->campus->name ?? '—' }}</td>
                                         <td>{{ $app->academic_session }}</td>
                                         <td>{{ $app->applicationSetting->name ?? '—' }}</td>
                                         <td class="text-danger fw-semibold">{{ $app->missing_modules }}</td>
@@ -58,7 +60,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">No incomplete submitted applications
+                                        <td colspan="7" class="text-center text-muted py-4">No incomplete submitted applications
                                             found</td>
                                     </tr>
                                 @endforelse

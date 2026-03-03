@@ -22,6 +22,8 @@ class IctApplicationController extends Controller
             'documents'
         ])
             ->whereNotNull('submitted_by')
+            ->where('academic_session', activeSession()->name)
+            ->where('is_approved', 0)
             ->get();
 
         $incompleteApplications = collect();
@@ -68,14 +70,8 @@ class IctApplicationController extends Controller
     public function unsubmitApplication(Request $request, $id)
     {
         $application = UserApplications::findOrFail($id);
-
         $application->submitted_by = null;
         $application->save();
-
-        // Also remove from AdmissionList if they shouldn't be considered admitted/pending
-        AdmissionList::where('user_id', $application->user_id)
-            ->where('session_admitted', $application->academic_session)
-            ->delete();
 
         return redirect()->back()->with('success', 'Application has been successfully unsubmitted. The applicant can now continue filling their form.');
     }
