@@ -81,7 +81,7 @@ class PaymentController extends Controller
             }
 
             $split_code = $this->splitGet($request->fee_type, $programme, $campusDetail->slug);
-            if ($request->fee_type === 'acceptance' && $user->referee_code) {
+            if ($campusDetail->slug == 'main-campus' && $request->fee_type === 'acceptance' && $user->referee_code) {
                 $agentSplit = AgentApplication::where('unique_code', $user->referee_code)->where('status', 'approved')->value('split_code');
                 $split_code = $agentSplit ?? $split_code;
             }
@@ -106,6 +106,14 @@ class PaymentController extends Controller
                 'user_id' => $user->id,
                 'fee_type' => $request->fee_type,
                 'transaction_id' => $transaction->id,
+                'campus_id' => $campusDetail->id,
+                'campus_slug' => $campusDetail->slug,
+                'programme' => $programme,
+                'user_type' => $user->user_type,
+                'referee_code' => $user->referee_code,
+                'date_paid' => Carbon::now()->format('Y-m-d H:i:s'),
+                'session' => activeSession()->name ?? '---',
+                'semester' => activeSemester()->name ?? null,
             ],
         ];
 
@@ -118,7 +126,6 @@ class PaymentController extends Controller
         if ($response['status'] && !empty($response['checkout_url'])) {
             return redirect()->away($response['checkout_url']);
         }
-
         return back()->with('error', $response['message'] ?? 'Unable to start payment');
     }
     /**

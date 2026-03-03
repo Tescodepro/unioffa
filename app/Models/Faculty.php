@@ -44,7 +44,7 @@ class Faculty extends Model
     // app/Models/Faculty.php
     public function students()
     {
-        return $this->hasMany(Student::class);
+        return $this->hasManyThrough(Student::class, Department::class);
     }
 
 }

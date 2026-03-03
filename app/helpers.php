@@ -3,14 +3,14 @@
 use App\Models\AcademicSemester;
 use App\Models\AcademicSession;
 
-if (! function_exists('activeSession')) {
+if (!function_exists('activeSession')) {
     function activeSession()
     {
         return AcademicSession::where('status', '1')->first();
     }
 }
 
-if (! function_exists('activeSemester')) {
+if (!function_exists('activeSemester')) {
     function activeSemester()
     {
         return AcademicSemester::where('status', '1')->first();
@@ -22,13 +22,13 @@ if (! function_exists('activeSemester')) {
  * @param string|array $routes
  * @return bool
  */
-if (! function_exists('isRouteActive')) {
+if (!function_exists('isRouteActive')) {
     function isRouteActive($routes)
     {
         if (is_string($routes)) {
             $routes = [$routes];
         }
-        
+
         return request()->routeIs(...$routes);
     }
 }
@@ -38,19 +38,19 @@ if (! function_exists('isRouteActive')) {
  * @param string|array $paths
  * @return bool
  */
-if (! function_exists('isPathActive')) {
+if (!function_exists('isPathActive')) {
     function isPathActive($paths)
     {
         if (is_string($paths)) {
             $paths = [$paths];
         }
-        
+
         foreach ($paths as $path) {
             if (request()->is($path)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 }
@@ -61,10 +61,10 @@ if (! function_exists('isPathActive')) {
  * @param string $activeClass CSS class to return if active
  * @return string
  */
-if (! function_exists('activeClass')) {
+if (!function_exists('activeClass')) {
     function activeClass($routes, $activeClass = 'active')
     {
-        return isRouteActive($routes) ? $activeClass : '';
+        return (isRouteActive($routes) || isPathActive($routes)) ? $activeClass : '';
     }
 }
 
@@ -74,7 +74,7 @@ if (! function_exists('activeClass')) {
  * @param string $openClass CSS class to return if active
  * @return string
  */
-if (! function_exists('openMenuClass')) {
+if (!function_exists('openMenuClass')) {
     function openMenuClass($paths, $openClass = 'open')
     {
         return isPathActive($paths) ? $openClass : '';

@@ -11,8 +11,8 @@
 	<title>@yield('title') | {{ config('app.name') }}</title>
 
 	<!-- Favicon -->
-	{{--
-	<link rel="shortcut icon" type="image/x-icon" href="{{ asset('portal_assets/img/favicon.png') }}"> --}}
+
+	<link rel="shortcut icon" type="image/x-icon" href="{{ asset('portal_assets/img/logo/logo.jpeg') }}">
 
 	<!-- Bootstrap CSS -->
 	<link rel="stylesheet" href="{{ asset('portal_assets/css/bootstrap.min.css')}}">
@@ -25,6 +25,9 @@
 
 	<!-- Tabler Icon CSS -->
 	<link rel="stylesheet" href="{{ asset('portal_assets/plugins/tabler-icons/tabler-icons.css')}}">
+
+	<!-- Select2 CSS -->
+	<link rel="stylesheet" href="{{ asset('portal_assets/plugins/select2/css/select2.min.css')}}">
 
 	<!-- Daterangepikcer CSS -->
 	<link rel="stylesheet" href="{{ asset('portal_assets/plugins/daterangepicker/daterangepicker.css')}}">
@@ -57,6 +60,11 @@
 	<script src="{{asset('portal_assets/plugins/chartjs/chart.min.js')}}"></script>
 	{{--
 	<script src="{{asset('portal_assets/plugins/chartjs/chart-data.js')}}"></script> --}}
+	<!-- Select2 JS -->
+	<script src="{{asset('portal_assets/plugins/select2/js/select2.min.js')}}"></script>
+	<!-- Datatables JS -->
+	<script src="{{asset('portal_assets/js/jquery.dataTables.min.js')}}"></script>
+	<script src="{{asset('portal_assets/js/dataTables.bootstrap5.min.js')}}"></script>
 	<!-- Custom JS -->
 	<script src="{{asset('portal_assets/js/script.js')}}"></script>
 

@@ -2,9 +2,10 @@
 
 @section('title', 'Courses')
 
-
-
 @section('content')
+<div id="global-loader">
+    <div class="page-loader"></div>
+</div>
     <div class="main-wrapper">
         @include('staff.layouts.header')
         @include('staff.layouts.sidebar')

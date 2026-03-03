@@ -342,6 +342,11 @@ Route::prefix('staff')->group(function () {
 
         Route::resource('news', NewsController::class)->names('ict.news');
 
+        Route::controller(\App\Http\Controllers\Staff\Ict\IctApplicationController::class)->group(function () {
+            Route::get('/applications/incomplete', 'incompleteApplications')->name('ict.applications.incomplete');
+            Route::post('/applications/unsubmit/{id}', 'unsubmitApplication')->name('ict.applications.unsubmit');
+        });
+
         Route::controller(\App\Http\Controllers\Staff\Ict\ApplicationSettingController::class)->group(function () {
             Route::get('/application-settings', 'index')->name('ict.application_settings.index');
             Route::get('/application-settings/create', 'create')->name('ict.application_settings.create');
@@ -383,6 +388,35 @@ Route::prefix('staff')->group(function () {
             Route::put('/menu-items/{menuItem}', 'update')->name('ict.menu-items.update');
             Route::post('/menu-items/{menuItem}/toggle', 'toggle')->name('ict.menu-items.toggle');
             Route::delete('/menu-items/{menuItem}', 'destroy')->name('ict.menu-items.destroy');
+        });
+
+        // Academic Setup Management
+        Route::controller(\App\Http\Controllers\Staff\Ict\FacultyController::class)->group(function () {
+            Route::get('/faculties', 'index')->name('ict.faculties.index');
+            Route::post('/faculties', 'store')->name('ict.faculties.store');
+            Route::put('/faculties/{id}', 'update')->name('ict.faculties.update');
+            Route::delete('/faculties/{id}', 'destroy')->name('ict.faculties.destroy');
+        });
+
+        Route::controller(\App\Http\Controllers\Staff\Ict\DepartmentController::class)->group(function () {
+            Route::get('/departments', 'index')->name('ict.departments.index');
+            Route::post('/departments', 'store')->name('ict.departments.store');
+            Route::put('/departments/{id}', 'update')->name('ict.departments.update');
+            Route::delete('/departments/{id}', 'destroy')->name('ict.departments.destroy');
+        });
+
+        Route::controller(\App\Http\Controllers\Staff\Ict\AcademicSessionController::class)->group(function () {
+            Route::get('/sessions', 'index')->name('ict.sessions.index');
+            Route::post('/sessions', 'store')->name('ict.sessions.store');
+            Route::put('/sessions/{id}', 'update')->name('ict.sessions.update');
+            Route::delete('/sessions/{id}', 'destroy')->name('ict.sessions.destroy');
+        });
+
+        Route::controller(\App\Http\Controllers\Staff\Ict\AcademicSemesterController::class)->group(function () {
+            Route::get('/semesters', 'index')->name('ict.semesters.index');
+            Route::post('/semesters', 'store')->name('ict.semesters.store');
+            Route::put('/semesters/{id}', 'update')->name('ict.semesters.update');
+            Route::delete('/semesters/{id}', 'destroy')->name('ict.semesters.destroy');
         });
     });
 });
