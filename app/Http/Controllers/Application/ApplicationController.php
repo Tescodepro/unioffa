@@ -845,16 +845,26 @@ class ApplicationController extends Controller
 
         // Process olevels
         foreach ($application->olevels as $olevel) {
-            $subjects = $olevel->subjects ?? [];
-            $grades = $olevel->grades ?? [];
-            $olevel->subjects = array_combine($subjects, $grades) ?: [];
+            $subjects = is_string($olevel->subjects) ? json_decode($olevel->subjects, true) : ($olevel->subjects ?? []);
+            $grades = is_string($olevel->grades) ? json_decode($olevel->grades, true) : ($olevel->grades ?? []);
+
+            if (is_array($subjects) && is_array($grades) && count($subjects) === count($grades) && count($subjects) > 0) {
+                $olevel->subjects = array_combine($subjects, $grades) ?: [];
+            } else {
+                $olevel->subjects = [];
+            }
         }
 
         // Process JAMB details
         if ($application->jambDetail) {
-            $subjects = $application->jambDetail->subjects ?? [];
-            $scores = $application->jambDetail->subject_scores ?? [];
-            $application->jambDetail->subject_scores = array_combine($subjects, $scores) ?: [];
+            $subjects = is_string($application->jambDetail->subjects) ? json_decode($application->jambDetail->subjects, true) : ($application->jambDetail->subjects ?? []);
+            $scores = is_string($application->jambDetail->subject_scores) ? json_decode($application->jambDetail->subject_scores, true) : ($application->jambDetail->subject_scores ?? []);
+
+            if (is_array($subjects) && is_array($scores) && count($subjects) === count($scores) && count($subjects) > 0) {
+                $application->jambDetail->subject_scores = array_combine($subjects, $scores) ?: [];
+            } else {
+                $application->jambDetail->subject_scores = [];
+            }
         }
 
         $modules = $application->applicationSetting->modules_enable;
