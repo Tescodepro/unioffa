@@ -105,7 +105,6 @@ class PaymentController extends Controller
                 'transaction_id' => $transaction->id,
                 'campus_id' => $campusDetail->id,
                 'campus_slug' => $campusDetail->slug,
-                'programme' => $student->programme,
                 'user_type' => $user->user_type,
                 'referee_code' => $user->referee_code,
                 'date_paid' => Carbon::now()->format('Y-m-d H:i:s'),
