@@ -52,7 +52,8 @@
                         </li>
 
                         <li class="nav-item mega-menu dropdown">
-                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">About UniOffa</a>
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">About
+                                {{ \App\Models\SystemSetting::get('school_short_name', 'UniOffa') }}</a>
                             <div class="dropdown-menu fade-down">
                                 <div class="mega-content">
                                     <div class="container-fluid">
@@ -63,7 +64,9 @@
                                                     <a href="{{route('home')}}" class="menu-about-logo"><img
                                                             src="assets/img/logo/logo.jpeg" alt=""
                                                             style="width: 80px; height: auto;"></a>
-                                                    <p> At University of Offa we are committed to shaping bright futures
+                                                    <p> At
+                                                        {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}
+                                                        we are committed to shaping bright futures
                                                         through innovative teaching, impactful research, and a nurturing
                                                         academic environment that prepares students for global
                                                         opportunities.</p>

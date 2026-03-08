@@ -40,7 +40,7 @@ class IctStudentController extends Controller
         $studentsByFaculty = Faculty::with(['departments.students'])
             ->get()
             ->map(function ($faculty) {
-                $faculty->total_students = $faculty->departments->sum(fn($dept) => $dept->students->count());
+                $faculty->total_students = $faculty->departments->map(fn($dept) => $dept->students->count())->sum();
                 return $faculty;
             });
 
@@ -119,7 +119,8 @@ class IctStudentController extends Controller
     {
         $departments = Department::with('faculty')->orderBy('department_name')->get();
         $campuses = Campus::all();
-        return view('staff.ict.students.create', compact('departments', 'campuses'));
+        $entryModes = \App\Models\EntryMode::orderBy('name')->get();
+        return view('staff.ict.students.create', compact('departments', 'campuses', 'entryModes'));
     }
     //Store single student
     /**
@@ -139,7 +140,7 @@ class IctStudentController extends Controller
             'admission_year' => 'required|string|regex:/^\d{4}\/\d{4}$/',
             'campus_id' => 'required|exists:campuses,id',
             'stream' => 'nullable|integer',
-            'entry_mode' => 'required|string|in:TOPUP,IDELUTME,IDELDE,UTME,TRANSFER,DIPLOMA,DE',
+            'entry_mode' => 'required|string|exists:entry_modes,code',
             'dob' => 'required|date|before:today',
         ]);
 
@@ -175,11 +176,8 @@ class IctStudentController extends Controller
                 'campus_id' => $request->campus_id,
             ]);
 
-            if (in_array($request->entry_mode, ['UTME', 'TRANSFER', 'DE'])) {
-                $programme = 'REGULAR';
-            } else {
-                $programme = strtoupper($request->entry_mode);
-            }
+            $entryModeRecord = \App\Models\EntryMode::where('code', $request->entry_mode)->firstOrFail();
+            $programme = $entryModeRecord->student_type;
 
 
             Student::create([
@@ -298,7 +296,8 @@ class IctStudentController extends Controller
     {
         $student = Student::with('user', 'department.faculty')->findOrFail($id);
         $departments = Department::with('faculty')->get();
-        return view('staff.ict.students.edit', compact('student', 'departments'));
+        $entryModes = \App\Models\EntryMode::orderBy('name')->get();
+        return view('staff.ict.students.edit', compact('student', 'departments', 'entryModes'));
     }
 
 
@@ -328,7 +327,7 @@ class IctStudentController extends Controller
             'programme' => 'required|string|max:255',
             'level' => 'required|integer',
             'sex' => 'required|string',
-            'entry_mode' => 'required|string|in:TOPUP,IDELUTME,IDELDE,UTME,TRANSFER,DIPLOMA,DE',
+            'entry_mode' => 'required|string|exists:entry_modes,code',
         ]);
 
         // Update user

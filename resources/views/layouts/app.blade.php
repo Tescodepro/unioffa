@@ -4,9 +4,11 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-	<meta name="description" content="University of Offa School Management System">
-	<meta name="keywords" content="University of Offa, school management, dashboard, admin">
-	<meta name="author" content="University of Offa">
+	<meta name="description"
+		content="{{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }} School Management System">
+	<meta name="keywords"
+		content="{{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}, school management, dashboard, admin">
+	<meta name="author" content="{{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}">
 	<meta name="robots" content="noindex, nofollow">
 	<title>@yield('title') | {{ config('app.name') }}</title>
 

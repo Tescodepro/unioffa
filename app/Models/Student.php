@@ -75,24 +75,19 @@ class Student extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public static function generateMatricNo(string $departmentCode, string $admissionYear, string $programme): string
+    public static function generateMatricNo(string $departmentCode, string $admissionYear, string $entryModeCode): string
     {
-        return DB::transaction(function () use ($departmentCode, $admissionYear, $programme) {
-            // Validate programme
-            $validProgrammes = ['TOPUP', 'IDELUTME', 'IDELDE', 'UTME', 'TRANSFER', 'DIPLOMA', 'DE'];
-            if (!in_array($programme, $validProgrammes)) {
-                Log::error('Invalid programme specified: ' . $programme);
+        return DB::transaction(function () use ($departmentCode, $admissionYear, $entryModeCode) {
+            $entryMode = EntryMode::where('code', $entryModeCode)->first();
+            if (!$entryMode) {
+                Log::error('Invalid entry mode specified: ' . $entryModeCode);
+                $prefix = '';
+            } else {
+                $prefix = $entryMode->matric_prefix;
             }
 
-            // Modify department code based on programme
-            $modifiedCode = match ($programme) {
-                'TOPUP' => 'T' . $departmentCode,        // e.g., CSC -> TCSC
-                'IDELUTME', 'IDELDE' => 'D' . $departmentCode, // e.g., CSC -> DCSC
-                'DIPLOMA' => 'DP' . $departmentCode,     // e.g., CSC -> DPCSC
-                'DE' => 'DE' . $departmentCode,          // e.g., CSC -> DECSC
-                'TRANSFER' => 'TR' . $departmentCode,      // e.g., CSC -> TRCSC
-                default => $departmentCode,              // UTME, Transfer: no change
-            };
+            // Modify department code based on prefix
+            $modifiedCode = $prefix . $departmentCode;
 
             // Get department and faculty
             $department = Department::where('department_code', $departmentCode)->firstOrFail();

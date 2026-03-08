@@ -113,8 +113,8 @@ class ApplicationController extends Controller
                             '- Applicant Email: ' . $user->email . '<br>' .
                             '- Date: ' . now()->format('Y-m-d H:i:s') . '<br>' .
                             '- IP Address: ' . request()->ip() . '<br><br>' .
-                            'Thank you for referring applicants to Offa University. Keep up the great work!',
-                        'footer' => 'Warm regards,<br>Offa University Team',
+                            'Thank you for referring applicants to ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . '. Keep up the great work!',
+                        'footer' => 'Warm regards,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Team',
                     ];
 
                     Mail::to($to)->send(new GeneralMail($subject, $content, false));
@@ -177,7 +177,7 @@ class ApplicationController extends Controller
 
             $content = [
                 'title' => Auth::user()->full_name . ',',
-                'body' => 'We noticed a login to your Offa University account.<br><br>
+                'body' => 'We noticed a login to your ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' account.<br><br>
 
             Details:<br>  
             - Date: ' . now()->format('Y-m-d H:i:s') . '<br>  
@@ -185,7 +185,7 @@ class ApplicationController extends Controller
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
-            Offa University Team',
+            ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Team',
             ];
 
             // Mail::to($to)->send(new GeneralMail($subject, $content, false));
@@ -706,7 +706,7 @@ class ApplicationController extends Controller
             $user->save();
 
             //  Prepare email
-            $subject = 'Password Reset Request - University of Offa';
+            $subject = 'Password Reset Request - ' . \App\Models\SystemSetting::get('school_name', 'University of Offa');
 
             $currentTime = now()->format('Y-m-d H:i:s');
             $ipAddress = $request->ip();
@@ -725,7 +725,7 @@ class ApplicationController extends Controller
                     If this was you, proceed with resetting your password.  
                     If not, please secure your account immediately.
                 ',
-                'footer' => 'Stay safe,<br>University of Offa Team',
+                'footer' => 'Stay safe,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Team',
             ];
 
             // Send email

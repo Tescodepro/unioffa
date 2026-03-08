@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>University of Offa — Transactions Report</title>
+    <title>{{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }} — Transactions Report</title>
     <style>
         body {
             font-family: "DejaVu Sans", sans-serif;

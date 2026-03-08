@@ -139,7 +139,7 @@ class GeneralController extends Controller
                     <strong>LGA:</strong> {$application->lga->name}<br><br>
                     Once approved, you’ll receive your unique referral code via email.
                 ",
-                    'footer' => 'Warm regards,<br>Offa University Admissions Team',
+                    'footer' => 'Warm regards,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Admissions Team',
                 ];
 
                 Mail::to($application->email)->send(new GeneralMail($subject, $content, false));
@@ -152,7 +152,7 @@ class GeneralController extends Controller
 
             // 6. Notify admin
             try {
-                $adminEmail = env('ADMIN_EMAIL', 'vc@unioffa.edu.ng');
+                $adminEmail = env('ADMIN_EMAIL', \App\Models\SystemSetting::get('contact_email', 'vc@unioffa.edu.ng'));
                 $adminSubject = 'New Agent Application Submitted';
                 $adminContent = [
                     'title' => 'New Agent Application Received',
@@ -166,7 +166,7 @@ class GeneralController extends Controller
                     <strong>Account Number:</strong> {$application->account_number}<br>
                     You can review and approve this application from the admin dashboard.
                 ",
-                    'footer' => '— Automated Notification from Offa University Website',
+                    'footer' => '— Automated Notification from ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Website',
                 ];
 
                 Mail::to($adminEmail)->send(new GeneralMail($adminSubject, $adminContent, false));

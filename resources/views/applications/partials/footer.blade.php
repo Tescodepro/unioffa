@@ -1,6 +1,6 @@
- <!-- footer area -->
-    <footer class="footer-area">
-        <!-- <div class="footer-shape">
+<!-- footer area -->
+<footer class="footer-area">
+    <!-- <div class="footer-shape">
             <img src="assets/img/shape/03.png" alt="">
         </div>
         <div class="footer-widget">
@@ -68,26 +68,28 @@
                 </div>
             </div>
         </div> -->
-        <div class="copyright">
-            <div class="container">
-                <div class="copyright-wrapper">
-                    <div class="row">
-                        <div class="col-md-6 align-self-center">
-                            <p class="copyright-text">
-                                &copy; Copyright <span id="date"></span> <a href="{{route('home')}}"> Unioffa </a> All Rights Reserved.
-                            </p>
-                        </div>
-                        <div class="col-md-6 align-self-center">
-                            <ul class="footer-social">
-                                <li><a href="index-2.html#"><i class="fab fa-facebook-f"></i></a></li>
-                                <li><a href="index-2.html#"><i class="fab fa-whatsapp"></i></a></li>
-                                <li><a href="index-2.html#"><i class="fab fa-linkedin-in"></i></a></li>
-                                <li><a href="index-2.html#"><i class="fab fa-youtube"></i></a></li>
-                            </ul>
-                        </div>
+    <div class="copyright">
+        <div class="container">
+            <div class="copyright-wrapper">
+                <div class="row">
+                    <div class="col-md-6 align-self-center">
+                        <p class="copyright-text">
+                            &copy; Copyright <span id="date"></span> <a href="{{route('home')}}">
+                                {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }} </a> All
+                            Rights Reserved.
+                        </p>
+                    </div>
+                    <div class="col-md-6 align-self-center">
+                        <ul class="footer-social">
+                            <li><a href="index-2.html#"><i class="fab fa-facebook-f"></i></a></li>
+                            <li><a href="index-2.html#"><i class="fab fa-whatsapp"></i></a></li>
+                            <li><a href="index-2.html#"><i class="fab fa-linkedin-in"></i></a></li>
+                            <li><a href="index-2.html#"><i class="fab fa-youtube"></i></a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
-    </footer>
-    <!-- footer area end -->
+    </div>
+</footer>
+<!-- footer area end -->

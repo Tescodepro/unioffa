@@ -106,19 +106,18 @@
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Student Type (Programme)</label>
                                     <select name="student_type[]" multiple class="form-select" style="min-height: 100px;">
-                                        <option value="REGULAR">REGULAR</option>
-                                        <option value="TOPUP">TOPUP</option>
-                                        <option value="IDELDE">IDELDE</option>
-                                        <option value="IDELUTME">IDELUTME</option>
+                                        @foreach ($entryModes->pluck('student_type')->unique() as $prog)
+                                            <option value="{{ $prog }}">{{ $prog }}</option>
+                                        @endforeach
                                     </select>
                                     <small class="text-muted">Ctrl/Cmd + Click to select multiple.</small>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Entry Mode</label>
                                     <select name="entry_mode[]" multiple class="form-select" style="min-height: 100px;">
-                                        <option value="UTME">UTME</option>
-                                        <option value="DE">DE (Direct Entry)</option>
-                                        <option value="TRANSFER">TRANSFER</option>
+                                        @foreach ($entryModes as $mode)
+                                            <option value="{{ $mode->code }}">{{ $mode->name }} ({{ $mode->code }})</option>
+                                        @endforeach
                                     </select>
                                     <small class="text-muted">Ctrl/Cmd + Click to select multiple.</small>
                                 </div>

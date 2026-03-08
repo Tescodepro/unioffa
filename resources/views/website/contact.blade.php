@@ -14,9 +14,10 @@
         <div class="site-breadcrumb" style="background: url(assets/img/cta/01.jpg)">
             <div class="container">
                 <h2 class="breadcrumb-title">Contact Us</h2>
-                <ul class="breadcrumb-menu"> 
+                <ul class="breadcrumb-menu">
                     <li><a href="{{ route('home') }}">Home</a></li>
-                    <li class="active">Contact University of Offa</li>
+                    <li class="active">Contact {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}
+                    </li>
                 </ul>
             </div>
         </div>
@@ -35,7 +36,9 @@
                                 </div>
                                 <div class="contact-info-content">
                                     <h5>Address</h5>
-                                    <p><i class="far fa-location-dot"></i> Offa Kwara State, Nigeria.</p>
+                                    <p><i class="far fa-location-dot"></i>
+                                        {{ \App\Models\SystemSetting::get('school_address', 'Offa Kwara State, Nigeria.') }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -46,8 +49,11 @@
                                 </div>
                                 <div class="contact-info-content">
                                     <h5>Call Us</h5>
-                                    <p><a href="tel:+2348066814330"><i class="far fa-phone-volume"></i> +234 806 681
-                                            4330</a> <a href="tel:+2348066552935">| +234 806 655 2935</a></p>
+                                    <p><a
+                                            href="tel:{{ \App\Models\SystemSetting::get('contact_phone', '+234 806 681 4330') }}"><i
+                                                class="far fa-phone-volume"></i>
+                                            {{ \App\Models\SystemSetting::get('contact_phone', '+234 806 681 4330') }}</a>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -76,7 +82,7 @@
                                 <div class="contact-form-header">
                                     <h2>Get In Touch</h2>
                                     <p>
-                                        The University of Offa is committed to providing quality education that inspires innovation,
+                                        The {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }} is committed to providing quality education that inspires innovation,
                                         nurtures character, and prepares students for leadership roles in society.
                                         Our programs are designed to meet global standards while addressing local and national needs.
                                     </p>

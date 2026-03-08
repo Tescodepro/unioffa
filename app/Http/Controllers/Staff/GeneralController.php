@@ -404,12 +404,12 @@ class GeneralController extends Controller
             $emailBody .= "Your unique agent referral code is: <h2 style='color:green;'>{$agent->unique_code}</h2><br>Use this code for your candidates.<br><br>";
         }
 
-        $emailBody .= 'Thank you for your interest in partnering with the University of Offa.';
+        $emailBody .= 'Thank you for your interest in partnering with the ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . '.';
 
         $content = [
             'title' => 'Hello ' . $agent->first_name . ',',
             'body' => $emailBody,
-            'footer' => 'Warm regards,<br>University of Offa Admissions Team',
+            'footer' => 'Warm regards,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Admissions Team',
         ];
 
         try {

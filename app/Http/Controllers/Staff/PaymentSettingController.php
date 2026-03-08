@@ -64,8 +64,9 @@ class PaymentSettingController extends Controller
     {
         $faculties = Faculty::all();
         $departments = Department::all();
+        $entryModes = \App\Models\EntryMode::orderBy('name')->get();
 
-        return view('staff.bursary.payment_settings.create', compact('faculties', 'departments'));
+        return view('staff.bursary.payment_settings.create', compact('faculties', 'departments', 'entryModes'));
     }
 
     public function store(Request $request)
@@ -136,13 +137,14 @@ class PaymentSettingController extends Controller
     {
         $faculties = Faculty::all();
         $departments = Department::all();
+        $entryModes = \App\Models\EntryMode::orderBy('name')->get();
 
         // Decode JSON to array for form use
         $paymentSetting->list_instalment_percentage = $paymentSetting->list_instalment_percentage
             ? json_decode($paymentSetting->list_instalment_percentage, true)
             : [];
 
-        return view('staff.bursary.payment_settings.edit', compact('paymentSetting', 'faculties', 'departments'));
+        return view('staff.bursary.payment_settings.edit', compact('paymentSetting', 'faculties', 'departments', 'entryModes'));
     }
 
     public function update(Request $request, PaymentSetting $paymentSetting)

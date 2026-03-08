@@ -119,9 +119,9 @@
                                     <label class="form-label">Student Type (Programme)</label>
                                     @php $selectedTypes = $paymentSetting->student_type ?? []; @endphp
                                     <select name="student_type[]" multiple class="form-select" style="min-height: 100px;">
-                                        @foreach(['REGULAR', 'TOPUP', 'IDELDE', 'IDELUTME'] as $type)
-                                            <option value="{{ $type }}" {{ in_array($type, $selectedTypes) ? 'selected' : '' }}>
-                                                {{ $type }}
+                                        @foreach ($entryModes->pluck('student_type')->unique() as $prog)
+                                            <option value="{{ $prog }}" {{ in_array($prog, $selectedTypes) ? 'selected' : '' }}>
+                                                {{ $prog }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -131,9 +131,9 @@
                                     <label class="form-label">Entry Mode</label>
                                     @php $selectedModes = $paymentSetting->entry_mode ?? []; @endphp
                                     <select name="entry_mode[]" multiple class="form-select" style="min-height: 100px;">
-                                        @foreach(['UTME', 'DE', 'TRANSFER'] as $mode)
-                                            <option value="{{ $mode }}" {{ in_array($mode, $selectedModes) ? 'selected' : '' }}>
-                                                {{ $mode }}
+                                        @foreach ($entryModes as $mode)
+                                            <option value="{{ $mode->code }}" {{ in_array($mode->code, $selectedModes) ? 'selected' : '' }}>
+                                                {{ $mode->name }} ({{ $mode->code }})
                                             </option>
                                         @endforeach
                                     </select>

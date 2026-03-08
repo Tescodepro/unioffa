@@ -20,13 +20,16 @@
                             <div class="col-md-12 col-lg-8 mx-auto">
                                 <div class="hero-content text-center">
                                     <h6 class="hero-sub-title" data-animation="fadeInDown" data-delay=".25s">
-                                        <i class="far fa-book-open-reader"></i>Welcome to University of Offa
+                                        <i class="far fa-book-open-reader"></i>Welcome to
+                                        {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}
                                     </h6>
                                     <h1 class="hero-title" data-animation="fadeInRight" data-delay=".50s">
                                         Building a <span>Brighter</span> Future Through Education
                                     </h1>
                                     <p data-animation="fadeInLeft" data-delay=".75s">
-                                        At the University of Offa, we are committed to academic excellence, research,
+                                        At the
+                                        {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}, we
+                                        are committed to academic excellence, research,
                                         and innovation that empower students to become future leaders in their chosen
                                         fields.
                                     </p>
@@ -49,7 +52,8 @@
                             <div class="col-md-12 col-lg-8 mx-auto">
                                 <div class="hero-content text-center">
                                     <h6 class="hero-sub-title" data-animation="fadeInDown" data-delay=".25s">
-                                        <i class="far fa-book-open-reader"></i>Welcome to University of Offa
+                                        <i class="far fa-book-open-reader"></i>Welcome to
+                                        {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}
                                     </h6>
                                     <h1 class="hero-title" data-animation="fadeInRight" data-delay=".50s">
                                         Nurturing Knowledge, Skills, and <span>Innovation</span>
@@ -77,7 +81,8 @@
                             <div class="col-md-12 col-lg-8 mx-auto">
                                 <div class="hero-content text-center">
                                     <h6 class="hero-sub-title" data-animation="fadeInDown" data-delay=".25s">
-                                        <i class="far fa-book-open-reader"></i>Welcome to University of Offa
+                                        <i class="far fa-book-open-reader"></i>Welcome to
+                                        {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}
                                     </h6>
                                     <h1 class="hero-title" data-animation="fadeInRight" data-delay=".50s">
                                         Excellence in <span>Learning</span> and <span>Research</span>
@@ -99,7 +104,7 @@
                     </div>
                 </div>
                 @foreach($news->take(10) as $item)
-                    <div class="hero-single" style="background: url('{{ asset('storage/'.$item->image) }}')">
+                    <div class="hero-single" style="background: url('{{ asset('storage/' . $item->image) }}')">
                         <div class="container">
                             <div class="row align-items-center">
                                 <div class="col-md-12 col-lg-8 mx-auto">
@@ -113,7 +118,8 @@
                                         <p data-animation="fadeInLeft" data-delay=".75s">
                                             {{ Str::limit(strip_tags(html_entity_decode(html_entity_decode($item->content))), 120) }}
                                         </p>
-                                        <div class="hero-btn justify-content-center" data-animation="fadeInUp" data-delay="1s">
+                                        <div class="hero-btn justify-content-center" data-animation="fadeInUp"
+                                            data-delay="1s">
                                             <a href="{{ route('news.show', $item->id) }}" class="theme-btn">
                                                 Read More <i class="fas fa-arrow-right-long"></i>
                                             </a>
@@ -151,12 +157,16 @@
                                     <i class="far fa-book-open-reader"></i> Welcome Speech from the Vice Chancellor
                                 </span>
                                 <h4 class="vice_title">
-                                    Welcome to <span>University of Offa</span>, Offa, Kwara State, Nigeria.
+                                    Welcome to
+                                    <span>{{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}</span>,
+                                    Offa, Kwara State, Nigeria.
                                 </h4>
                             </div>
 
                             <p class="about-text">
-                                It is my pleasure to welcome you to the University of Offa, a center of excellence
+                                It is my pleasure to welcome you to the
+                                {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}, a center of
+                                excellence
                                 dedicated to nurturing
                                 knowledge, innovation, and character. At our university, we are committed to providing
                                 quality education,
@@ -164,7 +174,8 @@
                                 to society.
                                 Whether you are a prospective student, parent, partner, or visitor, we invite you to
                                 explore the opportunities
-                                and vibrant academic community that make the University of Offa unique.
+                                and vibrant academic community that make the
+                                {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }} unique.
                             </p>
 
                             <div class="mission-vision mt-4">
@@ -215,7 +226,9 @@
                                         Explore Our <span>Academic Faculties</span>
                                     </h2>
                                     <p class="text-white">
-                                        At the University of Offa, our faculties are dedicated to fostering excellence
+                                        At the
+                                        {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}, our
+                                        faculties are dedicated to fostering excellence
                                         in teaching,
                                         research, and innovation. Each faculty offers unique opportunities for students
                                         to build
@@ -230,8 +243,8 @@
                                         <div class="col-md-6">
                                             <div class="choose-item">
                                                 <div class="choose-item-icon">
-                                                    <img src="assets/img/icon/teacher-2.svg"
-                                                        alt="Faculty of Education" loading="lazy">
+                                                    <img src="assets/img/icon/teacher-2.svg" alt="Faculty of Education"
+                                                        loading="lazy">
                                                 </div>
                                                 <div class="choose-item-info">
                                                     <h4>Faculty of Education</h4>
@@ -544,7 +557,8 @@
                         <div class="col-lg-5 ms-lg-auto">
                             <div class="cta-content mt-0">
                                 <h1>Admissions Now Open!</h1>
-                                <p>Join the University of Offa and take the next step towards your future.
+                                <p>Join the {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}
+                                    and take the next step towards your future.
                                     Apply today and become part of a vibrant academic community dedicated to
                                     excellence in teaching, research, and innovation.</p>
                                 <div class="cta-btn">

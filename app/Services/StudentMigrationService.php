@@ -21,7 +21,7 @@ class StudentMigrationService
      * @param string|null $userId
      * @return Student|null
      */
-    public function migrate(string | null $userId = null): ?Student
+    public function migrate(string|null $userId = null): ?Student
     {
         try {
             $user = $userId ? User::findOrFail($userId) : Auth::user();
@@ -133,51 +133,27 @@ class StudentMigrationService
     ): array {
         $applicationCode = $applicationSetting->application_code;
 
-        return match ($applicationCode) {
-            'DE' => [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'DE',
-                'level' => '200',
+        $entryMode = \App\Models\EntryMode::where('code', $applicationCode)->first();
+
+        if ($entryMode) {
+            return [
+                'programme' => $entryMode->student_type,
+                'entry_mode' => $entryMode->code,
+                'level' => $entryMode->default_level,
                 'admission_session' => $userApplication->academic_session,
                 'sex' => $user->gender,
-            ],
-            'TOPUP' => [
-                'programme' => 'TOPUP',
-                'entry_mode' => 'TOPUP',
-                'level' => '200',
-                'admission_session' => $userApplication->academic_session,
-            ],
-            'TRANSFER' => [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'TRANSFER',
-                'level' => '200',
-                'admission_session' => $userApplication->academic_session,
-            ],
-            'IDELUTME' => [
-                'programme' => 'IDELUTME',
-                'entry_mode' => 'UTME',
-                'level' => '100',
-                'admission_session' => $userApplication->academic_session,
-            ],
-            'IDELDE' => [
-                'programme' => 'IDELDE',
-                'entry_mode' => 'DE',
-                'level' => '200',
-                'admission_session' => $userApplication->academic_session,
-            ],
-            'UTME' => [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'UTME',
-                'level' => '100',
-                'admission_session' => $userApplication->academic_session,
-            ],
-            default => [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'UTME',
-                'level' => '100',
-                'admission_session' => $userApplication->academic_session,
-            ]
-        };
+            ];
+        }
+
+        // Fallback for missing settings
+        Log::warning("No matching EntryMode found for application code: {$applicationCode}");
+        return [
+            'programme' => 'REGULAR',
+            'entry_mode' => 'UTME',
+            'level' => '100',
+            'admission_session' => $userApplication->academic_session,
+            'sex' => $user->gender,
+        ];
     }
 
     /**

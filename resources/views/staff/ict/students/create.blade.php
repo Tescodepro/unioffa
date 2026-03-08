@@ -128,9 +128,9 @@
                                     <label class="form-label">Entry Mode</label>
                                     <select name="entry_mode" class="form-select" required>
                                         <option value="">Select Entry Mode</option>
-                                        @foreach (['TOPUP', 'IDELUTME', 'IDELDE', 'UTME', 'TRANSFER', 'DIPLOMA','DE'] as $mode)
-                                            <option value="{{ $mode }}"
-                                                {{ old('entry_mode') == $mode ? 'selected' : '' }}>{{ $mode }}
+                                        @foreach ($entryModes as $mode)
+                                            <option value="{{ $mode->code }}"
+                                                {{ old('entry_mode') == $mode->code ? 'selected' : '' }}>{{ $mode->name }} ({{ $mode->code }})
                                             </option>
                                         @endforeach
                                     </select>

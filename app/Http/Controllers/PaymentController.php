@@ -74,11 +74,8 @@ class PaymentController extends Controller
             }
 
             // Normalize programme
-            if (in_array($getuserstype->programme, ['TRANSFER', 'DIPLOMA', 'DE', 'UTME'])) {
-                $programme = 'REGULAR';
-            } else {
-                $programme = $getuserstype->programme;
-            }
+            $entryMode = \App\Models\EntryMode::where('code', $getuserstype->programme)->first();
+            $programme = $entryMode ? $entryMode->student_type : $getuserstype->programme;
 
             $split_code = $this->splitGet($request->fee_type, $programme, $campusDetail->slug);
             if ($campusDetail->slug == 'main-campus' && $request->fee_type === 'acceptance' && $user->referee_code) {
@@ -227,59 +224,18 @@ class PaymentController extends Controller
 
         $admission = AdmissionList::where(['user_id' => $user->id])->first();
 
-        if ($applicationSetting->application_code == 'DE') {
-            $studentData = [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'DE',
-                'level' => '200',
-                'admission_session' => $user_application->academic_session,
-                'sex' => $user->gender,
-            ];
-        } elseif ($applicationSetting->application_code == 'TOPUP') {
-            $studentData = [
-                'programme' => 'TOPUP',
-                'entry_mode' => 'TOPUP',
-                'level' => '300',
-                'admission_session' => $user_application->academic_session,
-            ];
-        } elseif ($applicationSetting->application_code == 'TRANSFER') {
-            $studentData = [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'TRANSFER',
-                'level' => '200',
-                'admission_session' => $user_application->academic_session,
-            ];
-        } elseif ($applicationSetting->application_code == 'IDELUTME') {
-            $studentData = [
-                'programme' => 'IDELUTME',
-                'entry_mode' => 'UTME',
-                'level' => '100',
-                'admission_session' => $user_application->academic_session,
-            ];
-        } elseif ($applicationSetting->application_code == 'IDELDE') {
-            $studentData = [
-                'programme' => 'IDELDE',
-                'entry_mode' => 'DE',
-                'level' => '200',
-                'admission_session' => $user_application->academic_session,
-            ];
-        } elseif ($applicationSetting->application_code == 'UTME') {
-            $studentData = [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'UTME',
-                'level' => '100',
-                'admission_session' => $user_application->academic_session,
-            ];
-        } elseif ($applicationSetting->application_code == 'DIPLOMA') {
-            $studentData = [
-                'programme' => 'REGULAR',
-                'entry_mode' => 'DIPLOMA',
-                'level' => '100',
-                'admission_session' => $user_application->academic_session,
-            ];
-        } else {
+        $entryMode = \App\Models\EntryMode::where('code', $applicationSetting->application_code)->first();
+
+        if (!$entryMode) {
             return back()->with('error', 'Invalid application code for migration.');
         }
+
+        $studentData = [
+            'programme' => $entryMode->student_type,
+            'entry_mode' => $entryMode->code,
+            'level' => $entryMode->default_level,
+            'admission_session' => $user_application->academic_session,
+        ];
 
         // migrate to student table
         $migrate_student = Student::create([
