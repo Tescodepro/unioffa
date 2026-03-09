@@ -74,6 +74,28 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
+                                <label class="form-label fw-semibold">Center</label>
+                                <select name="campus_id" class="form-select">
+                                    <option value="">All Centers</option>
+                                    @foreach($campuses as $campus)
+                                        <option value="{{ $campus->id }}" {{ request('campus_id') == $campus->id ? 'selected' : '' }}>
+                                            {{ $campus->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Stream</label>
+                                <select name="stream" class="form-select">
+                                    <option value="">All Streams</option>
+                                    @foreach([1, 2, 3] as $st)
+                                        <option value="{{ $st }}" {{ request('stream') == $st ? 'selected' : '' }}>
+                                            Stream {{ $st }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
                                 <label class="form-label fw-semibold">Level</label>
                                 <select name="level" class="form-select">
                                     <option value="">All Levels</option>

@@ -2,25 +2,24 @@
 
 namespace App\Http\Controllers\Staff\Ict;
 
+use App\Exports\StudentsTemplateExport;
 use App\Http\Controllers\Controller;
-use App\Models\Student;
+use App\Imports\StudentsImport;
+use App\Mail\GeneralMail;
+use App\Models\Campus;
 use App\Models\Department;
 use App\Models\Faculty;
+use App\Models\Student;
 use App\Models\User;
 use App\Models\UserType;
-use App\Models\Campus;
 use App\Services\UniqueIdService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Exception;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\StudentsImport;
-use App\Exports\StudentsTemplateExport;
-use App\Mail\GeneralMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 
 class IctStudentController extends Controller
 {
@@ -40,7 +39,8 @@ class IctStudentController extends Controller
         $studentsByFaculty = Faculty::with(['departments.students'])
             ->get()
             ->map(function ($faculty) {
-                $faculty->total_students = $faculty->departments->map(fn($dept) => $dept->students->count())->sum();
+                $faculty->total_students = $faculty->departments->map(fn ($dept) => $dept->students->count())->sum();
+
                 return $faculty;
             });
 
@@ -58,6 +58,7 @@ class IctStudentController extends Controller
             'studentsByProgramme'
         ));
     }
+
     public function index(Request $request)
     {
         $departmentId = $request->department_id;
@@ -66,43 +67,42 @@ class IctStudentController extends Controller
         $matric = $request->matric_no;
         $phone = $request->phone;
         $email = $request->email;
+        $campusId = $request->campus_id;
+        $stream = $request->stream;
 
         $students = Student::with(['user', 'department.faculty'])
-            ->when($departmentId, fn($q) => $q->where('department_id', $departmentId))
-            ->when($level, fn($q) => $q->where('level', $level))
+            ->when($departmentId, fn ($q) => $q->where('department_id', $departmentId))
+            ->when($level, fn ($q) => $q->where('level', $level))
+            ->when($campusId, fn ($q) => $q->where('campus_id', $campusId))
+            ->when($stream, fn ($q) => $q->where('stream', $stream))
             ->when(
                 $name,
-                fn($q) =>
-                $q->whereHas(
+                fn ($q) => $q->whereHas(
                     'user',
-                    fn($u) =>
-                    $u->where('first_name', 'like', "%{$name}%")
+                    fn ($u) => $u->where('first_name', 'like', "%{$name}%")
                         ->orWhere('last_name', 'like', "%{$name}%")
                 )
             )
-            ->when($matric, fn($q) => $q->where('matric_no', 'like', "%{$matric}%"))
+            ->when($matric, fn ($q) => $q->where('matric_no', 'like', "%{$matric}%"))
             ->when(
                 $phone,
-                fn($q) =>
-                $q->whereHas(
+                fn ($q) => $q->whereHas(
                     'user',
-                    fn($u) =>
-                    $u->where('phone', 'like', "%{$phone}%")
+                    fn ($u) => $u->where('phone', 'like', "%{$phone}%")
                 )
             )
             ->when(
                 $email,
-                fn($q) =>
-                $q->whereHas(
+                fn ($q) => $q->whereHas(
                     'user',
-                    fn($u) =>
-                    $u->where('email', 'like', "%{$email}%")
+                    fn ($u) => $u->where('email', 'like', "%{$email}%")
                 )
             )
             ->orderBy('matric_no')
             ->paginate(20);
 
         $departments = Department::with('faculty')->get();
+        $campuses = Campus::all();
 
         $stats = [
             'total' => Student::count(),
@@ -112,7 +112,7 @@ class IctStudentController extends Controller
                 ->get(),
         ];
 
-        return view('staff.ict.students.index', compact('students', 'departments', 'stats'));
+        return view('staff.ict.students.index', compact('students', 'departments', 'campuses', 'stats'));
     }
 
     public function create()
@@ -120,9 +120,11 @@ class IctStudentController extends Controller
         $departments = Department::with('faculty')->orderBy('department_name')->get();
         $campuses = Campus::all();
         $entryModes = \App\Models\EntryMode::orderBy('name')->get();
+
         return view('staff.ict.students.create', compact('departments', 'campuses', 'entryModes'));
     }
-    //Store single student
+
+    // Store single student
     /**
      * Store a newly created resource in storage.
      */
@@ -165,7 +167,7 @@ class IctStudentController extends Controller
             $user = User::create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
-                'middle_name' => $request->middle_name ?? Null,
+                'middle_name' => $request->middle_name ?? null,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'username' => $matricNo,
@@ -178,7 +180,6 @@ class IctStudentController extends Controller
 
             $entryModeRecord = \App\Models\EntryMode::where('code', $request->entry_mode)->firstOrFail();
             $programme = $entryModeRecord->student_type;
-
 
             Student::create([
                 'user_id' => $user->id,
@@ -196,14 +197,14 @@ class IctStudentController extends Controller
                 'address' => null, // Optional field not in form
             ]);
 
-            $name = $request->first_name . ' ' . $request->last_name;
+            $name = $request->first_name.' '.$request->last_name;
 
             $to = $request->email;
 
             // Assuming you've generated these two variables earlier in your code
             $matric_number = $matricNo;
             $password = $request->last_name;
-            $subject = "Welcome to Offa University! Your Student Account Details";
+            $subject = 'Welcome to Offa University! Your Student Account Details';
             $content = [
                 'title' => "Welcome, {$request->first_name}!",
                 'body' => 'We are delighted to welcome you to **Offa University**! 🎓
@@ -214,8 +215,8 @@ class IctStudentController extends Controller
     
     <br>
     
-    - **Matriculation Number:** **' . $matric_number . '**
-    - **Initial Password:** **' . $password . '** <br>
+    - **Matriculation Number:** **'.$matric_number.'**
+    - **Initial Password:** **'.$password.'** <br>
     
     We strongly recommend that you log in to the student portal immediately and change your password for security purposes.
     
@@ -238,13 +239,16 @@ class IctStudentController extends Controller
                 ->with('success', "Student added successfully. Matric No: {$matricNo} AND password is {$request->last_name}.");
         } catch (Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Error creating student: ' . $e->getMessage());
+
+            return back()->with('error', 'Error creating student: '.$e->getMessage());
         }
     }
+
     // Bulk upload form
     public function bulkUploadForm()
     {
         $departments = Department::with('faculty')->get();
+
         return view('staff.ict.students.bulk', compact('departments'));
     }
 
@@ -277,12 +281,12 @@ class IctStudentController extends Controller
             $errors = [];
 
             foreach ($failures as $failure) {
-                $errors[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
+                $errors[] = "Row {$failure->row()}: ".implode(', ', $failure->errors());
             }
 
             return back()->with('upload_errors', $errors);
         } catch (Exception $e) {
-            return back()->with('error', 'Upload failed: ' . $e->getMessage());
+            return back()->with('error', 'Upload failed: '.$e->getMessage());
         }
     }
 
@@ -297,9 +301,9 @@ class IctStudentController extends Controller
         $student = Student::with('user', 'department.faculty')->findOrFail($id);
         $departments = Department::with('faculty')->get();
         $entryModes = \App\Models\EntryMode::orderBy('name')->get();
+
         return view('staff.ict.students.edit', compact('student', 'departments', 'entryModes'));
     }
-
 
     public function update(Request $request, $id)
     {
@@ -312,7 +316,7 @@ class IctStudentController extends Controller
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($student->user_id)
+                Rule::unique('users', 'email')->ignore($student->user_id),
             ],
             'matric_no' => [
                 'required',
@@ -321,7 +325,7 @@ class IctStudentController extends Controller
                 // must not conflict with other students
                 Rule::unique('students', 'matric_no')->ignore($student->id),
                 // must not conflict with users.username
-                Rule::unique('users', 'username')->ignore($student->user_id)
+                Rule::unique('users', 'username')->ignore($student->user_id),
             ],
             'department_id' => 'required|uuid',
             'programme' => 'required|string|max:255',
@@ -336,7 +340,7 @@ class IctStudentController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'phone' => $request->phone,
-            'username' => $request->matric_no
+            'username' => $request->matric_no,
         ]);
 
         // Update student
@@ -353,20 +357,20 @@ class IctStudentController extends Controller
             ->with('success', 'Student updated successfully.');
     }
 
-
     public function destroy(Student $student)
     {
-        $uniqueIdService = new UniqueIdService();
+        $uniqueIdService = new UniqueIdService;
         $uniqueId = $uniqueIdService->generate('applicant');
         $student->delete();
 
         $userType = UserType::where('name', 'applicant')->firstOrFail();
-        // update users->username 
+        // update users->username
         $user = $student->user;
         $user->username = $uniqueId;
         $user->registration_no = $uniqueId;
         $user->user_type_id = $userType->id;
         $user->save();
+
         return back()->with('success', 'Student deleted successfully.');
     }
 
@@ -383,8 +387,8 @@ class IctStudentController extends Controller
         $campusId = $request->input('campus_id');
 
         $users = User::withTrashed()->with(['userType', 'campus'])
-            ->when($userTypeId, fn($q) => $q->where('user_type_id', $userTypeId))
-            ->when($campusId, fn($q) => $q->where('campus_id', $campusId))
+            ->when($userTypeId, fn ($q) => $q->where('user_type_id', $userTypeId))
+            ->when($campusId, fn ($q) => $q->where('campus_id', $campusId))
             ->orderBy('first_name')
             ->get();
 
@@ -397,11 +401,11 @@ class IctStudentController extends Controller
     public function updateUsers(Request $request, $id)
     {
         $request->validate([
-            'username' => 'required|string|max:255|unique:users,username,' . $id,
+            'username' => 'required|string|max:255|unique:users,username,'.$id,
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email|unique:users,email,'.$id,
             'phone' => 'nullable|string|max:20',
             'user_type_id' => 'required|exists:user_types,id',
             'campus_id' => 'nullable|exists:campuses,id',
@@ -472,6 +476,7 @@ class IctStudentController extends Controller
     {
         $user = User::findOrFail($id);
         $user->delete(); // Soft delete
+
         return back()->with('success', 'User disabled successfully.');
     }
 
@@ -479,6 +484,7 @@ class IctStudentController extends Controller
     {
         $user = User::withTrashed()->findOrFail($id);
         $user->restore();
+
         return back()->with('success', 'User enabled successfully.');
     }
 
@@ -486,6 +492,7 @@ class IctStudentController extends Controller
     {
         $user = User::withTrashed()->findOrFail($id);
         $user->forceDelete();
+
         return back()->with('success', 'User permanently deleted.');
     }
 }

@@ -44,6 +44,7 @@
                                             <tr>
                                                 <th>#</th>
                                                 <th>Session Name</th>
+                                                <th>Overrides</th>
                                                 <th>Session Status</th>
                                                 <th>Result Upload Status</th>
                                                 @if(auth()->user()->hasPermission('manage_sessions'))
@@ -56,6 +57,38 @@
                                                 <tr>
                                                     <td>{{ $key + 1 }}</td>
                                                     <td class="fw-bold">{{ $session->name }}</td>
+                                                    <td>
+                                                        @if(!empty($session->stream))
+                                                            <span class="badge bg-primary-transparent mb-1" title="Streams">
+                                                                <i class="ti ti-activity border-end pe-1 me-1"></i> {{ implode(', ', $session->stream) }}
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(!empty($session->campus_id))
+                                                            <span class="badge bg-secondary-transparent mb-1" title="Campuses">
+                                                                <i class="ti ti-map-pin border-end pe-1 me-1"></i>
+                                                                @foreach($session->campus_id as $cId)
+                                                                    {{ $campuses->firstWhere('id', $cId)?->name ?? 'Unknown' }}{{ !$loop->last ? ',' : '' }}
+                                                                @endforeach
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(!empty($session->students_ids))
+                                                            <span class="badge bg-info-transparent mb-1" title="Specific Students">
+                                                                <i class="ti ti-users border-end pe-1 me-1"></i> {{ count($session->students_ids) }} Student(s)
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(!empty($session->lecturar_ids))
+                                                            <span class="badge bg-warning-transparent mb-1" title="Specific Staff">
+                                                                <i class="ti ti-users border-end pe-1 me-1"></i> {{ count($session->lecturar_ids) }} Staff
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(empty($session->stream) && empty($session->campus_id) && empty($session->students_ids) && empty($session->lecturar_ids))
+                                                            <span class="badge bg-light text-dark shadow-sm">Global Default</span>
+                                                        @endif
+                                                    </td>
                                                     <td>
                                                         @if($session->status == '1')
                                                             <span class="badge bg-success">Active</span>

@@ -45,6 +45,7 @@
                                                 <th>#</th>
                                                 <th>Semester Name</th>
                                                 <th>Semester Code</th>
+                                                <th>Overrides</th>
                                                 <th>Semester Status</th>
                                                 <th>Result Upload Status</th>
                                                 @if(auth()->user()->hasPermission('manage_semesters'))
@@ -58,6 +59,38 @@
                                                     <td>{{ $key + 1 }}</td>
                                                     <td class="fw-bold">{{ $semester->name }}</td>
                                                     <td><span class="badge bg-secondary">{{ $semester->code }}</span></td>
+                                                    <td>
+                                                        @if(!empty($semester->stream))
+                                                            <span class="badge bg-primary-transparent mb-1" title="Streams">
+                                                                <i class="ti ti-activity border-end pe-1 me-1"></i> {{ implode(', ', $semester->stream) }}
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(!empty($semester->campus_id))
+                                                            <span class="badge bg-secondary-transparent mb-1" title="Campuses">
+                                                                <i class="ti ti-map-pin border-end pe-1 me-1"></i>
+                                                                @foreach($semester->campus_id as $cId)
+                                                                    {{ $campuses->firstWhere('id', $cId)?->name ?? 'Unknown' }}{{ !$loop->last ? ',' : '' }}
+                                                                @endforeach
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(!empty($semester->students_ids))
+                                                            <span class="badge bg-info-transparent mb-1" title="Specific Students">
+                                                                <i class="ti ti-users border-end pe-1 me-1"></i> {{ count($semester->students_ids) }} Student(s)
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(!empty($semester->lecturar_ids))
+                                                            <span class="badge bg-warning-transparent mb-1" title="Specific Staff">
+                                                                <i class="ti ti-users border-end pe-1 me-1"></i> {{ count($semester->lecturar_ids) }} Staff
+                                                            </span><br>
+                                                        @endif
+                                                        
+                                                        @if(empty($semester->stream) && empty($semester->campus_id) && empty($semester->students_ids) && empty($semester->lecturar_ids))
+                                                            <span class="badge bg-light text-dark shadow-sm">Global Default</span>
+                                                        @endif
+                                                    </td>
                                                     <td>
                                                         @if($semester->status == '1')
                                                             <span class="badge bg-success">Active</span>
