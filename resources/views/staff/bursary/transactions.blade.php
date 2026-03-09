@@ -42,6 +42,10 @@
                             <input type="text" name="reference" value="{{ request('reference') }}" class="form-control" placeholder="e.g. TXN-1234ABC">
                         </div>
                         <div class="col-md-3">
+                            <label class="form-label">Username / Matric No</label>
+                            <input type="text" name="username" value="{{ request('username') }}" class="form-control" placeholder="e.g. 2023/001">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Payment Type</label>
                             <select name="payment_type" class="form-select">
                                 <option value="">-- Select --</option>

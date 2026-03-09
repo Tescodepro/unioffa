@@ -145,6 +145,9 @@
                                     <th>Department</th>
                                     <th>Programme</th>
                                     <th>Level</th>
+                                    <th>Campus</th>
+                                    <th>Entry Mode</th>
+                                    <th>Stream</th>
                                     <th>Sex</th>
                                     <th class="text-end">Action</th>
                                 </tr>
@@ -157,7 +160,10 @@
                                         <td>{{ $student->department->department_name ?? '—' }}</td>
                                         <td>{{ $student->programme }}</td>
                                         <td>{{ $student->level ?? '—' }}</td>
-                                        <td>{{ ucfirst($student->sex ?? '—') }}</td>
+                                        <td>{{ $student->campus->name ?? '—' }}</td>
+                                        <td>{{ $student->entry_mode ?? '—' }}</td>
+                                        <td>{{ $student->stream ?? '—' }}</td>
+                                        <td>{{ucfirst($student->sex ?? '—') }}</td>
                                         <td class="text-end">
                                             <a href="{{ route('ict.students.edit', $student->id) }}"
                                                 class="btn btn-sm btn-outline-primary me-1">

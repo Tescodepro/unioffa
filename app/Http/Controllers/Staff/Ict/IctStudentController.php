@@ -301,8 +301,9 @@ class IctStudentController extends Controller
         $student = Student::with('user', 'department.faculty')->findOrFail($id);
         $departments = Department::with('faculty')->get();
         $entryModes = \App\Models\EntryMode::orderBy('name')->get();
+        $campuses = \App\Models\Campus::orderBy('name')->get();
 
-        return view('staff.ict.students.edit', compact('student', 'departments', 'entryModes'));
+        return view('staff.ict.students.edit', compact('student', 'departments', 'entryModes', 'campuses'));
     }
 
     public function update(Request $request, $id)
@@ -332,6 +333,7 @@ class IctStudentController extends Controller
             'level' => 'required|integer',
             'sex' => 'required|string',
             'entry_mode' => 'required|string|exists:entry_modes,code',
+            'campus_id' => 'nullable|uuid|exists:campuses,id',
         ]);
 
         // Update user
@@ -351,6 +353,7 @@ class IctStudentController extends Controller
             'level' => $request->level,
             'sex' => $request->sex,
             'entry_mode' => $request->entry_mode,
+            'campus_id' => $request->campus_id ?: null,
         ]);
 
         return redirect()->route('ict.students.index')

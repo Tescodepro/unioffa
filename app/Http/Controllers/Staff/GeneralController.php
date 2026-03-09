@@ -50,14 +50,14 @@ class GeneralController extends Controller
         $selectedApplicationId = $request->get('application_id');
 
         // If they select an application ID they don't own, override
-        if ($isProgDir && $selectedApplicationId && !in_array($selectedApplicationId, $assignedTypeIds)) {
+        if ($isProgDir && $selectedApplicationId && ! in_array($selectedApplicationId, $assignedTypeIds)) {
             $selectedApplicationId = null;
         }
 
         // Applicants per campus (with count)
         $campusApplicants = Campus::withCount([
             'users as applicant_count' => function ($q) use ($isProgDir, $assignedTypeIds, $selectedSession) {
-                $q->whereHas('userType', fn($q2) => $q2->where('name', 'applicant'))
+                $q->whereHas('userType', fn ($q2) => $q2->where('name', 'applicant'))
                     ->whereHas('applications', function ($q3) use ($isProgDir, $assignedTypeIds, $selectedSession) {
                         $q3->whereNotNull('submitted_by')
                             ->where('academic_session', $selectedSession);
@@ -73,7 +73,7 @@ class GeneralController extends Controller
             'userApplications as applicant_count' => function ($q) use ($selectedSession) {
                 $q->where('academic_session', $selectedSession)
                     ->whereNotNull('submitted_by');
-            }
+            },
         ]);
         if ($isProgDir) {
             $applicationApplicantsQuery->whereIn('id', $assignedTypeIds);
@@ -87,15 +87,15 @@ class GeneralController extends Controller
         })->where('session_admitted', $selectedSession);
 
         if ($isProgDir) {
-            $admittedQuery->whereHas('user.userApplications', fn($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
-            $notAdmittedQuery->whereHas('user.userApplications', fn($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
+            $admittedQuery->whereHas('user.userApplications', fn ($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
+            $notAdmittedQuery->whereHas('user.userApplications', fn ($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
         }
 
         $admittedCount = $admittedQuery->count();
         $notAdmittedCount = $notAdmittedQuery->count();
 
         // Query students with filters
-        $students = User::whereHas('userType', fn($q) => $q->where('name', 'applicant'))
+        $students = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
             ->with([
                 'applications.applicationSetting',
                 'transactions',
@@ -112,16 +112,16 @@ class GeneralController extends Controller
                     $qa->whereIn('application_setting_id', $assignedTypeIds);
                 }
             })
-            ->when($selectedCampusId, fn($q) => $q->where('campus_id', $selectedCampusId))
+            ->when($selectedCampusId, fn ($q) => $q->where('campus_id', $selectedCampusId))
             ->when($selectedApplicationId, function ($q) use ($selectedApplicationId) {
-                $q->whereHas('applications', fn($qa) => $qa->where('application_setting_id', $selectedApplicationId));
+                $q->whereHas('applications', fn ($qa) => $qa->where('application_setting_id', $selectedApplicationId));
             })
             ->get()
             ->map(function ($user) {
                 return (object) [
                     'id' => $user->id,
                     'registration_no' => $user->registration_no,
-                    'full_name' => $user->first_name . ' ' . $user->last_name,
+                    'full_name' => $user->first_name.' '.$user->last_name,
                     'email' => $user->email,
                     'phone' => $user->phone,
                     'application_type' => optional($user->applications->first()?->applicationSetting)->name,
@@ -165,7 +165,7 @@ class GeneralController extends Controller
         $user = \Illuminate\Support\Facades\Auth::user();
         if ($user->hasRole('programme-director')) {
             $assignedTypes = $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray();
-            if (!in_array($user_application->application_setting_id, $assignedTypes)) {
+            if (! in_array($user_application->application_setting_id, $assignedTypes)) {
                 return back()->with('error', 'Unauthorized: You cannot admit students for this application type.');
             }
         }
@@ -177,7 +177,7 @@ class GeneralController extends Controller
         $admission = AdmissionList::firstOrNew(['user_id' => $userId]);
         $admission->admission_status = 'admitted';
         $admission->approved_department_id = $request->final_course; // optional, if you want to track
-        $admission->session_admitted = activeSession()->name;
+        $admission->session_admitted = activeSession()?->name ?? '';
         $admission->save();
 
         $department = Department::find($request->final_course);
@@ -190,8 +190,8 @@ class GeneralController extends Controller
         $subject = 'Offer of Admission - Offa University';
 
         $content = [
-            'title' => 'Dear ' . $studentUser->full_name . ',',
-            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study ' . ($department->department_name ?? 'your chosen course') . '. for the ' . $user_application->academic_session . ' academic session admission. log in to your portal for further information',
+            'title' => 'Dear '.$studentUser->full_name.',',
+            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study '.($department->department_name ?? 'your chosen course').'. for the '.$user_application->academic_session.' academic session admission. log in to your portal for further information',
             'footer' => '',
         ];
 
@@ -234,7 +234,7 @@ class GeneralController extends Controller
         $user = \Illuminate\Support\Facades\Auth::user();
         if ($user->hasRole('programme-director')) {
             $assignedTypes = $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray();
-            if (!in_array($application->application_setting_id, $assignedTypes)) {
+            if (! in_array($application->application_setting_id, $assignedTypes)) {
                 abort(403, 'Unauthorized: You cannot view this application type.');
             }
         }
@@ -314,18 +314,18 @@ class GeneralController extends Controller
         if ($request->status === 'approved') {
 
             // A. Generate unique code if not already assigned
-            if (!$agent->unique_code) {
+            if (! $agent->unique_code) {
                 $agent->unique_code = $this->generateUniqueCode();
             }
 
             // B. Paystack Logic: Only run if we don't have a split code yet
-            if (!$agent->split_code) {
+            if (! $agent->split_code) {
                 try {
                     // Use the correct ENV key for your Paystack Secret
                     $paystackSecret = env('PAYSTACK_AUTH_KEY');
 
                     // --- Step 1: Create Paystack Subaccount for Agent ---
-                    if (!$agent->subaccount_code) {
+                    if (! $agent->subaccount_code) {
                         $subaccountResponse = Http::withToken($paystackSecret)
                             ->post('https://api.paystack.co/subaccount', [
                                 'business_name' => "{$agent->first_name} {$agent->last_name} Agency",
@@ -335,9 +335,9 @@ class GeneralController extends Controller
                                 'description' => "Subaccount for Agent {$agent->first_name} {$agent->last_name}",
                             ]);
 
-                        if (!$subaccountResponse->successful() || !isset($subaccountResponse['data']['subaccount_code'])) {
+                        if (! $subaccountResponse->successful() || ! isset($subaccountResponse['data']['subaccount_code'])) {
                             // Log the actual error from Paystack for debugging
-                            Log::error('Paystack Subaccount Creation Failed: ' . $subaccountResponse->body());
+                            Log::error('Paystack Subaccount Creation Failed: '.$subaccountResponse->body());
                             throw new \Exception('Failed to create Paystack subaccount');
                         }
 
@@ -370,8 +370,8 @@ class GeneralController extends Controller
                             ],
                         ]);
 
-                    if (!$splitResponse->successful() || !isset($splitResponse['data']['split_code'])) {
-                        Log::error('Paystack Split Creation Failed: ' . $splitResponse->body());
+                    if (! $splitResponse->successful() || ! isset($splitResponse['data']['split_code'])) {
+                        Log::error('Paystack Split Creation Failed: '.$splitResponse->body());
                         throw new \Exception('Failed to create Paystack split');
                     }
 
@@ -384,9 +384,9 @@ class GeneralController extends Controller
                     $agent->status = $previousStatus;
                     $agent->save();
 
-                    Log::error('Paystack setup failed for Agent ID ' . $agent->id . ': ' . $e->getMessage());
+                    Log::error('Paystack setup failed for Agent ID '.$agent->id.': '.$e->getMessage());
 
-                    return back()->with('error', 'Approval failed: Could not complete Paystack setup. ' . $e->getMessage());
+                    return back()->with('error', 'Approval failed: Could not complete Paystack setup. '.$e->getMessage());
                 }
             }
         }
@@ -404,19 +404,20 @@ class GeneralController extends Controller
             $emailBody .= "Your unique agent referral code is: <h2 style='color:green;'>{$agent->unique_code}</h2><br>Use this code for your candidates.<br><br>";
         }
 
-        $emailBody .= 'Thank you for your interest in partnering with the ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . '.';
+        $emailBody .= 'Thank you for your interest in partnering with the '.\App\Models\SystemSetting::get('school_name', 'University of Offa').'.';
 
         $content = [
-            'title' => 'Hello ' . $agent->first_name . ',',
+            'title' => 'Hello '.$agent->first_name.',',
             'body' => $emailBody,
-            'footer' => 'Warm regards,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Admissions Team',
+            'footer' => 'Warm regards,<br>'.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Admissions Team',
         ];
 
         try {
             Mail::to($agent->email)->send(new GeneralMail($subject, $content, false));
         } catch (\Exception $e) {
-            Log::warning('Failed to send agent status email to ' . $agent->email . ': ' . $e->getMessage());
+            Log::warning('Failed to send agent status email to '.$agent->email.': '.$e->getMessage());
         }
+
         return back()->with('success', 'Agent status updated successfully.');
     }
 

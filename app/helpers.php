@@ -10,8 +10,8 @@ if (! function_exists('activeSession')) {
 
         // If user is authenticated
         if ($user) {
-            $student = clone $user->student;
-            $lecturer = clone $user->lecturer;
+            $student = $user->student ? clone $user->student : null;
+            $lecturer = $user->lecturer ? clone $user->lecturer : null;
 
             $userId = $user->id;
 
@@ -21,20 +21,23 @@ if (! function_exists('activeSession')) {
                 $q->whereJsonContains('students_ids', $userId)
                     ->orWhereJsonContains('lecturar_ids', $userId);
 
-                // 2. By Stream and Campus
+                // 2. By Stream
                 if ($student) {
                     $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->whereNotNull('stream')->whereJsonContains('stream', $student->stream);
-                        // also an optional campus check could go here if both must match, but usually it's one or the other or both.
-                        // For flexibility, if session has a stream match, we use it.
-                        // If it has a campus match, we use it.
-                        // Or you can match both if both are present on the session. Let's match if stream OR campus matches,
-                        // but if a session has BOTH, we should really match BOTH. The cleanest way:
-                        // "If session stream is X AND session campus_id is Y (ignoring nulls)"
+                        $subQ->whereNotNull('stream')->whereJsonContains('stream', (string) $student->stream);
                     });
+
+                    // 3. By Campus
                     $q->orWhere(function ($subQ) use ($student) {
                         $subQ->whereNotNull('campus_id')->whereJsonContains('campus_id', $student->campus_id);
                     });
+
+                    // 4. By Programme (student_type)
+                    if ($student->programme) {
+                        $q->orWhere(function ($subQ) use ($student) {
+                            $subQ->whereNotNull('programme')->whereJsonContains('programme', $student->programme);
+                        });
+                    }
                 }
             });
 
@@ -45,11 +48,13 @@ if (! function_exists('activeSession')) {
         }
 
         // Fallback to the globally active session (no overrides)
+        // students_ids / lecturar_ids / stream / programme may be stored as NULL or empty JSON array []
         return AcademicSession::where('status', '1')
-            ->whereNull('stream')
-            ->whereNull('campus_id')
-            ->whereNull('students_ids')
-            ->whereNull('lecturar_ids')
+            ->where(fn ($q) => $q->whereNull('stream')->orWhere('stream', '')->orWhere('stream', '[]'))
+            ->where(fn ($q) => $q->whereNull('campus_id')->orWhere('campus_id', ''))
+            ->where(fn ($q) => $q->whereNull('programme')->orWhereJsonLength('programme', 0))
+            ->where(fn ($q) => $q->whereNull('students_ids')->orWhereJsonLength('students_ids', 0))
+            ->where(fn ($q) => $q->whereNull('lecturar_ids')->orWhereJsonLength('lecturar_ids', 0))
             ->first();
     }
 }
@@ -60,8 +65,8 @@ if (! function_exists('activeSemester')) {
         $user = $user ?? auth()->user();
 
         if ($user) {
-            $student = clone $user->student;
-            $lecturer = clone $user->lecturer;
+            $student = $user->student ? clone $user->student : null;
+            $lecturer = $user->lecturer ? clone $user->lecturer : null;
 
             $userId = $user->id;
 
@@ -70,14 +75,23 @@ if (! function_exists('activeSemester')) {
                 $q->whereJsonContains('students_ids', $userId)
                     ->orWhereJsonContains('lecturar_ids', $userId);
 
-                // 2. By Stream and Campus
+                // 2. By Stream
                 if ($student) {
                     $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->whereNotNull('stream')->whereJsonContains('stream', $student->stream);
+                        $subQ->whereNotNull('stream')->whereJsonContains('stream', (string) $student->stream);
                     });
+
+                    // 3. By Campus
                     $q->orWhere(function ($subQ) use ($student) {
                         $subQ->whereNotNull('campus_id')->whereJsonContains('campus_id', $student->campus_id);
                     });
+
+                    // 4. By Programme (student_type)
+                    if ($student->programme) {
+                        $q->orWhere(function ($subQ) use ($student) {
+                            $subQ->whereNotNull('programme')->whereJsonContains('programme', $student->programme);
+                        });
+                    }
                 }
             });
 
@@ -87,11 +101,13 @@ if (! function_exists('activeSemester')) {
             }
         }
 
+        // students_ids / lecturar_ids / stream / programme may be stored as NULL or empty JSON array []
         return AcademicSemester::where('status', '1')
-            ->whereNull('stream')
-            ->whereNull('campus_id')
-            ->whereNull('students_ids')
-            ->whereNull('lecturar_ids')
+            ->where(fn ($q) => $q->whereNull('stream')->orWhere('stream', '')->orWhere('stream', '[]'))
+            ->where(fn ($q) => $q->whereNull('campus_id')->orWhere('campus_id', ''))
+            ->where(fn ($q) => $q->whereNull('programme')->orWhereJsonLength('programme', 0))
+            ->where(fn ($q) => $q->whereNull('students_ids')->orWhereJsonLength('students_ids', 0))
+            ->where(fn ($q) => $q->whereNull('lecturar_ids')->orWhereJsonLength('lecturar_ids', 0))
             ->first();
     }
 }

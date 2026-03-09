@@ -16,7 +16,7 @@ class AcademicSession extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'name', 'status', 'status_upload_result', 'lecturar_ids', 'students_ids', 'stream', 'campus_id'];
+    protected $fillable = ['id', 'name', 'status', 'status_upload_result', 'lecturar_ids', 'students_ids', 'stream', 'campus_id', 'programme'];
 
     protected function casts(): array
     {
@@ -27,6 +27,7 @@ class AcademicSession extends Model
             'lecturar_ids' => 'array',
             'stream' => 'array',
             'campus_id' => 'array',
+            'programme' => 'array',
         ];
     }
 

@@ -129,6 +129,19 @@
                                 <input type="text" name="stream" class="form-control"
                                     value="{{ old('stream', $student->stream) }}">
                             </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Campus</label>
+                                <select name="campus_id" class="form-select">
+                                    <option value="">-- Select Campus --</option>
+                                    @foreach($campuses as $campus)
+                                        <option value="{{ $campus->id }}"
+                                            {{ old('campus_id', $student->campus_id) == $campus->id ? 'selected' : '' }}>
+                                            {{ $campus->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mt-4">

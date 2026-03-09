@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers\Staff;
 
+use App\Exports\GenericExport;
+use App\Exports\TransactionsExport;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\{Transaction, PaymentSetting, Student, Faculty, Department, User, Campus};
+use App\Models\Campus;
+use App\Models\Department;
+use App\Models\Faculty;
+use App\Models\PaymentSetting;
+use App\Models\Student;
+use App\Models\Transaction;
+use App\Models\User;
 use App\Services\PaymentVerificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\{TransactionsExport, GenericExport};
 
 class BursaryController extends Controller
 {
@@ -81,17 +88,17 @@ class BursaryController extends Controller
         $allPaymentTypes = [];
 
         foreach ($campusBreakdownRaw as $row) {
-            if (!isset($campusBreakdown[$row->campus_name])) {
+            if (! isset($campusBreakdown[$row->campus_name])) {
                 $campusBreakdown[$row->campus_name] = [
                     'campus_id' => $row->campus_id,
-                    'types' => []
+                    'types' => [],
                 ];
             }
             $campusBreakdown[$row->campus_name]['types'][$row->payment_type] = [
                 'total' => $row->total,
                 'amount' => $row->total_amount,
             ];
-            if (!in_array($row->payment_type, $allPaymentTypes)) {
+            if (! in_array($row->payment_type, $allPaymentTypes)) {
                 $allPaymentTypes[] = $row->payment_type;
             }
         }
@@ -189,7 +196,7 @@ class BursaryController extends Controller
                     $q->orderBy('created_at', 'desc');
                 },
                 'user.campus',
-                'department.faculty'
+                'department.faculty',
             ])
                 ->where('matric_no', $matricQuery)
                 ->first();
@@ -210,7 +217,7 @@ class BursaryController extends Controller
             ->where('refernce_number', $reference)
             ->first();
 
-        if (!$transaction || $transaction->payment_status != 1) {
+        if (! $transaction || $transaction->payment_status != 1) {
             return back()->with('error', 'Transaction not found or not successful.');
         }
 
@@ -222,7 +229,7 @@ class BursaryController extends Controller
 
         $pdf = Pdf::loadView('general-payment-receipt', $data)->setPaper('A4', 'portrait');
 
-        return $pdf->download('Payment_Receipt_' . ($transaction->refernce_number ?? $transaction->reference) . '.pdf');
+        return $pdf->download('Payment_Receipt_'.($transaction->refernce_number ?? $transaction->reference).'.pdf');
     }
 
     public function transactions(Request $request)
@@ -258,6 +265,12 @@ class BursaryController extends Controller
             });
         }
 
+        if ($request->filled('username')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('username', 'like', "%{$request->username}%");
+            });
+        }
+
         if ($request->filled('campus_id')) {
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('campus_id', $request->campus_id);
@@ -271,6 +284,7 @@ class BursaryController extends Controller
 
         return view('staff.bursary.transactions', compact('transactions', 'paymentTypes', 'campuses'));
     }
+
     public function exportTransactions(Request $request, $format)
     {
         $query = Transaction::query()
@@ -318,11 +332,13 @@ class BursaryController extends Controller
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('staff.bursary.reports.transactions-pdf', compact('transactions'));
+
             return $pdf->download('transactions.pdf');
         }
 
         return back()->with('error', 'Invalid export format.');
     }
+
     /**
      * Show verify payment page — enter reference number manually.
      */
@@ -330,6 +346,7 @@ class BursaryController extends Controller
     {
         return view('staff.bursary.verify');
     }
+
     /**
      * Process verification from form input.
      */
@@ -342,7 +359,7 @@ class BursaryController extends Controller
         $reference = trim($request->reference);
         $transaction = Transaction::where('refernce_number', $reference)->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return back()->with('error', 'No transaction found for that reference number.');
         }
 
@@ -351,7 +368,7 @@ class BursaryController extends Controller
             $paymentService = new \App\Services\PaymentService('paystack');
             $verifyResponse = $paymentService->verifyPayment($reference);
         } catch (\Exception $e) {
-            return back()->with('error', 'Verification failed: ' . $e->getMessage());
+            return back()->with('error', 'Verification failed: '.$e->getMessage());
         }
 
         // Get raw data from Paystack response
@@ -367,7 +384,7 @@ class BursaryController extends Controller
             return back()->with([
                 'success' => 'Payment verified successfully!',
                 'verifyData' => [
-                    'payer_name' => $rawData['customer']['first_name'] ?? ($transaction->user->first_name . ' ' . $transaction->user->last_name ?? 'N/A'),
+                    'payer_name' => $rawData['customer']['first_name'] ?? ($transaction->user->first_name.' '.$transaction->user->last_name ?? 'N/A'),
                     'payer_email' => $rawData['customer']['email'] ?? ($transaction->user->email ?? 'N/A'),
                     'amount' => ($rawData['amount'] ?? 0) / 100, // Convert from kobo
                     'reference' => $rawData['reference'] ?? $reference,
@@ -375,14 +392,14 @@ class BursaryController extends Controller
                     'gateway_response' => $rawData['gateway_response'] ?? 'Approved',
                     'paid_at' => $rawData['paid_at'] ?? 'N/A',
                     'channel' => $rawData['channel'] ?? 'N/A',
-                ]
+                ],
             ]);
         } else {
             // Payment not successful
             return back()->with([
                 'error' => 'Payment verification failed.',
                 'verifyData' => [
-                    'payer_name' => $rawData['customer']['first_name'] ?? ($transaction->user->first_name . ' ' . $transaction->user->last_name ?? 'N/A'),
+                    'payer_name' => $rawData['customer']['first_name'] ?? ($transaction->user->first_name.' '.$transaction->user->last_name ?? 'N/A'),
                     'payer_email' => $rawData['customer']['email'] ?? ($transaction->user->email ?? 'N/A'),
                     'amount' => $transaction->amount ?? '0.00',
                     'reference' => $reference,
@@ -390,7 +407,7 @@ class BursaryController extends Controller
                     'gateway_response' => $rawData['gateway_response'] ?? ($verifyResponse['message'] ?? 'Payment not confirmed'),
                     'paid_at' => 'N/A',
                     'channel' => $rawData['channel'] ?? 'N/A',
-                ]
+                ],
             ]);
         }
     }
@@ -406,7 +423,7 @@ class BursaryController extends Controller
             return back()->with('info', 'This transaction is already marked successful.');
         }
 
-        $verifier = new PaymentVerificationService();
+        $verifier = new PaymentVerificationService;
         $verifyResponse = $verifier->verify($txn->refernce_number);
 
         $txn->refresh();
@@ -415,6 +432,7 @@ class BursaryController extends Controller
 
         return back()->with('success', 'Transaction verified successfully.');
     }
+
     //  REPORT BY FACULTY
     public function reportByFaculty(Request $request)
     {
@@ -429,7 +447,7 @@ class BursaryController extends Controller
                     $query->where('session', $selectedSession);
                 }
                 $query->whereNotIn('payment_type', $excludedTypes);
-            }
+            },
         ])->get();
 
         $groupedData = [];
@@ -443,10 +461,10 @@ class BursaryController extends Controller
                     $center = $student->user?->campus?->name ?? 'Main Campus';
 
                     // Initialize the array structure for this center and faculty if not exists
-                    if (!isset($groupedData[$center])) {
+                    if (! isset($groupedData[$center])) {
                         $groupedData[$center] = [];
                     }
-                    if (!isset($groupedData[$center][$facultyName])) {
+                    if (! isset($groupedData[$center][$facultyName])) {
                         $groupedData[$center][$facultyName] = [
                             'faculty' => $facultyName,
                             'total_students' => 0,
@@ -492,6 +510,7 @@ class BursaryController extends Controller
 
         return view('staff.bursary.reports.by_faculty', compact('data', 'sessions', 'selectedSession'));
     }
+
     //  REPORT BY DEPARTMENT
     public function reportByDepartment(Request $request)
     {
@@ -507,7 +526,7 @@ class BursaryController extends Controller
                     $query->where('session', $selectedSession);
                 }
                 $query->whereNotIn('payment_type', $excludedTypes);
-            }
+            },
         ])->get();
 
         $groupedData = [];
@@ -521,10 +540,10 @@ class BursaryController extends Controller
                 $center = $student->user?->campus?->name ?? 'Main Campus';
 
                 // Initialize the array structure for this center and department if not exists
-                if (!isset($groupedData[$center])) {
+                if (! isset($groupedData[$center])) {
                     $groupedData[$center] = [];
                 }
-                if (!isset($groupedData[$center][$departmentName])) {
+                if (! isset($groupedData[$center][$departmentName])) {
                     $groupedData[$center][$departmentName] = [
                         'faculty' => $facultyName,
                         'department' => $departmentName,
@@ -591,7 +610,7 @@ class BursaryController extends Controller
                 continue;
             }
 
-            if (!is_array($levelsArray)) {
+            if (! is_array($levelsArray)) {
                 continue;
             }
 
@@ -609,18 +628,18 @@ class BursaryController extends Controller
                             $query->where('session', $selectedSession);
                         }
                         $query->whereNotIn('payment_type', $excludedTypes);
-                    }
+                    },
                 ])->where('level', $level)->get();
 
                 foreach ($studentsInLevel as $student) {
                     // Determine the center
                     $center = $student->user?->campus?->name ?? 'Main Campus';
 
-                    if (!isset($groupedData[$center])) {
+                    if (! isset($groupedData[$center])) {
                         $groupedData[$center] = [];
                     }
 
-                    if (!isset($groupedData[$center][$level])) {
+                    if (! isset($groupedData[$center][$level])) {
                         $groupedData[$center][$level] = [
                             'level' => $level,
                             'total_students' => 0,
@@ -679,7 +698,7 @@ class BursaryController extends Controller
                 $query->whereNotIn('payment_type', $excludedTypes);
             },
             'user.campus',
-            'department.faculty'
+            'department.faculty',
         ])->get();
 
         $data = $students->map(function ($student) use ($selectedSession, $excludedTypes) {
@@ -715,7 +734,7 @@ class BursaryController extends Controller
     //  EXPORT HANDLER
     public function export(Request $request, $type, $format)
     {
-        $fileName = "report_{$type}." . $format;
+        $fileName = "report_{$type}.".$format;
 
         if ($format === 'pdf') {
             // First, dynamically get the data by calling the appropriate report method
@@ -737,6 +756,7 @@ class BursaryController extends Controller
 
             // Pass the generated data to the PDF view
             $pdf = PDF::loadView("staff.bursary.reports.exports.{$type}", compact('data'));
+
             return $pdf->download($fileName);
         }
 
@@ -782,13 +802,13 @@ class BursaryController extends Controller
         $user = User::where('username', $validated['identifier'])
             ->orWhere('email', $validated['identifier'])
             ->first();
-        if (!$user) {
+        if (! $user) {
             return back()->with('error', 'The student with that email or username or matric number does not exist in our record.')->withInput();
         }
 
         // Create new transaction
-        $transaction = new Transaction();
-        $transaction->refernce_number = strtolower($validated['payment_type']) . '_' . Transaction::generateReferenceNumber();
+        $transaction = new Transaction;
+        $transaction->refernce_number = strtolower($validated['payment_type']).'_'.Transaction::generateReferenceNumber();
         $transaction->user_id = $user->id;
         $transaction->payment_type = $validated['payment_type'];
         $transaction->amount = $validated['amount'];
@@ -817,6 +837,7 @@ class BursaryController extends Controller
         ]);
 
         $transaction->update($validated);
+
         return back()->with('success', 'Manual transaction updated successfully.');
     }
 
@@ -826,6 +847,7 @@ class BursaryController extends Controller
             return back()->with('error', 'Only manual transactions can be deleted.');
         }
         $transaction->delete();
+
         return back()->with('success', 'Manual transaction deleted successfully.');
     }
 }

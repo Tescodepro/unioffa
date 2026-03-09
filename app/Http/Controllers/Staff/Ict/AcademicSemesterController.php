@@ -12,8 +12,9 @@ class AcademicSemesterController extends Controller
     {
         $semesters = AcademicSemester::orderBy('name', 'asc')->get();
         $campuses = \App\Models\Campus::all();
+        $entryModes = \App\Models\EntryMode::orderBy('name')->get();
 
-        return view('staff.ict.academic-setup.semesters', compact('semesters', 'campuses'));
+        return view('staff.ict.academic-setup.semesters', compact('semesters', 'campuses', 'entryModes'));
     }
 
     public function store(Request $request)
@@ -24,32 +25,35 @@ class AcademicSemesterController extends Controller
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
             'stream' => 'nullable|array',
-            'stream.*' => 'string|max:50',
+            'stream.*' => 'string|max:10',
             'campus_id' => 'nullable|array',
             'campus_id.*' => 'uuid',
+            'programme' => 'nullable|array',
+            'programme.*' => 'string|max:100',
             'students_ids' => 'nullable|array',
             'lecturar_ids' => 'nullable|array',
         ]);
 
         if ($validated['status'] == '1') {
-            // Unset active status only for semesters with the EXACT same scope
             $query = AcademicSemester::where('status', '1');
 
             if (! empty($validated['stream'])) {
                 $query->whereJsonContains('stream', $validated['stream']);
             } else {
-                $query->whereNull('stream');
+                $query->where(fn ($q) => $q->whereNull('stream')->orWhereJsonLength('stream', 0));
             }
 
             if (! empty($validated['campus_id'])) {
                 $query->whereJsonContains('campus_id', $validated['campus_id']);
             } else {
-                $query->whereNull('campus_id');
+                $query->where(fn ($q) => $q->whereNull('campus_id')->orWhere('campus_id', ''));
             }
 
-            // Note: Exact JSON matching for students/lecturers is tricky and edge-casey.
-            // Usually, these overrides are stream/campus level. If they are specific students,
-            // we'll assume they don't broadly conflict unless they share the same scope context.
+            if (! empty($validated['programme'])) {
+                $query->whereJsonContains('programme', $validated['programme']);
+            } else {
+                $query->where(fn ($q) => $q->whereNull('programme')->orWhereJsonLength('programme', 0));
+            }
 
             $query->update(['status' => '0']);
         }
@@ -69,9 +73,11 @@ class AcademicSemesterController extends Controller
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
             'stream' => 'nullable|array',
-            'stream.*' => 'string|max:50',
+            'stream.*' => 'string|max:10',
             'campus_id' => 'nullable|array',
             'campus_id.*' => 'uuid',
+            'programme' => 'nullable|array',
+            'programme.*' => 'string|max:100',
             'students_ids' => 'nullable|array',
             'lecturar_ids' => 'nullable|array',
         ]);
@@ -82,13 +88,19 @@ class AcademicSemesterController extends Controller
             if (! empty($validated['stream'])) {
                 $query->whereJsonContains('stream', $validated['stream']);
             } else {
-                $query->whereNull('stream');
+                $query->where(fn ($q) => $q->whereNull('stream')->orWhereJsonLength('stream', 0));
             }
 
             if (! empty($validated['campus_id'])) {
                 $query->whereJsonContains('campus_id', $validated['campus_id']);
             } else {
-                $query->whereNull('campus_id');
+                $query->where(fn ($q) => $q->whereNull('campus_id')->orWhere('campus_id', ''));
+            }
+
+            if (! empty($validated['programme'])) {
+                $query->whereJsonContains('programme', $validated['programme']);
+            } else {
+                $query->where(fn ($q) => $q->whereNull('programme')->orWhereJsonLength('programme', 0));
             }
 
             $query->update(['status' => '0']);

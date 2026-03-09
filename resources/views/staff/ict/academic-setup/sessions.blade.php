@@ -60,10 +60,11 @@
                                                     <td>
                                                         @if(!empty($session->stream))
                                                             <span class="badge bg-primary-transparent mb-1" title="Streams">
-                                                                <i class="ti ti-activity border-end pe-1 me-1"></i> {{ implode(', ', $session->stream) }}
+                                                                <i class="ti ti-activity border-end pe-1 me-1"></i>
+                                                                Stream {{ implode(', ', $session->stream) }}
                                                             </span><br>
                                                         @endif
-                                                        
+
                                                         @if(!empty($session->campus_id))
                                                             <span class="badge bg-secondary-transparent mb-1" title="Campuses">
                                                                 <i class="ti ti-map-pin border-end pe-1 me-1"></i>
@@ -72,20 +73,27 @@
                                                                 @endforeach
                                                             </span><br>
                                                         @endif
-                                                        
+
+                                                        @if(!empty($session->programme))
+                                                            <span class="badge bg-success-transparent mb-1" title="Programmes">
+                                                                <i class="ti ti-school border-end pe-1 me-1"></i>
+                                                                {{ implode(', ', $session->programme) }}
+                                                            </span><br>
+                                                        @endif
+
                                                         @if(!empty($session->students_ids))
                                                             <span class="badge bg-info-transparent mb-1" title="Specific Students">
                                                                 <i class="ti ti-users border-end pe-1 me-1"></i> {{ count($session->students_ids) }} Student(s)
                                                             </span><br>
                                                         @endif
-                                                        
+
                                                         @if(!empty($session->lecturar_ids))
                                                             <span class="badge bg-warning-transparent mb-1" title="Specific Staff">
                                                                 <i class="ti ti-users border-end pe-1 me-1"></i> {{ count($session->lecturar_ids) }} Staff
                                                             </span><br>
                                                         @endif
-                                                        
-                                                        @if(empty($session->stream) && empty($session->campus_id) && empty($session->students_ids) && empty($session->lecturar_ids))
+
+                                                        @if(empty($session->stream) && empty($session->campus_id) && empty($session->programme) && empty($session->students_ids) && empty($session->lecturar_ids))
                                                             <span class="badge bg-light text-dark shadow-sm">Global Default</span>
                                                         @endif
                                                     </td>
@@ -125,9 +133,10 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Add Modal -->
                 <div class="modal fade" id="addSessionModal" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <form action="{{ route('ict.sessions.store') }}" method="POST">
                                 @csrf
@@ -137,54 +146,68 @@
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="form-label">Session Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="name" placeholder="e.g., 2024/2025"
-                                            required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Session Status</label>
-                                        <select class="form-select" name="status">
-                                            <option value="1">Active</option>
-                                            <option value="0" selected>Inactive</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Result Upload Status</label>
-                                        <select class="form-select" name="status_upload_result">
-                                            <option value="1">Enabled</option>
-                                            <option value="0" selected>Disabled</option>
-                                        </select>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Session Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="name" placeholder="e.g., 2024/2025"
+                                                required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Session Status</label>
+                                            <select class="form-select" name="status">
+                                                <option value="1">Active</option>
+                                                <option value="0" selected>Inactive</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Result Upload</label>
+                                            <select class="form-select" name="status_upload_result">
+                                                <option value="1">Enabled</option>
+                                                <option value="0" selected>Disabled</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     <hr>
-                                    <h6 class="mb-3 text-muted">Overrides <small class="(optional)">(Optional)</small></h6>
-                                    <div class="mb-3">
-                                        <label class="form-label">Limit to Stream</label>
-                                        <select class="form-select select2-stream" name="stream[]" multiple="multiple">
-                                            @foreach(\App\Models\EntryMode::all() as $stream)
-                                                <option value="{{ $stream->name }}">{{ $stream->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Limit to Campus</label>
-                                        <select class="form-select select2-campus" name="campus_id[]" multiple="multiple">
-                                            @foreach($campuses as $campus)
-                                                <option value="{{ $campus->id }}">{{ $campus->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Specific Students</label>
-                                        <select class="form-control select2-students" name="students_ids[]"
-                                            multiple="multiple">
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Specific Lecturers</label>
-                                        <select class="form-control select2-lecturers" name="lecturar_ids[]"
-                                            multiple="multiple">
-                                        </select>
+                                    <p class="text-muted small mb-3"><i class="ti ti-info-circle me-1"></i>
+                                        Leave overrides blank to apply globally to all students.</p>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Limit to Stream</label>
+                                            <select class="form-select select2-stream" name="stream[]" multiple="multiple">
+                                                <option value="1">Stream 1</option>
+                                                <option value="2">Stream 2</option>
+                                                <option value="3">Stream 3</option>
+                                                <option value="4">Stream 4</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Limit to Campus</label>
+                                            <select class="form-select select2-campus" name="campus_id[]" multiple="multiple">
+                                                @foreach($campuses as $campus)
+                                                    <option value="{{ $campus->id }}">{{ $campus->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Limit to Programme</label>
+                                            <select class="form-select select2-programme" name="programme[]" multiple="multiple">
+                                                @foreach($entryModes->pluck('student_type')->unique() as $type)
+                                                    <option value="{{ $type }}">{{ $type }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Specific Students</label>
+                                            <select class="form-control select2-students" name="students_ids[]"
+                                                multiple="multiple">
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Specific Lecturers</label>
+                                            <select class="form-control select2-lecturers" name="lecturar_ids[]"
+                                                multiple="multiple">
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
@@ -196,102 +219,109 @@
                     </div>
                 </div>
 
-
-
-
-
                 @foreach ($sessions as $session)
                     <!-- Edit Modal -->
                     <div class="modal fade" id="editSessionModal{{ $session->id }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <form action="{{ route('ict.sessions.update', $session->id) }}" method="POST">
                                     @csrf
                                     @method('PUT')
                                     <div class="modal-header">
-                                        <h5 class="modal-title">Edit Session</h5>
+                                        <h5 class="modal-title">Edit Session — {{ $session->name }}</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Session Name <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" name="name" value="{{ $session->name }}"
-                                                placeholder="2023/2024" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Session Status</label>
-                                            <select class="form-select" name="status">
-                                                <option value="1" {{ $session->status == '1' ? 'selected' : '' }}>Active</option>
-                                                <option value="0" {{ $session->status == '0' ? 'selected' : '' }}>Inactive
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Result Upload Status</label>
-                                            <select class="form-select" name="status_upload_result">
-                                                <option value="1" {{ $session->status_upload_result == '1' ? 'selected' : '' }}>
-                                                    Enabled</option>
-                                                <option value="0" {{ $session->status_upload_result == '0' ? 'selected' : '' }}>
-                                                    Disabled</option>
-                                            </select>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Session Name <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" name="name" value="{{ $session->name }}"
+                                                    placeholder="2023/2024" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Session Status</label>
+                                                <select class="form-select" name="status">
+                                                    <option value="1" {{ $session->status == '1' ? 'selected' : '' }}>Active</option>
+                                                    <option value="0" {{ $session->status == '0' ? 'selected' : '' }}>Inactive</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Result Upload</label>
+                                                <select class="form-select" name="status_upload_result">
+                                                    <option value="1" {{ $session->status_upload_result == '1' ? 'selected' : '' }}>Enabled</option>
+                                                    <option value="0" {{ $session->status_upload_result == '0' ? 'selected' : '' }}>Disabled</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <hr>
-                                        <h6 class="mb-3 text-muted">Overrides <small class="(optional)">(Optional)</small></h6>
-                                        <div class="mb-3">
-                                            <label class="form-label">Limit to Stream</label>
-                                            <select class="form-select select2-stream" name="stream[]" multiple="multiple">
-                                                @foreach(\App\Models\EntryMode::all() as $stream)
-                                                    <option value="{{ $stream->name }}" {{ is_array($session->stream) && in_array($stream->name, $session->stream) ? 'selected' : '' }}>
-                                                        {{ $stream->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Limit to Campus</label>
-                                            <select class="form-select select2-campus" name="campus_id[]" multiple="multiple">
-                                                @foreach($campuses as $campus)
-                                                    <option value="{{ $campus->id }}" {{ is_array($session->campus_id) && in_array($campus->id, $session->campus_id) ? 'selected' : '' }}>
-                                                        {{ $campus->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Specific Students</label>
-                                            <select class="form-control select2-students" name="students_ids[]"
-                                                multiple="multiple">
-                                                @if(is_array($session->students_ids))
-                                                    @foreach($session->students_ids as $sid)
-                                                        @php $usr = \App\Models\User::find($sid); @endphp
-                                                        @if($usr)
-                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }}
-                                                                {{ $usr->last_name }}</option>
-                                                        @endif
+                                        <p class="text-muted small mb-3"><i class="ti ti-info-circle me-1"></i>
+                                            Leave overrides blank to apply globally to all students.</p>
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Limit to Stream</label>
+                                                <select class="form-select select2-stream" name="stream[]" multiple="multiple">
+                                                    @foreach(['1','2','3','4'] as $num)
+                                                        <option value="{{ $num }}" {{ is_array($session->stream) && in_array($num, $session->stream) ? 'selected' : '' }}>
+                                                            Stream {{ $num }}
+                                                        </option>
                                                     @endforeach
-                                                @endif
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Specific Lecturers</label>
-                                            <select class="form-control select2-lecturers" name="lecturar_ids[]"
-                                                multiple="multiple">
-                                                @if(is_array($session->lecturar_ids))
-                                                    @foreach($session->lecturar_ids as $lid)
-                                                        @php $usr = \App\Models\User::find($lid); @endphp
-                                                        @if($usr)
-                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }}
-                                                                {{ $usr->last_name }}</option>
-                                                        @endif
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Limit to Campus</label>
+                                                <select class="form-select select2-campus" name="campus_id[]" multiple="multiple">
+                                                    @foreach($campuses as $campus)
+                                                        <option value="{{ $campus->id }}" {{ is_array($session->campus_id) && in_array($campus->id, $session->campus_id) ? 'selected' : '' }}>
+                                                            {{ $campus->name }}</option>
                                                     @endforeach
-                                                @endif
-                                            </select>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Limit to Programme</label>
+                                                <select class="form-select select2-programme" name="programme[]" multiple="multiple">
+                                                    @foreach($entryModes->pluck('student_type')->unique() as $type)
+                                                        <option value="{{ $type }}" {{ is_array($session->programme) && in_array($type, $session->programme) ? 'selected' : '' }}>
+                                                            {{ $type }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Specific Students</label>
+                                                <select class="form-control select2-students" name="students_ids[]"
+                                                    multiple="multiple">
+                                                    @if(is_array($session->students_ids))
+                                                        @foreach($session->students_ids as $sid)
+                                                            @php $usr = \App\Models\User::find($sid); @endphp
+                                                            @if($usr)
+                                                                <option value="{{ $usr->id }}" selected>{{ $usr->first_name }}
+                                                                    {{ $usr->last_name }}</option>
+                                                            @endif
+                                                        @endforeach
+                                                    @endif
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Specific Lecturers</label>
+                                                <select class="form-control select2-lecturers" name="lecturar_ids[]"
+                                                    multiple="multiple">
+                                                    @if(is_array($session->lecturar_ids))
+                                                        @foreach($session->lecturar_ids as $lid)
+                                                            @php $usr = \App\Models\User::find($lid); @endphp
+                                                            @if($usr)
+                                                                <option value="{{ $usr->id }}" selected>{{ $usr->first_name }}
+                                                                    {{ $usr->last_name }}</option>
+                                                            @endif
+                                                        @endforeach
+                                                    @endif
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Save
-                                            Changes</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
                                     </div>
                                 </form>
                             </div>
@@ -321,8 +351,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-danger">Yes,
-                                            Delete</button>
+                                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
                                     </div>
                                 </form>
                             </div>
@@ -346,16 +375,8 @@
                     url: "{{ route('ict.search.students') }}",
                     dataType: 'json',
                     delay: 250,
-                    data: function (params) {
-                        return {
-                            q: params.term
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data.results
-                        };
-                    },
+                    data: function (params) { return { q: params.term }; },
+                    processResults: function (data) { return { results: data.results }; },
                     cache: true
                 }
             });
@@ -368,64 +389,56 @@
                     url: "{{ route('ict.search.lecturers') }}",
                     dataType: 'json',
                     delay: 250,
-                    data: function (params) {
-                        return {
-                            q: params.term
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data.results
-                        };
-                    },
+                    data: function (params) { return { q: params.term }; },
+                    processResults: function (data) { return { results: data.results }; },
                     cache: true
                 }
             });
 
-            $('.select2-stream').select2({
-                placeholder: "-- Apply to all Streams --",
-                allowClear: true,
-                dropdownParent: $('.modal')
-            });
-
-            $('.select2-campus').select2({
-                placeholder: "-- Apply to all Campuses --",
-                allowClear: true,
-                dropdownParent: $('.modal')
-            });
-
-            // Re-initialize for modals that are opened dynamically
+            // Re-initialize selects inside each modal when opened
             $('.modal').on('shown.bs.modal', function () {
-                $(this).find('.select2-stream').select2({
-                    placeholder: "-- Apply to all Streams --",
-                    dropdownParent: $(this)
+                var $modal = $(this);
+
+                $modal.find('.select2-stream').select2({
+                    placeholder: "-- All Streams --",
+                    allowClear: true,
+                    dropdownParent: $modal
                 });
 
-                $(this).find('.select2-campus').select2({
-                    placeholder: "-- Apply to all Campuses --",
-                    dropdownParent: $(this)
+                $modal.find('.select2-campus').select2({
+                    placeholder: "-- All Campuses --",
+                    allowClear: true,
+                    dropdownParent: $modal
                 });
 
-                $(this).find('.select2-students').select2({
+                $modal.find('.select2-programme').select2({
+                    placeholder: "-- All Programmes --",
+                    allowClear: true,
+                    dropdownParent: $modal
+                });
+
+                $modal.find('.select2-students').select2({
                     placeholder: "Search for specific students by matric/name",
+                    allowClear: true,
                     ajax: {
                         url: "{{ route('ict.search.students') }}",
                         dataType: 'json',
                         delay: 250,
                         processResults: function (data) { return { results: data.results }; }
                     },
-                    dropdownParent: $(this)
+                    dropdownParent: $modal
                 });
 
-                $(this).find('.select2-lecturers').select2({
+                $modal.find('.select2-lecturers').select2({
                     placeholder: "Search for specific lecturers by name/staff no",
+                    allowClear: true,
                     ajax: {
                         url: "{{ route('ict.search.lecturers') }}",
                         dataType: 'json',
                         delay: 250,
                         processResults: function (data) { return { results: data.results }; }
                     },
-                    dropdownParent: $(this)
+                    dropdownParent: $modal
                 });
             });
         });
