@@ -16,7 +16,12 @@ class AcademicSession extends Model
 
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'name', 'status', 'status_upload_result', 'lecturar_ids', 'students_ids'];
+    protected $fillable = ['id', 'name', 'status', 'status_upload_result', 'lecturar_ids', 'students_ids', 'stream', 'campus_id'];
+
+    protected $casts = [
+        'students_ids' => 'array',
+        'lecturar_ids' => 'array',
+    ];
 
     protected static function boot()
     {

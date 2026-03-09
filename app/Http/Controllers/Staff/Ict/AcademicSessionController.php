@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Staff\Ict;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\AcademicSession;
+use Illuminate\Http\Request;
 
 class AcademicSessionController extends Controller
 {
     public function index()
     {
         $sessions = AcademicSession::orderBy('name', 'desc')->get();
-        return view('staff.ict.academic-setup.sessions', compact('sessions'));
+        $campuses = \App\Models\Campus::all();
+
+        return view('staff.ict.academic-setup.sessions', compact('sessions', 'campuses'));
     }
 
     public function store(Request $request)
@@ -21,10 +22,33 @@ class AcademicSessionController extends Controller
             'name' => 'required|string|max:50|unique:academic_sessions',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
+            'stream' => 'nullable|string|max:50',
+            'campus_id' => 'nullable|uuid',
+            'students_ids' => 'nullable|array',
+            'lecturar_ids' => 'nullable|array',
         ]);
 
         if ($validated['status'] == '1') {
-            AcademicSession::where('status', '1')->update(['status' => '0']);
+            // Unset active status only for sessions with the EXACT same scope
+            $query = AcademicSession::where('status', '1');
+
+            if (! empty($validated['stream'])) {
+                $query->where('stream', $validated['stream']);
+            } else {
+                $query->whereNull('stream');
+            }
+
+            if (! empty($validated['campus_id'])) {
+                $query->where('campus_id', $validated['campus_id']);
+            } else {
+                $query->whereNull('campus_id');
+            }
+
+            // Note: Exact JSON matching for students/lecturers is tricky and edge-casey.
+            // Usually, these overrides are stream/campus level. If they are specific students,
+            // we'll assume they don't broadly conflict unless they share the same scope context.
+
+            $query->update(['status' => '0']);
         }
 
         AcademicSession::create($validated);
@@ -37,15 +61,31 @@ class AcademicSessionController extends Controller
         $session = AcademicSession::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:academic_sessions,name,' . $session->id,
+            'name' => 'required|string|max:50|unique:academic_sessions,name,'.$session->id,
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
+            'stream' => 'nullable|string|max:50',
+            'campus_id' => 'nullable|uuid',
+            'students_ids' => 'nullable|array',
+            'lecturar_ids' => 'nullable|array',
         ]);
 
         if ($validated['status'] == '1' && $session->status != '1') {
-            AcademicSession::where('id', '!=', $session->id)
-                ->where('status', '1')
-                ->update(['status' => '0']);
+            $query = AcademicSession::where('id', '!=', $session->id)->where('status', '1');
+
+            if (! empty($validated['stream'])) {
+                $query->where('stream', $validated['stream']);
+            } else {
+                $query->whereNull('stream');
+            }
+
+            if (! empty($validated['campus_id'])) {
+                $query->where('campus_id', $validated['campus_id']);
+            } else {
+                $query->whereNull('campus_id');
+            }
+
+            $query->update(['status' => '0']);
         }
 
         $session->update($validated);

@@ -123,6 +123,35 @@
                                             <option value="0" selected>Disabled</option>
                                         </select>
                                     </div>
+                                    <hr>
+                                    <h6 class="mb-3 text-muted">Overrides <small class="(optional)">(Optional)</small></h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Limit to Stream</label>
+                                        <select class="form-select" name="stream">
+                                            <option value="">-- Apply to all Streams --</option>
+                                            <option value="Full-Time">Full-Time</option>
+                                            <option value="Part-Time">Part-Time</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Limit to Campus</label>
+                                        <select class="form-select" name="campus_id">
+                                            <option value="">-- Apply to all Campuses --</option>
+                                            @foreach($campuses as $campus)
+                                                <option value="{{ $campus->id }}">{{ $campus->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Specific Students</label>
+                                        <select class="form-control select2-students" name="students_ids[]" multiple="multiple">
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Specific Lecturers</label>
+                                        <select class="form-control select2-lecturers" name="lecturar_ids[]" multiple="multiple">
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -173,6 +202,51 @@
                                                     Disabled</option>
                                             </select>
                                         </div>
+                                        <hr>
+                                        <h6 class="mb-3 text-muted">Overrides <small class="(optional)">(Optional)</small></h6>
+                                        <div class="mb-3">
+                                            <label class="form-label">Limit to Stream</label>
+                                            <select class="form-select" name="stream">
+                                                <option value="">-- Apply to all Streams --</option>
+                                                <option value="Full-Time" {{ $session->stream === 'Full-Time' ? 'selected' : '' }}>Full-Time</option>
+                                                <option value="Part-Time" {{ $session->stream === 'Part-Time' ? 'selected' : '' }}>Part-Time</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Limit to Campus</label>
+                                            <select class="form-select" name="campus_id">
+                                                <option value="">-- Apply to all Campuses --</option>
+                                                @foreach($campuses as $campus)
+                                                    <option value="{{ $campus->id }}" {{ $session->campus_id === $campus->id ? 'selected' : '' }}>{{ $campus->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Specific Students</label>
+                                            <select class="form-control select2-students" name="students_ids[]" multiple="multiple">
+                                                @if(is_array($session->students_ids))
+                                                    @foreach($session->students_ids as $sid)
+                                                        @php $usr = \App\Models\User::find($sid); @endphp
+                                                        @if($usr)
+                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }} {{ $usr->last_name }}</option>
+                                                        @endif
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Specific Lecturers</label>
+                                            <select class="form-control select2-lecturers" name="lecturar_ids[]" multiple="multiple">
+                                                @if(is_array($session->lecturar_ids))
+                                                    @foreach($session->lecturar_ids as $lid)
+                                                        @php $usr = \App\Models\User::find($lid); @endphp
+                                                        @if($usr)
+                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }} {{ $usr->last_name }}</option>
+                                                        @endif
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                        </div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -220,3 +294,78 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('.select2-students').select2({
+        placeholder: "Search for specific students by matric/name",
+        allowClear: true,
+        dropdownParent: $('.modal'),
+        ajax: {
+            url: "{{ route('ict.search.students') }}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        }
+    });
+
+    $('.select2-lecturers').select2({
+        placeholder: "Search for specific lecturers by name/staff no",
+        allowClear: true,
+        dropdownParent: $('.modal'),
+        ajax: {
+            url: "{{ route('ict.search.lecturers') }}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                return {
+                    results: data.results
+                };
+            },
+            cache: true
+        }
+    });
+
+    // Re-initialize for modals that are opened dynamically
+    $('.modal').on('shown.bs.modal', function () {
+        $(this).find('.select2-students').select2({
+            placeholder: "Search for specific students by matric/name",
+            ajax: {
+                url: "{{ route('ict.search.students') }}",
+                dataType: 'json',
+                delay: 250,
+                processResults: function (data) { return { results: data.results }; }
+            },
+            dropdownParent: $(this)
+        });
+        
+        $(this).find('.select2-lecturers').select2({
+            placeholder: "Search for specific lecturers by name/staff no",
+            ajax: {
+                url: "{{ route('ict.search.lecturers') }}",
+                dataType: 'json',
+                delay: 250,
+                processResults: function (data) { return { results: data.results }; }
+            },
+            dropdownParent: $(this)
+        });
+    });
+});
+</script>
+@endpush

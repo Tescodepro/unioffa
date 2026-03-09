@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Staff\Ict;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\AcademicSemester;
+use Illuminate\Http\Request;
 
 class AcademicSemesterController extends Controller
 {
     public function index()
     {
         $semesters = AcademicSemester::orderBy('name', 'asc')->get();
-        return view('staff.ict.academic-setup.semesters', compact('semesters'));
+        $campuses = \App\Models\Campus::all();
+
+        return view('staff.ict.academic-setup.semesters', compact('semesters', 'campuses'));
     }
 
     public function store(Request $request)
@@ -22,10 +23,29 @@ class AcademicSemesterController extends Controller
             'code' => 'required|string|max:10|unique:academic_semesters',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
+            'stream' => 'nullable|string|max:50',
+            'campus_id' => 'nullable|uuid',
+            'students_ids' => 'nullable|array',
+            'lecturar_ids' => 'nullable|array',
         ]);
 
         if ($validated['status'] == '1') {
-            AcademicSemester::where('status', '1')->update(['status' => '0']);
+            // Unset active status only for semesters with the EXACT same scope
+            $query = AcademicSemester::where('status', '1');
+
+            if (! empty($validated['stream'])) {
+                $query->where('stream', $validated['stream']);
+            } else {
+                $query->whereNull('stream');
+            }
+
+            if (! empty($validated['campus_id'])) {
+                $query->where('campus_id', $validated['campus_id']);
+            } else {
+                $query->whereNull('campus_id');
+            }
+
+            $query->update(['status' => '0']);
         }
 
         AcademicSemester::create($validated);
@@ -38,16 +58,32 @@ class AcademicSemesterController extends Controller
         $semester = AcademicSemester::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:academic_semesters,name,' . $semester->id,
-            'code' => 'required|string|max:10|unique:academic_semesters,code,' . $semester->id,
+            'name' => 'required|string|max:50|unique:academic_semesters,name,'.$semester->id,
+            'code' => 'required|string|max:10|unique:academic_semesters,code,'.$semester->id,
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
+            'stream' => 'nullable|string|max:50',
+            'campus_id' => 'nullable|uuid',
+            'students_ids' => 'nullable|array',
+            'lecturar_ids' => 'nullable|array',
         ]);
 
         if ($validated['status'] == '1' && $semester->status != '1') {
-            AcademicSemester::where('id', '!=', $semester->id)
-                ->where('status', '1')
-                ->update(['status' => '0']);
+            $query = AcademicSemester::where('id', '!=', $semester->id)->where('status', '1');
+
+            if (! empty($validated['stream'])) {
+                $query->where('stream', $validated['stream']);
+            } else {
+                $query->whereNull('stream');
+            }
+
+            if (! empty($validated['campus_id'])) {
+                $query->where('campus_id', $validated['campus_id']);
+            } else {
+                $query->whereNull('campus_id');
+            }
+
+            $query->update(['status' => '0']);
         }
 
         $semester->update($validated);

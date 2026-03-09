@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\Application\AdmittedStudentsDownloadController;
+use App\Http\Controllers\Application\ApplicationController;
 use App\Http\Controllers\CourseRegistrationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PaymentController;
@@ -213,7 +213,6 @@ Route::prefix('staff')->group(function () {
         });
     });
 
-
     // Student Management & Admitted Students Download
     Route::middleware(['auth', 'dynamic.permission'])->group(function () {
         Route::controller(AdmittedStudentsDownloadController::class)->group(function () {
@@ -417,6 +416,11 @@ Route::prefix('staff')->group(function () {
             Route::post('/semesters', 'store')->name('ict.semesters.store');
             Route::put('/semesters/{id}', 'update')->name('ict.semesters.update');
             Route::delete('/semesters/{id}', 'destroy')->name('ict.semesters.destroy');
+        });
+
+        Route::controller(\App\Http\Controllers\Staff\Ict\UserSearchController::class)->group(function () {
+            Route::get('/api/search/students', 'searchStudents')->name('ict.search.students');
+            Route::get('/api/search/lecturers', 'searchLecturers')->name('ict.search.lecturers');
         });
     });
 });
