@@ -23,8 +23,10 @@ class AcademicSemesterController extends Controller
             'code' => 'required|string|max:10|unique:academic_semesters',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
-            'stream' => 'nullable|string|max:50',
-            'campus_id' => 'nullable|uuid',
+            'stream' => 'nullable|array',
+            'stream.*' => 'string|max:50',
+            'campus_id' => 'nullable|array',
+            'campus_id.*' => 'uuid',
             'students_ids' => 'nullable|array',
             'lecturar_ids' => 'nullable|array',
         ]);
@@ -34,16 +36,20 @@ class AcademicSemesterController extends Controller
             $query = AcademicSemester::where('status', '1');
 
             if (! empty($validated['stream'])) {
-                $query->where('stream', $validated['stream']);
+                $query->whereJsonContains('stream', $validated['stream']);
             } else {
                 $query->whereNull('stream');
             }
 
             if (! empty($validated['campus_id'])) {
-                $query->where('campus_id', $validated['campus_id']);
+                $query->whereJsonContains('campus_id', $validated['campus_id']);
             } else {
                 $query->whereNull('campus_id');
             }
+
+            // Note: Exact JSON matching for students/lecturers is tricky and edge-casey.
+            // Usually, these overrides are stream/campus level. If they are specific students,
+            // we'll assume they don't broadly conflict unless they share the same scope context.
 
             $query->update(['status' => '0']);
         }
@@ -62,8 +68,10 @@ class AcademicSemesterController extends Controller
             'code' => 'required|string|max:10|unique:academic_semesters,code,'.$semester->id,
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
-            'stream' => 'nullable|string|max:50',
-            'campus_id' => 'nullable|uuid',
+            'stream' => 'nullable|array',
+            'stream.*' => 'string|max:50',
+            'campus_id' => 'nullable|array',
+            'campus_id.*' => 'uuid',
             'students_ids' => 'nullable|array',
             'lecturar_ids' => 'nullable|array',
         ]);
@@ -72,13 +80,13 @@ class AcademicSemesterController extends Controller
             $query = AcademicSemester::where('id', '!=', $semester->id)->where('status', '1');
 
             if (! empty($validated['stream'])) {
-                $query->where('stream', $validated['stream']);
+                $query->whereJsonContains('stream', $validated['stream']);
             } else {
                 $query->whereNull('stream');
             }
 
             if (! empty($validated['campus_id'])) {
-                $query->where('campus_id', $validated['campus_id']);
+                $query->whereJsonContains('campus_id', $validated['campus_id']);
             } else {
                 $query->whereNull('campus_id');
             }

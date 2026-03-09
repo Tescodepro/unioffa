@@ -133,16 +133,15 @@
                                     <h6 class="mb-3 text-muted">Overrides <small class="(optional)">(Optional)</small></h6>
                                     <div class="mb-3">
                                         <label class="form-label">Limit to Stream</label>
-                                        <select class="form-select" name="stream">
-                                            <option value="">-- Apply to all Streams --</option>
-                                            <option value="Full-Time">Full-Time</option>
-                                            <option value="Part-Time">Part-Time</option>
+                                        <select class="form-select select2-stream" name="stream[]" multiple="multiple">
+                                            @foreach(\App\Models\EntryMode::all() as $stream)
+                                                <option value="{{ $stream->name }}">{{ $stream->name }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Limit to Campus</label>
-                                        <select class="form-select" name="campus_id">
-                                            <option value="">-- Apply to all Campuses --</option>
+                                        <select class="form-select select2-campus" name="campus_id[]" multiple="multiple">
                                             @foreach($campuses as $campus)
                                                 <option value="{{ $campus->id }}">{{ $campus->name }}</option>
                                             @endforeach
@@ -150,12 +149,14 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Specific Students</label>
-                                        <select class="form-control select2-students" name="students_ids[]" multiple="multiple">
+                                        <select class="form-control select2-students" name="students_ids[]"
+                                            multiple="multiple">
                                         </select>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Specific Lecturers</label>
-                                        <select class="form-control select2-lecturers" name="lecturar_ids[]" multiple="multiple">
+                                        <select class="form-control select2-lecturers" name="lecturar_ids[]"
+                                            multiple="multiple">
                                         </select>
                                     </div>
                                 </div>
@@ -217,29 +218,33 @@
                                         <h6 class="mb-3 text-muted">Overrides <small class="(optional)">(Optional)</small></h6>
                                         <div class="mb-3">
                                             <label class="form-label">Limit to Stream</label>
-                                            <select class="form-select" name="stream">
-                                                <option value="">-- Apply to all Streams --</option>
-                                                <option value="Full-Time" {{ $semester->stream === 'Full-Time' ? 'selected' : '' }}>Full-Time</option>
-                                                <option value="Part-Time" {{ $semester->stream === 'Part-Time' ? 'selected' : '' }}>Part-Time</option>
+                                            <select class="form-select select2-stream" name="stream[]" multiple="multiple">
+                                                @foreach(\App\Models\EntryMode::all() as $stream)
+                                                    <option value="{{ $stream->name }}" {{ is_array($semester->stream) && in_array($stream->name, $semester->stream) ? 'selected' : '' }}>
+                                                        {{ $stream->name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Limit to Campus</label>
-                                            <select class="form-select" name="campus_id">
-                                                <option value="">-- Apply to all Campuses --</option>
+                                            <select class="form-select select2-campus" name="campus_id[]" multiple="multiple">
                                                 @foreach($campuses as $campus)
-                                                    <option value="{{ $campus->id }}" {{ $semester->campus_id === $campus->id ? 'selected' : '' }}>{{ $campus->name }}</option>
+                                                    <option value="{{ $campus->id }}" {{ is_array($semester->campus_id) && in_array($campus->id, $semester->campus_id) ? 'selected' : '' }}>
+                                                        {{ $campus->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Specific Students</label>
-                                            <select class="form-control select2-students" name="students_ids[]" multiple="multiple">
+                                            <select class="form-control select2-students" name="students_ids[]"
+                                                multiple="multiple">
                                                 @if(is_array($semester->students_ids))
                                                     @foreach($semester->students_ids as $sid)
                                                         @php $usr = \App\Models\User::find($sid); @endphp
                                                         @if($usr)
-                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }} {{ $usr->last_name }}</option>
+                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }}
+                                                                {{ $usr->last_name }}</option>
                                                         @endif
                                                     @endforeach
                                                 @endif
@@ -247,12 +252,14 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Specific Lecturers</label>
-                                            <select class="form-control select2-lecturers" name="lecturar_ids[]" multiple="multiple">
+                                            <select class="form-control select2-lecturers" name="lecturar_ids[]"
+                                                multiple="multiple">
                                                 @if(is_array($semester->lecturar_ids))
                                                     @foreach($semester->lecturar_ids as $lid)
                                                         @php $usr = \App\Models\User::find($lid); @endphp
                                                         @if($usr)
-                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }} {{ $usr->last_name }}</option>
+                                                            <option value="{{ $usr->id }}" selected>{{ $usr->first_name }}
+                                                                {{ $usr->last_name }}</option>
                                                         @endif
                                                     @endforeach
                                                 @endif
@@ -307,76 +314,98 @@
 @endsection
 
 @push('scripts')
-<script>
-$(document).ready(function() {
-    $('.select2-students').select2({
-        placeholder: "Search for specific students by matric/name",
-        allowClear: true,
-        dropdownParent: $('.modal'),
-        ajax: {
-            url: "{{ route('ict.search.students') }}",
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            },
-            cache: true
-        }
-    });
+    <script>
+        $(document).ready(function () {
+            $('.select2-students').select2({
+                placeholder: "Search for specific students by matric/name",
+                allowClear: true,
+                dropdownParent: $('.modal'),
+                ajax: {
+                    url: "{{ route('ict.search.students') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                }
+            });
 
-    $('.select2-lecturers').select2({
-        placeholder: "Search for specific lecturers by name/staff no",
-        allowClear: true,
-        dropdownParent: $('.modal'),
-        ajax: {
-            url: "{{ route('ict.search.lecturers') }}",
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term
-                };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.results
-                };
-            },
-            cache: true
-        }
-    });
+            $('.select2-lecturers').select2({
+                placeholder: "Search for specific lecturers by name/staff no",
+                allowClear: true,
+                dropdownParent: $('.modal'),
+                ajax: {
+                    url: "{{ route('ict.search.lecturers') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                }
+            });
 
-    // Re-initialize for modals that are opened dynamically
-    $('.modal').on('shown.bs.modal', function () {
-        $(this).find('.select2-students').select2({
-            placeholder: "Search for specific students by matric/name",
-            ajax: {
-                url: "{{ route('ict.search.students') }}",
-                dataType: 'json',
-                delay: 250,
-                processResults: function (data) { return { results: data.results }; }
-            },
-            dropdownParent: $(this)
+            $('.select2-stream').select2({
+                placeholder: "-- Apply to all Streams --",
+                allowClear: true,
+                dropdownParent: $('.modal')
+            });
+
+            $('.select2-campus').select2({
+                placeholder: "-- Apply to all Campuses --",
+                allowClear: true,
+                dropdownParent: $('.modal')
+            });
+
+            // Re-initialize for modals that are opened dynamically
+            $('.modal').on('shown.bs.modal', function () {
+                $(this).find('.select2-stream').select2({
+                    placeholder: "-- Apply to all Streams --",
+                    dropdownParent: $(this)
+                });
+
+                $(this).find('.select2-campus').select2({
+                    placeholder: "-- Apply to all Campuses --",
+                    dropdownParent: $(this)
+                });
+
+                $(this).find('.select2-students').select2({
+                    placeholder: "Search for specific students by matric/name",
+                    ajax: {
+                        url: "{{ route('ict.search.students') }}",
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function (data) { return { results: data.results }; }
+                    },
+                    dropdownParent: $(this)
+                });
+
+                $(this).find('.select2-lecturers').select2({
+                    placeholder: "Search for specific lecturers by name/staff no",
+                    ajax: {
+                        url: "{{ route('ict.search.lecturers') }}",
+                        dataType: 'json',
+                        delay: 250,
+                        processResults: function (data) { return { results: data.results }; }
+                    },
+                    dropdownParent: $(this)
+                });
+            });
         });
-        
-        $(this).find('.select2-lecturers').select2({
-            placeholder: "Search for specific lecturers by name/staff no",
-            ajax: {
-                url: "{{ route('ict.search.lecturers') }}",
-                dataType: 'json',
-                delay: 250,
-                processResults: function (data) { return { results: data.results }; }
-            },
-            dropdownParent: $(this)
-        });
-    });
-});
-</script>
+    </script>
 @endpush

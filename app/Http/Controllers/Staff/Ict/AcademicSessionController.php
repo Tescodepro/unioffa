@@ -22,8 +22,10 @@ class AcademicSessionController extends Controller
             'name' => 'required|string|max:50|unique:academic_sessions',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
-            'stream' => 'nullable|string|max:50',
-            'campus_id' => 'nullable|uuid',
+            'stream' => 'nullable|array',
+            'stream.*' => 'string|max:50',
+            'campus_id' => 'nullable|array',
+            'campus_id.*' => 'uuid',
             'students_ids' => 'nullable|array',
             'lecturar_ids' => 'nullable|array',
         ]);
@@ -33,13 +35,13 @@ class AcademicSessionController extends Controller
             $query = AcademicSession::where('status', '1');
 
             if (! empty($validated['stream'])) {
-                $query->where('stream', $validated['stream']);
+                $query->whereJsonContains('stream', $validated['stream']);
             } else {
                 $query->whereNull('stream');
             }
 
             if (! empty($validated['campus_id'])) {
-                $query->where('campus_id', $validated['campus_id']);
+                $query->whereJsonContains('campus_id', $validated['campus_id']);
             } else {
                 $query->whereNull('campus_id');
             }
@@ -64,8 +66,10 @@ class AcademicSessionController extends Controller
             'name' => 'required|string|max:50|unique:academic_sessions,name,'.$session->id,
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
-            'stream' => 'nullable|string|max:50',
-            'campus_id' => 'nullable|uuid',
+            'stream' => 'nullable|array',
+            'stream.*' => 'string|max:50',
+            'campus_id' => 'nullable|array',
+            'campus_id.*' => 'uuid',
             'students_ids' => 'nullable|array',
             'lecturar_ids' => 'nullable|array',
         ]);
@@ -74,13 +78,13 @@ class AcademicSessionController extends Controller
             $query = AcademicSession::where('id', '!=', $session->id)->where('status', '1');
 
             if (! empty($validated['stream'])) {
-                $query->where('stream', $validated['stream']);
+                $query->whereJsonContains('stream', $validated['stream']);
             } else {
                 $query->whereNull('stream');
             }
 
             if (! empty($validated['campus_id'])) {
-                $query->where('campus_id', $validated['campus_id']);
+                $query->whereJsonContains('campus_id', $validated['campus_id']);
             } else {
                 $query->whereNull('campus_id');
             }

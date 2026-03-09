@@ -24,7 +24,7 @@ if (! function_exists('activeSession')) {
                 // 2. By Stream and Campus
                 if ($student) {
                     $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->where('stream', $student->stream)->whereNotNull('stream');
+                        $subQ->whereNotNull('stream')->whereJsonContains('stream', $student->stream);
                         // also an optional campus check could go here if both must match, but usually it's one or the other or both.
                         // For flexibility, if session has a stream match, we use it.
                         // If it has a campus match, we use it.
@@ -33,7 +33,7 @@ if (! function_exists('activeSession')) {
                         // "If session stream is X AND session campus_id is Y (ignoring nulls)"
                     });
                     $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->where('campus_id', $student->campus_id)->whereNotNull('campus_id');
+                        $subQ->whereNotNull('campus_id')->whereJsonContains('campus_id', $student->campus_id);
                     });
                 }
             });
@@ -73,10 +73,10 @@ if (! function_exists('activeSemester')) {
                 // 2. By Stream and Campus
                 if ($student) {
                     $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->where('stream', $student->stream)->whereNotNull('stream');
+                        $subQ->whereNotNull('stream')->whereJsonContains('stream', $student->stream);
                     });
                     $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->where('campus_id', $student->campus_id)->whereNotNull('campus_id');
+                        $subQ->whereNotNull('campus_id')->whereJsonContains('campus_id', $student->campus_id);
                     });
                 }
             });

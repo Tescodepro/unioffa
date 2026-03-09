@@ -18,10 +18,17 @@ class AcademicSession extends Model
 
     protected $fillable = ['id', 'name', 'status', 'status_upload_result', 'lecturar_ids', 'students_ids', 'stream', 'campus_id'];
 
-    protected $casts = [
-        'students_ids' => 'array',
-        'lecturar_ids' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => 'boolean',
+            'status_upload_result' => 'boolean',
+            'students_ids' => 'array',
+            'lecturar_ids' => 'array',
+            'stream' => 'array',
+            'campus_id' => 'array',
+        ];
+    }
 
     protected static function boot()
     {
