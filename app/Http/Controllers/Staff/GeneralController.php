@@ -195,7 +195,7 @@ class GeneralController extends Controller
             'footer' => '',
         ];
 
-        Mail::to($to)->send(new GeneralMail($subject, $content, false));
+        // Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
         return back()->with('success', 'Student admitted successfully.');
     }
