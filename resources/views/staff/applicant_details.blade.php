@@ -169,7 +169,7 @@
                         @endif
 
                         {{-- Admit Action (VC & Registrar only, not already admitted) --}}
-                        @isset($admitRoute)
+                        <!-- @isset($admitRoute)
                             @php $alreadyAdmitted = optional($application->user->admissionList)->admission_status === 'admitted'; @endphp
                             <div class="card mb-4 border-{{ $alreadyAdmitted ? 'success' : 'warning' }}">
                                 <div
@@ -212,7 +212,7 @@
                                     @endif
                                 </div>
                             </div>
-                        @endisset
+                        @endisset -->
 
                         {{-- Back Button --}}
                         <div class="text-end">
