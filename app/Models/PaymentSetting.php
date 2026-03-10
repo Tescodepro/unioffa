@@ -71,10 +71,29 @@ class PaymentSetting extends Model
     public static function getFeesForStudent($student, $currentSession = null, $currentSemester = null)
     {
         $currentSession = $currentSession ?? activeSession()->name ?? null;
-        $currentSemester = $currentSemester ?? activeSemester()->name ?? null;
+        $activeSemester = activeSemester();
+        $currentSemester = $currentSemester ?? $activeSemester?->code ?? null;
 
-        if (!$currentSession) {
+        if (! $currentSession) {
             return collect(); // Empty collection if no active session
+        }
+
+        // Determine if student is semester-affected based on all override fields
+        // A "specific override" has at least one non-empty override field.
+        $isSpecificOverride = false;
+        $studentIsSemesterAffected = false;
+        if ($currentSemester && $activeSemester) {
+            $semesterStreams = $activeSemester->stream ?? [];
+            $semesterCampuses = $activeSemester->campus_id ?? [];
+            $semesterProgrammes = $activeSemester->programme ?? [];
+
+            $isSpecificOverride = ! empty($semesterStreams) || ! empty($semesterCampuses) || ! empty($semesterProgrammes);
+
+            $matchesStream = empty($semesterStreams) || in_array((string) $student->stream, $semesterStreams);
+            $matchesCampus = empty($semesterCampuses) || in_array($student->campus_id, $semesterCampuses);
+            $matchesProgramme = empty($semesterProgrammes) || in_array($student->programme, $semesterProgrammes);
+
+            $studentIsSemesterAffected = $isSpecificOverride && $matchesStream && $matchesCampus && $matchesProgramme;
         }
 
         // Determine Effective Level for Payment
@@ -126,16 +145,17 @@ class PaymentSetting extends Model
                 $q->whereNull('entry_mode')
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
-            ->where(function ($q) use ($currentSemester) {
-                $q->whereNull('semester')
-                    ->orWhere('semester', $currentSemester);
+            ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
+                if ($studentIsSemesterAffected) {
+                    // Student matched a specific semester override → ONLY that semester's fees
+                    $q->where('semester', $currentSemester);
+                } else {
+                    // Student is on global semester → session-wide fees only
+                    $q->whereNull('semester');
+                }
             })
             ->get();
     }
-
-
-
-
 
     public function faculty()
     {

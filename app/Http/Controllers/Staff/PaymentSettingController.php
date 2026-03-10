@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Faculty;
+use App\Models\AcademicSemester;
+use App\Models\AcademicSession;
 use App\Models\Department;
+use App\Models\Faculty;
 use App\Models\PaymentSetting;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 
 class PaymentSettingController extends Controller
 {
@@ -60,13 +61,16 @@ class PaymentSettingController extends Controller
             'paymentTypes'
         ));
     }
+
     public function create()
     {
         $faculties = Faculty::all();
         $departments = Department::all();
         $entryModes = \App\Models\EntryMode::orderBy('name')->get();
+        $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
+        $semesters = AcademicSemester::orderBy('name')->get(['name', 'code']);
 
-        return view('staff.bursary.payment_settings.create', compact('faculties', 'departments', 'entryModes'));
+        return view('staff.bursary.payment_settings.create', compact('faculties', 'departments', 'entryModes', 'sessions', 'semesters'));
     }
 
     public function store(Request $request)
@@ -138,13 +142,15 @@ class PaymentSettingController extends Controller
         $faculties = Faculty::all();
         $departments = Department::all();
         $entryModes = \App\Models\EntryMode::orderBy('name')->get();
+        $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
+        $semesters = AcademicSemester::orderBy('name')->get(['name', 'code']);
 
         // Decode JSON to array for form use
         $paymentSetting->list_instalment_percentage = $paymentSetting->list_instalment_percentage
             ? json_decode($paymentSetting->list_instalment_percentage, true)
             : [];
 
-        return view('staff.bursary.payment_settings.edit', compact('paymentSetting', 'faculties', 'departments', 'entryModes'));
+        return view('staff.bursary.payment_settings.edit', compact('paymentSetting', 'faculties', 'departments', 'entryModes', 'sessions', 'semesters'));
     }
 
     public function update(Request $request, PaymentSetting $paymentSetting)
@@ -219,6 +225,7 @@ class PaymentSettingController extends Controller
     public function destroy(PaymentSetting $paymentSetting)
     {
         $paymentSetting->delete();
+
         return back()->with('success', 'Payment setting deleted successfully.');
     }
 }

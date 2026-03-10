@@ -46,15 +46,15 @@ class DashboardController extends Controller
                     } else {
                         // Mark as failed if verification explicitly fails
                         $txn->update(['payment_status' => 2]);
-                        Log::warning("Transaction {$txn->refernce_number} failed verification ({$gateway}). Message: " . ($verifyResponse['message'] ?? 'Unknown error'));
+                        Log::warning("Transaction {$txn->refernce_number} failed verification ({$gateway}). Message: ".($verifyResponse['message'] ?? 'Unknown error'));
                     }
                     $txn->refresh();
                 }
 
                 // 2. ACCEPTANCE PAYMENT - CREATE STUDENT RECORD
-                if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && !$user->student) {
+                if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && ! $user->student) {
                     $user = User::find($txn->user_id);
-                    if (!$user->student) {
+                    if (! $user->student) {
                         $newStudent = $studentMigration->migrate($txn->user_id);
                         $user->load('student.department.faculty');
                     }
@@ -66,14 +66,14 @@ class DashboardController extends Controller
                     if ($student) {
                         // Check if tuition is actually cleared (>= 56%)
                         // We use a fresh instance or the service to check status for the transaction's session
-                        $paymentService = new \App\Services\PaymentStatusService();
+                        $paymentService = new \App\Services\PaymentStatusService;
                         $status = $paymentService->getStatus($student, $txn->session);
 
                         // If tuition is returned in status, it is NOT fully cleared (pending balance > 0 and < 56%)
                         // If tuition is missing from status, it is considered cleared (>= 56% paid)
                         $tuitionPending = collect($status)->firstWhere('payment_type', 'tuition');
 
-                        if (!$tuitionPending) {
+                        if (! $tuitionPending) {
                             $generated = $matricService->generateIfNeeded($student);
                             if ($generated) {
                                 Log::info("Matric number generated for student {$student->id} from dashboard verification");
@@ -85,12 +85,13 @@ class DashboardController extends Controller
                     }
                 }
             } catch (\Exception $e) {
-                Log::error("Transaction {$txn->id} processing failed: " . $e->getMessage());
+                Log::error("Transaction {$txn->id} processing failed: ".$e->getMessage());
             }
         }
 
-        // ✅ FINAL RELOAD - Ensure dashboard has latest data
+        //  FINAL RELOAD - Ensure dashboard has latest data
         $user->load('student.department.faculty');
+
         return view('student.dashboard', compact('user'));
     }
 
@@ -98,43 +99,60 @@ class DashboardController extends Controller
     {
         $user = Auth::user()->load('student.department.faculty');
         $currentSession = activeSession()->name ?? null;
-        $currentSemester = activeSemester()->name ?? null;
-        if (!$user->student) {
+        $activeSemester = activeSemester();
+        $currentSemester = $activeSemester?->code;
+
+        if (! $user->student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
-        if (!$currentSession) {
+        if (! $currentSession) {
             return redirect()->back()->with('error', 'No active session found.');
         }
 
         $student = $user->student;
-
-        // ✅ Determine Effective Level for Payment
-        // Rule: If student is admitted in current session AND level is 200 or 300 (DE/Transfer), pay 100 level fees.
         $effectiveLevel = (int) $student->level;
-        if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
-            $effectiveLevel = 100;
+
+        // Determine if this student is semester-affected based on the active semester's
+        // override fields: stream, campus_id, and programme.
+        // A "specific override" semester has at least one non-empty override field.
+        // A "global" semester (all overrides empty) → student sees session-wide fees only.
+        // A "specific override" semester where student matches → student sees ONLY that semester's fees.
+        $isSpecificOverride = false;
+        $studentIsSemesterAffected = false;
+        if ($currentSemester && $activeSemester) {
+            $semesterStreams = $activeSemester->stream ?? [];
+            $semesterCampuses = $activeSemester->campus_id ?? [];
+            $semesterProgrammes = $activeSemester->programme ?? [];
+
+            $isSpecificOverride = ! empty($semesterStreams) || ! empty($semesterCampuses) || ! empty($semesterProgrammes);
+
+            $matchesStream = empty($semesterStreams) || in_array((string) $student->stream, $semesterStreams);
+            $matchesCampus = empty($semesterCampuses) || in_array($student->campus_id, $semesterCampuses);
+            $matchesProgramme = empty($semesterProgrammes) || in_array($student->programme, $semesterProgrammes);
+
+            $studentIsSemesterAffected = $isSpecificOverride && $matchesStream && $matchesCampus && $matchesProgramme;
         }
 
-        // ✅ 1. Fetch payment settings dynamically
+        // 1. Fetch payment settings dynamically
         $paymentSettings = PaymentSetting::query()
-            ->where('session', $currentSession) // session must always match
+            ->where('session', $currentSession)
             ->when($student->programme, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
                     $sub->whereNull('student_type')
+                        ->orWhereJsonLength('student_type', 0)
                         ->orWhereJsonContains('student_type', $student->programme);
                 });
             }, function ($q) {
-                // If student type is null, only accept settings where student_type is null
-                $q->whereNull('student_type');
+                $q->where(fn ($sub) => $sub->whereNull('student_type')->orWhereJsonLength('student_type', 0));
             })
             ->when($effectiveLevel, function ($q) use ($effectiveLevel) {
                 $q->where(function ($sub) use ($effectiveLevel) {
                     $sub->whereNull('level')
+                        ->orWhereJsonLength('level', 0)
                         ->orWhereJsonContains('level', $effectiveLevel);
                 });
             }, function ($q) {
-                // If effective level is 0/null, only accept settings where level is null
-                $q->whereNull('level');
+                $q->where(fn ($sub) => $sub->whereNull('level')->orWhereJsonLength('level', 0));
             })
             ->when($student->department?->faculty_id, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
@@ -158,13 +176,17 @@ class DashboardController extends Controller
             })
             ->where(function ($q) use ($student) {
                 $q->whereNull('entry_mode')
+                    ->orWhereJsonLength('entry_mode', 0)
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
-            ->where(function ($q) use ($currentSemester) {
-                // If the setting has no semester, it applies globally/whole session.
-                // If it has a semester, it only applies when that is the active semester.
-                $q->whereNull('semester')
-                    ->orWhere('semester', $currentSemester);
+            ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
+                if ($studentIsSemesterAffected) {
+                    // Student matched a specific semester override → ONLY that semester's fees
+                    $q->where('semester', $currentSemester);
+                } else {
+                    // Student is on global semester → session-wide fees only
+                    $q->whereNull('semester');
+                }
             })
             ->get();
 
@@ -172,21 +194,25 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'No payment settings found for your profile.');
         }
 
-        // ✅ 2. Fetch student transactions
+        //  2. Fetch student transactions (filtered by semester when applicable)
         $transactions = Transaction::query()
             ->where('user_id', $user->id)
             ->where('session', $currentSession)
+            ->when($studentIsSemesterAffected, function ($q) use ($activeSemester) {
+                $q->where('semester', $activeSemester->name);
+            })
             ->where('payment_status', 1)
             ->get()
-            ->groupBy(function ($item) {
-                // Group by both payment type and semester, so they don't overlap
-                return $item->payment_type . '_' . ($item->semester ?: 'global');
-            });
+            ->groupBy('payment_type');
 
-        // ✅ 3. Dynamic computation using DB installment fields
+        //  3. Dynamic computation using DB installment fields
         $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions) {
-            $groupKey = $payment->payment_type . '_' . ($payment->semester ?: 'global');
-            $txns = $transactions->get($groupKey, collect());
+            // If the fee is semester-specific, only count transactions matching that semester.
+            // If it's session-wide (no semester), count ALL transactions for that payment_type.
+            $allForType = $transactions->get($payment->payment_type, collect());
+            $txns = $payment->semester
+                ? $allForType->filter(fn ($t) => $t->semester === $payment->semester)
+                : $allForType;
             $amountPaid = $txns->sum('amount');
             $installmentCount = $txns->count();
 
@@ -196,7 +222,7 @@ class DashboardController extends Controller
             $payment->installment_scheme = [];
             $payment->max_installments = 1;
 
-            // ✅ Use DB installment settings if enabled
+            //  Use DB installment settings if enabled
             if ($payment->installmental_allow_status) {
                 $percentages = json_decode($payment->list_instalment_percentage, true) ?? [];
 
@@ -217,8 +243,8 @@ class DashboardController extends Controller
                 }
 
                 // Ensure the last one is exactly 100 to avoid floating point issues
-                if (!empty($cumulativePercentages) && end($cumulativePercentages) !== 100) {
-                    // Normalize if they don't add up to 100, or just trust the admin? 
+                if (! empty($cumulativePercentages) && end($cumulativePercentages) !== 100) {
+                    // Normalize if they don't add up to 100, or just trust the admin?
                     // Let's force the last milestone relative to total amount in the next step.
                 }
 
@@ -269,7 +295,7 @@ class DashboardController extends Controller
 
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -291,7 +317,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
+        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
     }
 
     // ==================== Profile ================================
@@ -307,14 +333,14 @@ class DashboardController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        // ✅ Validate request
+        //  Validate request
         $request->validate([
             // User table
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'phone' => 'required|string|max:20|unique:users,phone,'.$user->id,
             'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'date_of_birth' => 'nullable|date',
             'state_of_origin' => 'nullable|string|max:255',
@@ -327,15 +353,15 @@ class DashboardController extends Controller
             'address' => 'nullable|string|max:500',
         ]);
 
-        // ✅ Handle profile picture upload
+        //  Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
             $file = $request->file('profile_picture');
-            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $filename = uniqid().'.'.$file->getClientOriginalExtension();
             $file->storeAs('profile_pictures', $filename, 'public');
-            $user->profile_picture = 'storage/profile_pictures/' . $filename;
+            $user->profile_picture = 'storage/profile_pictures/'.$filename;
         }
 
-        // ✅ Update user details
+        //  Update user details
         $user->update([
             'first_name' => $request->first_name,
             'middle_name' => $request->middle_name,
@@ -350,7 +376,7 @@ class DashboardController extends Controller
             'profile_picture' => $user->profile_picture,
         ]);
 
-        // ✅ Update student details
+        //  Update student details
         if ($student) {
             $student->update([
                 'sex' => $request->sex,
@@ -370,7 +396,7 @@ class DashboardController extends Controller
             'new_password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (!\Hash::check($request->current_password, $user->password)) {
+        if (! \Hash::check($request->current_password, $user->password)) {
             return redirect()->back()->with('error', 'Current password is incorrect.');
         }
 
@@ -392,7 +418,7 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -408,7 +434,7 @@ class DashboardController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (!$student) {
+        if (! $student) {
             return back()->with('error', 'Student profile not found.');
         }
 
@@ -427,7 +453,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -471,7 +497,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -495,7 +521,7 @@ class DashboardController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -511,7 +537,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.transcript-pdf', compact('student', 'resultsBySession', 'cgpa'))
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Transcript_' . $student->first_name . '_' . $student->last_name . '.pdf');
+        return $pdf->download('Transcript_'.$student->first_name.'_'.$student->last_name.'.pdf');
     }
 
     /**

@@ -34,6 +34,12 @@ class AcademicSemesterController extends Controller
             'lecturar_ids' => 'nullable|array',
         ]);
 
+        // Browser omits empty multi-selects — force null so old values are cleared
+        $validated['stream'] = $request->input('stream', []) ?: null;
+        $validated['campus_id'] = $request->input('campus_id', []) ?: null;
+        $validated['programme'] = $request->input('programme', []) ?: null;
+        $validated['students_ids'] = $request->input('students_ids', []) ?: null;
+        $validated['lecturar_ids'] = $request->input('lecturar_ids', []) ?: null;
         if ($validated['status'] == '1') {
             $query = AcademicSemester::where('status', '1');
 
@@ -82,6 +88,12 @@ class AcademicSemesterController extends Controller
             'lecturar_ids' => 'nullable|array',
         ]);
 
+        // Browser omits empty multi-selects — force null so old values are cleared
+        $validated['stream'] = $request->input('stream', []) ?: null;
+        $validated['campus_id'] = $request->input('campus_id', []) ?: null;
+        $validated['programme'] = $request->input('programme', []) ?: null;
+        $validated['students_ids'] = $request->input('students_ids', []) ?: null;
+        $validated['lecturar_ids'] = $request->input('lecturar_ids', []) ?: null;
         if ($validated['status'] == '1' && $semester->status != '1') {
             $query = AcademicSemester::where('id', '!=', $semester->id)->where('status', '1');
 

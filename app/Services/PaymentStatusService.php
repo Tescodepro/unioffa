@@ -11,15 +11,33 @@ class PaymentStatusService
      * Get payment status for a student grouped by payment_type.
      *
      * @param  \App\Models\Student  $student
-     * @param  string  $session
-     * @return array
      */
     public function getStatus($student, string $session): array
     {
-        if (($student->entry_mode == 'DE' OR $student->entry_mode == 'TRANSFER') AND ($student->level == 200 OR $student->level == 300) AND $student->admission_session == $session) {
+        if (($student->entry_mode == 'DE' or $student->entry_mode == 'TRANSFER') and ($student->level == 200 or $student->level == 300) and $student->admission_session == $session) {
             $level_payment = 100;
         } else {
             $level_payment = $student->level;
+        }
+
+        // Determine if student is semester-affected based on the active semester overrides
+        $activeSemester = activeSemester();
+        $currentSemester = $activeSemester?->code;
+
+        $isSpecificOverride = false;
+        $studentIsSemesterAffected = false;
+        if ($currentSemester && $activeSemester) {
+            $semesterStreams = $activeSemester->stream ?? [];
+            $semesterCampuses = $activeSemester->campus_id ?? [];
+            $semesterProgrammes = $activeSemester->programme ?? [];
+
+            $isSpecificOverride = ! empty($semesterStreams) || ! empty($semesterCampuses) || ! empty($semesterProgrammes);
+
+            $matchesStream = empty($semesterStreams) || in_array((string) $student->stream, $semesterStreams);
+            $matchesCampus = empty($semesterCampuses) || in_array($student->campus_id, $semesterCampuses);
+            $matchesProgramme = empty($semesterProgrammes) || in_array($student->programme, $semesterProgrammes);
+
+            $studentIsSemesterAffected = $isSpecificOverride && $matchesStream && $matchesCampus && $matchesProgramme;
         }
 
         $paymentSettings = PaymentSetting::query()
@@ -56,6 +74,15 @@ class PaymentStatusService
                 $q->whereNull('entry_mode')
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
+            ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
+                if ($studentIsSemesterAffected) {
+                    // Student matched a specific semester override → ONLY that semester's fees
+                    $q->where('semester', $currentSemester);
+                } else {
+                    // Student is on global semester → session-wide fees only
+                    $q->whereNull('semester');
+                }
+            })
             ->whereNotIn('payment_type', ['accommodation', 'maintenance']) // 🚫 exclude these
             ->get();
 
@@ -63,9 +90,13 @@ class PaymentStatusService
             return [];
         }
 
+        // Filter transactions by semester when student is semester-affected
         $transactions = Transaction::query()
             ->where('user_id', $student->user_id)
             ->where('session', $session)
+            ->when($studentIsSemesterAffected, function ($q) use ($activeSemester) {
+                $q->where('semester', $activeSemester->name);
+            })
             ->where('payment_status', 1)
             ->get()
             ->groupBy('payment_type');
@@ -113,7 +144,8 @@ class PaymentStatusService
     public function hasClearedAll($student, string $session): bool
     {
         $status = $this->getStatus($student, $session);
-        return collect($status)->every(fn($p) => $p['balance'] <= 0);
+
+        return collect($status)->every(fn ($p) => $p['balance'] <= 0);
     }
 
     /**
@@ -122,6 +154,7 @@ class PaymentStatusService
     public function getTotalOutstanding($student, string $session): int
     {
         $status = $this->getStatus($student, $session);
+
         return collect($status)->sum('balance');
     }
 }

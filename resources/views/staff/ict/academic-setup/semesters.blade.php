@@ -34,6 +34,21 @@
                     </div>
                 </div>
 
+                @include('layouts.flash-message')
+
+                {{-- Inline validation errors: re-open add modal if errors exist --}}
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong><i class="ti ti-alert-triangle me-1"></i>Please fix the following:</strong>
+                        <ul class="mb-0 mt-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="card shadow-sm">
@@ -409,6 +424,16 @@
             // Re-initialize selects inside each modal when opened
             $('.modal').on('shown.bs.modal', function () {
                 var $modal = $(this);
+
+                // Destroy before re-init so pre-selected Blade values are respected
+                var selects = ['.select2-stream', '.select2-campus', '.select2-programme', '.select2-students', '.select2-lecturers'];
+                selects.forEach(function (cls) {
+                    $modal.find(cls).each(function () {
+                        if ($(this).hasClass('select2-hidden-accessible')) {
+                            $(this).select2('destroy');
+                        }
+                    });
+                });
 
                 $modal.find('.select2-stream').select2({
                     placeholder: "-- All Streams --",
