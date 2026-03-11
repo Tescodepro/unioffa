@@ -125,7 +125,7 @@ class ApplicationController extends Controller
             }
 
             // Try sending email
-            Mail::to($user->email)->send(new ApplicantRegisteredMail($user, $uniqueId));
+            // Mail::to($user->email)->send(new ApplicantRegisteredMail($user, $uniqueId));
             // If no exception thrown, log success
             Log::info("📧 Mail sent successfully to {$user->email} with registration no: {$uniqueId}");
 
