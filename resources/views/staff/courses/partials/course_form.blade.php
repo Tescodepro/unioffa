@@ -54,8 +54,14 @@
     <!-- Level & Semester -->
     <div class="col-md-6">
         <label for="level" class="form-label">Level</label>
-        <input type="number" id="level" name="level" class="form-control" value="{{ $course->level ?? '' }}"
-            required>
+        <select id="level" name="level" class="form-select" required>
+            <option value="">Select Level</option>
+            @foreach ([100, 200, 300, 400, 500, 600, 700, 800, 900] as $lvl)
+                <option value="{{ $lvl }}" {{ isset($course) && $course->level == $lvl ? 'selected' : '' }}>
+                    {{ $lvl }} Level
+                </option>
+            @endforeach
+        </select>
     </div>
     <div class="col-md-6">
         <label for="semester" class="form-label">Semester</label>

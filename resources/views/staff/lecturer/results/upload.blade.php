@@ -108,11 +108,11 @@
                                     @csrf
                                     <div class="row g-3 mb-3">
                                         <div class="col-12">
-                                            <label for="course_id" class="form-label">Course</label>
-                                            <select id="course_id" name="course_id" class="form-select select2" required>
+                                            <label for="course_code" class="form-label">Course</label>
+                                            <select id="course_code" name="course_code" class="form-select select2" required>
                                                 <option value="">Select Course</option>
                                                 @foreach ($courses as $course)
-                                                    <option value="{{ $course->id }}">{{ $course->course_title }} ({{ $course->course_code }})</option>
+                                                    <option value="{{ $course->course_code }}">{{ $course->course_title }} ({{ $course->course_code }})</option>
                                                 @endforeach
                                             </select>
                                             @if($courses->isEmpty())

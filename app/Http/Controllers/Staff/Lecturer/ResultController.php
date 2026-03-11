@@ -7,15 +7,15 @@ use App\Models\AcademicSemester;
 use App\Models\AcademicSession;
 use App\Models\Course;
 use App\Models\CourseRegistration;
+use App\Models\Department;
 use App\Models\Result;
 use App\Models\Student;
-use App\Models\Department;
 use App\Models\User;
 use App\Models\UserType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class ResultController extends Controller
@@ -54,13 +54,13 @@ class ResultController extends Controller
     public function processUpload(Request $request)
     {
         $request->validate([
-            'course_id' => 'required|uuid',
+            'course_code' => 'required|string',
             'session' => 'required|string',
             'semester' => 'required|string',
             'file' => 'required|file|mimes:xlsx,xls',
         ]);
 
-        $course = Course::findOrFail($request->course_id);
+        $course = Course::where('course_code', $request->course_code)->firstOrFail();
         $user = auth()->user();
         if ($user->hasRole('lecturer') && !$user->isAssignedToCourse($course->id)) {
             return back()->with('error', 'You are not authorized to upload results for this course.');
@@ -106,7 +106,14 @@ class ResultController extends Controller
             $exam = floatval($row['examination'] ?? 0);
             $total = $ca + $exam;
 
-            // 1️⃣ Validate student exists
+            // 1️⃣ Validate scores <= 100
+            if ($total > 100) {
+                $report['errors'][] = "Matric No: {$matric_no} — Total score ({$total}) cannot exceed 100.";
+
+                continue;
+            }
+
+            // 2️⃣ Validate student exists
             $student = Student::where('matric_no', $matric_no)->first();
             if (!$student) {
                 $report['skipped_not_student'][] = "Matric No: {$matric_no} — not found in student records.";
@@ -116,8 +123,8 @@ class ResultController extends Controller
 
             // 2️⃣ Validate course registration
             $registered = CourseRegistration::where([
-                'student_id' => $student->id,
-                'course_id' => $course->id,
+                'matric_no' => $matric_no,
+                'course_code' => $course->course_code,
                 'session' => $request->session,
                 'semester' => $request->semester,
             ])->exists();
@@ -175,10 +182,10 @@ class ResultController extends Controller
 
         // ✅ Build summary
         $summary = '
-    ✅ Uploaded: ' . count($report['uploaded']) . '
-    ❌ Not Students: ' . count($report['skipped_not_student']) . '
-    ⚠️ Not Registered: ' . count($report['skipped_not_registered']) . '
-    🧯 Errors: ' . count($report['errors']);
+            ✅ Uploaded: ' . count($report['uploaded']) . '
+            ❌ Not Students: ' . count($report['skipped_not_student']) . '
+            ⚠️ Not Registered: ' . count($report['skipped_not_registered']) . '
+            🧯 Errors: ' . count($report['errors']);
 
         // ✅ Flash report to session (for detailed display)
         session()->flash('upload_report', $report);
@@ -324,6 +331,7 @@ class ResultController extends Controller
 
         return view('staff.lecturer.results.view-uploaded', compact('course', 'results'));
     }
+
     public function downloadResults(Request $request)
     {
         // Validate input
@@ -402,20 +410,22 @@ class ResultController extends Controller
         }
     }
 
-    // upload backlog results
     public function downloadBacklogTemplate()
     {
         $path = public_path('templates/backlog_templateoffa.xlsx');
+
         return response()->download($path);
     }
+
     public function showBacklogUploadPage()
     {
         return view('staff.lecturer.results.backlog-upload');
     }
+
     public function processBacklogUpload(Request $request)
     {
         $request->validate([
-            'file' => ['required', 'file', 'mimes:xls,xlsx']
+            'file' => ['required', 'file', 'mimes:xls,xlsx'],
         ]);
 
         try {
@@ -428,7 +438,7 @@ class ResultController extends Controller
                 'updated_records' => [],
                 'missing_values' => [],
                 'invalid_rows' => [],
-                'general_errors' => []
+                'general_errors' => [],
             ];
 
             foreach ($sheet as $index => $row) {
@@ -438,29 +448,51 @@ class ResultController extends Controller
                 }
 
                 $matric = trim($row['A'] ?? '');
-                $courseCode = trim($row['B'] ?? '');
+
+                // Format Course Code to ALWAYS be "XXX 000"
+                $rawCourseCode = strtoupper(trim($row['B'] ?? ''));
+                $courseCode = preg_replace('/^([A-Z]+)\s*(\d+)$/', '$1 $2', $rawCourseCode);
+
                 $courseTitle = trim($row['C'] ?? '');
                 $courseUnit = trim($row['D'] ?? '');
                 $session = trim($row['E'] ?? '');
-                $semester = trim($row['F'] ?? '');
+
+                // Semester validation
+                $semester = strtolower(trim($row['F'] ?? ''));
+                if (!in_array($semester, ['1st', '2nd', '3rd'])) {
+                    $logs['invalid_rows'][] = "Row $index: Invalid semester '$semester'. Must be 1st, 2nd, or 3rd.";
+
+                    continue;
+                }
 
                 // Safely convert CA and Exam to numbers
                 $ca = is_numeric(trim($row['G'] ?? '')) ? (float) trim($row['G']) : null;
                 $exam = is_numeric(trim($row['H'] ?? '')) ? (float) trim($row['H']) : null;
 
-
                 $missing = [];
-                if ($matric === '')
+                if ($matric === '') {
                     $missing[] = 'Matric Number (Column A)';
-                if ($courseCode === '')
+                }
+                if ($courseCode === '') {
                     $missing[] = 'Course Code (Column B)';
-                if ($ca === null)
+                }
+                if ($ca === null) {
                     $missing[] = 'CA Score (Column G)';
-                if ($exam === null)
+                }
+                if ($exam === null) {
                     $missing[] = 'Exam Score (Column H)';
+                }
 
                 if (!empty($missing)) {
                     $logs['missing_values'][] = "Row $index is missing or invalid: " . implode(', ', $missing);
+
+                    continue;
+                }
+
+                // Score Validation
+                if ($ca + $exam > 100) {
+                    $logs['invalid_rows'][] = "Row $index: Total score (" . ($ca + $exam) . ') cannot exceed 100.';
+
                     continue;
                 }
 
@@ -469,11 +501,13 @@ class ResultController extends Controller
 
                 if (!$student) {
                     $logs['invalid_rows'][] = "Row $index: Student with matric $matric not found.";
+
                     continue;
                 }
 
                 if (!$course) {
                     $logs['invalid_rows'][] = "Row $index: Course $courseCode not found.";
+
                     continue;
                 }
 
@@ -483,7 +517,7 @@ class ResultController extends Controller
                             'student_id' => $student->id,
                             'course_id' => $course->id,
                             'session' => $session,
-                            'semester' => $semester
+                            'semester' => $semester,
                         ],
                         [
                             'matric_no' => $student->username,
@@ -494,7 +528,7 @@ class ResultController extends Controller
                             'exam' => $exam,
                             'total' => $ca + $exam,
                             'uploaded_by' => auth()->id(),
-                            'status' => 'pending'
+                            'status' => 'pending',
                         ]
                     );
 
@@ -503,7 +537,6 @@ class ResultController extends Controller
                     } else {
                         $logs['updated_records'][] = "✏️ Row $index: Result for {$student->username} in {$course->course_code} was updated with new scores (CA: {$ca}, Exam: {$exam}).";
                     }
-
 
                 } catch (Throwable $e) {
                     $logs['invalid_rows'][] = "Row $index failed to save or update. Error: " . $e->getMessage();
@@ -571,18 +604,19 @@ class ResultController extends Controller
 
                     // --- 5.0 Grading System ---
                     $points = 0;
-                    if ($score >= 70)
+                    if ($score >= 70) {
                         $points = 5;
-                    elseif ($score >= 60)
+                    } elseif ($score >= 60) {
                         $points = 4;
-                    elseif ($score >= 50)
+                    } elseif ($score >= 50) {
                         $points = 3;
-                    elseif ($score >= 45)
+                    } elseif ($score >= 45) {
                         $points = 2;
-                    elseif ($score >= 40)
+                    } elseif ($score >= 40) {
                         $points = 1;
-                    else
+                    } else {
                         $points = 0;
+                    }
 
                     // Calculate Grade Points for this course
                     $totalGradePoints += ($unit * $points);
@@ -651,14 +685,14 @@ class ResultController extends Controller
                     DB::raw('SUM(results.total) as total_score'),
 
                     // 4. GPA Calculation (5.0 Scale)
-                    DB::raw("SUM(results.course_unit * (CASE 
+                    DB::raw('SUM(results.course_unit * (CASE 
                     WHEN results.total >= 70 THEN 5 
                     WHEN results.total >= 60 THEN 4 
                     WHEN results.total >= 50 THEN 3 
                     WHEN results.total >= 45 THEN 2 
                     WHEN results.total >= 40 THEN 1 
                     ELSE 0 END
-                )) / NULLIF(SUM(results.course_unit), 0) as gpa"),
+                )) / NULLIF(SUM(results.course_unit), 0) as gpa'),
 
                     // 5. Status
                     DB::raw('MAX(results.status) as current_status')
@@ -685,8 +719,9 @@ class ResultController extends Controller
             ->where('semester', $request->semester)
             ->update(['status' => $request->status]);
 
-        return back()->with('success', "Bulk update successful! Changed status to " . ucfirst($request->status));
+        return back()->with('success', 'Bulk update successful! Changed status to ' . ucfirst($request->status));
     }
+
     // 2. Process the Status Update
     public function updateStatus(Request $request)
     {
@@ -705,14 +740,16 @@ class ResultController extends Controller
 
         return back()->with('success', "Updated $updated result(s) to '{$request->status}' for {$request->matric_no}.");
     }
+
     public function transcriptSearchPage()
     {
         return view('staff.lecturer.results.student-transcript');
     }
+
     public function searchTranscript(Request $request)
     {
         $request->validate([
-            'matric' => 'required|string'
+            'matric' => 'required|string',
         ]);
 
         $student = User::where('username', $request->matric)->first();
@@ -731,11 +768,12 @@ class ResultController extends Controller
 
         return view('staff.lecturer.results.student-transcript', compact('student', 'resultsBySession'));
     }
+
     public function update(Request $request, $id)
     {
         $request->validate([
             'ca' => 'required|numeric|min:0',
-            'exam' => 'required|numeric|min:0'
+            'exam' => 'required|numeric|min:0',
         ]);
         $result = Result::findOrFail($id);
 
@@ -747,6 +785,7 @@ class ResultController extends Controller
 
         return back()->with('success', 'Result updated successfully.');
     }
+
     public function destroy($id)
     {
         $result = Result::findOrFail($id);
@@ -754,5 +793,4 @@ class ResultController extends Controller
 
         return back()->with('success', 'Result deleted successfully.');
     }
-
 }
