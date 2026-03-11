@@ -56,11 +56,11 @@
                                 <p class="text-muted small mb-3">Download a blank Excel template pre-filled with registered students for a course.</p>
                                 <form action="{{ route('staff.results.download') }}" method="GET">
                                     <div class="mb-3">
-                                        <label for="download_course_id" class="form-label">Course</label>
-                                        <select id="download_course_id" name="course_id" class="form-select select2" required>
+                                        <label for="download_course_code" class="form-label">Course</label>
+                                        <select id="download_course_code" name="course_code" class="form-select select2" required>
                                             <option value="">Choose Course</option>
                                             @foreach ($courses as $course)
-                                                <option value="{{ $course->id }}">{{ $course->course_title }} ({{ $course->course_code }})</option>
+                                                <option value="{{ $course->course_code }}">{{ $course->course_title }} ({{ $course->course_code }})</option>
                                             @endforeach
                                         </select>
                                     </div>

@@ -189,34 +189,53 @@ class ResultController extends Controller
     public function downloadSheet(Request $request)
     {
         $request->validate([
-            'course_id' => 'required|uuid',
+            'course_code' => 'required|string',
             'session' => 'required|string',
             'semester' => 'required|string',
         ]);
 
-        $course = Course::findOrFail($request->course_id);
+        $courseCode = $request->course_code;
 
-        // Fetch registered students
-        $students = CourseRegistration::where('course_id', $course->id)
+        // Fetch registered students using course_code, including the student and profile details
+        $students = CourseRegistration::where('course_code', $courseCode)
             ->where('session', $request->session)
             ->where('semester', $request->semester)
             ->with('student')
             ->get();
 
+        // Check for existing results for this course, session, and semester
+        $existingResults = Result::where('course_code', $courseCode)
+            ->where('session', $request->session)
+            ->where('semester', $request->semester)
+            ->get()
+            ->keyBy('student_id'); // Key by student_id for reliable lookup
+
         // Transform data into simple array
-        $data = $students->map(function (CourseRegistration $reg) {
+        $data = $students->map(function (CourseRegistration $reg) use ($existingResults) {
+            // Find existing result using student_id
+            $result = $existingResults->get($reg->student_id);
+
+            $ca = '0';
+            $exam = '0';
+
+            if ($result) {
+                $ca = is_numeric($result->ca) ? (string) (float) $result->ca : '0';
+                $exam = is_numeric($result->exam) ? (string) (float) $result->exam : '0';
+            }
+
             return [
-                'matric_no' => $reg->student->matric_no ?? '',
-                'ca' => 0,
-                'exam' => 0,
+                'matric_no' => $reg->matric_no ?? '', // Keep original case for display
+                'name' => $reg->student ? trim($reg->student->last_name . ' ' . $reg->student->first_name) : '',
+                'ca' => $ca,
+                'exam' => $exam,
             ];
         })->toArray(); // ✅ convert to plain array
 
         // Define headings (optional, but helpful)
-        $headings = ['Matric No', 'CA', 'Examination'];
+        $headings = ['Matric No', 'Name', 'CA', 'Examination'];
 
         // Export and download
-        return Excel::download(new \App\Exports\ArrayExport($data, $headings), "{$course->course_code}_result_sheet.xlsx");
+        return Excel::download(new \App\Exports\ArrayExport($data, $headings), "{$courseCode}_result_sheet.xlsx");
     }
 
     public function approveResults(Request $request)

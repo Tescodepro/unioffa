@@ -117,7 +117,7 @@ class ApplicationController extends Controller
                         'footer' => 'Warm regards,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Team',
                     ];
 
-                    Mail::to($to)->send(new GeneralMail($subject, $content, false));
+                    // Mail::to($to)->send(new GeneralMail($subject, $content, false));
 
                     // Log referral for records
                     Log::info("Referral: User {$user->email} registered with referral code {$request->referee_code}, referred by Agent ID {$agentApplication->id}");

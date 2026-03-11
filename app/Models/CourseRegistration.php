@@ -12,6 +12,7 @@ class CourseRegistration extends Model
 
     protected $fillable = [
         'student_id',
+        'matric_no',
         'course_id',
         'course_code',
         'course_title',

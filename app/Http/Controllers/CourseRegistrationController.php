@@ -106,6 +106,7 @@ class CourseRegistrationController extends Controller
             if (!$exists) {
                 CourseRegistration::create([
                     'student_id' => $user->id,
+                    'matric_no' => $student->matric_no,
                     'course_id' => $course->id,
                     'course_code' => $course->course_code,
                     'course_title' => $course->course_title,
