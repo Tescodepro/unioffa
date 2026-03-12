@@ -16,137 +16,99 @@ use App\Models\Permission;
 class DefaultUserTypePermissionsSeeder extends Seeder
 {
     /**
-     * Map of user type name → array of permission identifiers to assign by default.
-     * Add or remove entries here to control what each role gets out of the box.
+     * Map of user type name → data (permissions and dashboard route).
      */
     protected array $defaults = [
-
-        // ─── ICT: full system access (except super-admin bypass) ─────────────
         'ict' => [
-            'view_dashboard',
-            'manage_students',
-            'manage_users',
-            'manage_user_types',   // <-- this is what grants access to User Types page
-            'manage_settings',
-            'manage_website',
-            'manage_agents',
-            'upload_results',
-            'view_uploaded_results',
-            'manage_result_status',
-            'view_result_summary',
-            'view_transcripts',
-            'view_all_courses',
-            'view_course_assignments',
-            'view_course_assignments',
-            'manage_staff',
-            'access_ict_portal',
+            'route' => 'ict.dashboard',
+            'perms' => [
+                'view_dashboard', 'manage_students', 'manage_users', 'manage_user_types',
+                'manage_settings', 'manage_website', 'manage_agents', 'upload_results',
+                'view_uploaded_results', 'manage_result_status', 'view_result_summary',
+                'view_transcripts', 'view_all_courses', 'view_course_assignments',
+                'manage_staff', 'access_ict_portal',
+            ],
         ],
-
-        // ─── Bursary: financial management ───────────────────────────────────
         'bursary' => [
-            'view_dashboard',
-            'view_payment_summary',
-            'view_transactions',
-            'verify_payments',
-            'upload_manual_payment',
-            'approve_payments',
-            'view_reports',
-            'manage_payment_settings',
-            'manage_transactions',
-            'access_bursary_portal',
+            'route' => 'burser.dashboard',
+            'perms' => [
+                'view_dashboard', 'view_payment_summary', 'view_transactions', 'verify_payments',
+                'upload_manual_payment', 'approve_payments', 'view_reports', 'manage_payment_settings',
+                'manage_transactions', 'access_bursary_portal',
+            ],
         ],
-
-        // ─── Dean: academic leadership ────────────────────────────────────────
         'dean' => [
-            'view_dashboard',
-            'upload_results',
-            'view_uploaded_results',
-            'manage_result_status',
-            'view_result_summary',
-            'view_transcripts',
-            'view_all_courses',
-            'view_course_assignments',
-            'manage_staff',
-            'access_dean_portal',
+            'route' => 'lecturer.dean.dashboard',
+            'perms' => [
+                'view_dashboard', 'upload_results', 'view_uploaded_results', 'manage_result_status',
+                'view_result_summary', 'view_transcripts', 'view_all_courses', 'view_course_assignments',
+                'manage_staff', 'access_dean_portal',
+            ],
         ],
-
-        // ─── HOD: departmental management (subset of dean) ────────────────────
         'hod' => [
-            'view_dashboard',
-            'upload_results',
-            'view_uploaded_results',
-            'view_result_summary',
-            'view_all_courses',
-            'view_course_assignments',
-            'manage_staff',
-            'access_hod_portal',
+            'route' => 'lecturer.dashboard',
+            'perms' => [
+                'view_dashboard', 'upload_results', 'view_uploaded_results', 'view_result_summary',
+                'view_all_courses', 'view_course_assignments', 'manage_staff', 'access_hod_portal',
+            ],
         ],
-
-        // ─── Lecturer: teaching staff ─────────────────────────────────────────
         'lecturer' => [
-            'view_dashboard',
-            'upload_results',
-            'view_uploaded_results',
-            'view_result_summary',
-            'view_all_courses',
-            'view_course_assignments',
-            'access_lecturer_portal',
+            'route' => 'lecturer.dashboard',
+            'perms' => [
+                'view_dashboard', 'upload_results', 'view_uploaded_results', 'view_result_summary',
+                'view_all_courses', 'view_course_assignments', 'access_lecturer_portal',
+            ],
         ],
-
-        // ─── Registrar: student records ───────────────────────────────────────
         'registrar' => [
-            'view_dashboard',
-            'manage_students',
-            'view_transcripts',
-            'view_result_summary',
-            'manage_staff',
-            'access_registrar_portal',
+            'route' => 'registrar.dashboard',
+            'perms' => [
+                'view_dashboard', 'manage_students', 'view_transcripts', 'view_result_summary',
+                'manage_staff', 'access_registrar_portal',
+            ],
         ],
-
-        // ─── Vice-Chancellor: full read + approval ────────────────────────────
         'vice-chancellor' => [
-            'view_dashboard',
-            'manage_students',
-            'view_uploaded_results',
-            'view_result_summary',
-            'view_transcripts',
-            'view_reports',
-            'view_payment_summary',
-            'approve_payments',
-            'manage_agents',
-            'access_vc_portal',
+            'route' => 'vc.dashboard',
+            'perms' => [
+                'view_dashboard', 'manage_students', 'view_uploaded_results', 'view_result_summary',
+                'view_transcripts', 'view_reports', 'view_payment_summary', 'approve_payments',
+                'manage_agents', 'access_vc_portal',
+            ],
         ],
-
-        // ─── Programme Director ──────────────────────────────────────────────
+        'administrator' => [
+            'route' => 'admin.dashboard',
+            'perms' => [
+                'view_dashboard', 'manage_students', 'manage_users', 'manage_user_types',
+                'manage_settings', 'manage_website', 'manage_agents', 'upload_results',
+                'view_uploaded_results', 'manage_result_status', 'view_result_summary',
+                'view_transcripts', 'view_all_courses', 'view_course_assignments',
+                'manage_staff', 'access_admin_portal',
+            ],
+        ],
         'programme-director' => [
-            'view_dashboard',
-            'access_programme_director_portal',
-            'view_admission',
+            'route' => 'programme-director.dashboard',
+            'perms' => [
+                'view_dashboard', 'access_programme_director_portal', 'view_admission',
+            ],
         ],
-
-        // ─── Center Director ──────────────────────────────────────────────
         'center-director' => [
-            'view_dashboard',
-            'access_center_director_portal',
-            'view_admission',
+            'route' => 'center-director.dashboard',
+            'perms' => [
+                'view_dashboard', 'access_center_director_portal', 'view_admission',
+            ],
         ],
-
-        // ─── PRO ──────────────────────────────────────────────
         'public relations officer' => [
-            'view_dashboard',
-            'access_pro_portal',
+            'route' => 'pro.dashboard',
+            'perms' => [
+                'view_dashboard', 'access_pro_portal',
+            ],
         ],
-
-        // ─── Applicant ──────────────────────────────────────────────
         'applicant' => [
-            'view_dashboard',
-            'access_applicant_portal',
+            'route' => 'students.dashboard', // Applicant and student likely land on same/similar dashboard
+            'perms' => ['view_dashboard'],
         ],
-
-        // ─── Student ──────────────────────────────────────────────
         'student' => [
-            'view_dashboard',
-            'access_student_portal',
+            'route' => 'students.dashboard',
+            'perms' => ['view_dashboard'],
         ],
     ];
 
@@ -155,16 +117,24 @@ class DefaultUserTypePermissionsSeeder extends Seeder
         // Pre-load all permissions keyed by identifier for fast lookup
         $allPermissions = Permission::all()->keyBy('identifier');
 
-        foreach ($this->defaults as $userTypeName => $permissionIdentifiers) {
+        foreach ($this->defaults as $userTypeName => $data) {
             $userType = UserType::where('name', $userTypeName)->first();
+
+            if (!$userType) {
+                // Try case-insensitive or slugified search if exact match fails
+                $userType = UserType::where('name', 'like', $userTypeName)->first();
+            }
 
             if (!$userType) {
                 $this->command->warn("UserType '{$userTypeName}' not found — skipping.");
                 continue;
             }
 
+            // Update dashboard route
+            $userType->update(['dashboard_route' => $data['route']]);
+
             // Resolve identifiers to UUIDs
-            $ids = collect($permissionIdentifiers)
+            $ids = collect($data['perms'])
                 ->filter(fn($id) => $allPermissions->has($id))
                 ->map(fn($id) => $allPermissions->get($id)->id)
                 ->values()
@@ -173,7 +143,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             // syncWithoutDetaching = only ADD, never remove existing assignments
             $userType->permissions()->syncWithoutDetaching($ids);
 
-            $this->command->info("✓ '{$userTypeName}' — assigned " . count($ids) . " default permissions.");
+            $this->command->info("✓ '{$userTypeName}' — route: {$data['route']}, assigned " . count($ids) . " default permissions.");
         }
     }
 }

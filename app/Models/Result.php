@@ -49,7 +49,7 @@ class Result extends Model
     // Student that owns the result
     public function student()
     {
-        return $this->belongsTo(Student::class, 'user_id');
+        return $this->belongsTo(Student::class, 'student_id', 'user_id');
     }
 
     // The course this result belongs to
@@ -78,7 +78,7 @@ class Result extends Model
     public function getTotalAttribute($value)
     {
         if ($value === null && $this->ca !== null && $this->exam !== null) {
-            return $this->ca + $this->exam;
+            return (float) $this->ca + (float) $this->exam;
         }
         return $value;
     }
@@ -87,21 +87,19 @@ class Result extends Model
      * Helper Methods
      */
 
-    // Compute grade based on total score
+    // Compute grade based on total score using GradingSystem
     public function computeGrade()
     {
-        $score = $this->total ?? ($this->ca + $this->exam);
+        $score = $this->total ?? (($this->ca ?? 0) + ($this->exam ?? 0));
 
-        if ($score >= 70)
-            return ['A', 'Excellent'];
-        if ($score >= 60)
-            return ['B', 'Very Good'];
-        if ($score >= 50)
-            return ['C', 'Good'];
-        if ($score >= 45)
-            return ['D', 'Fair'];
-        if ($score >= 40)
-            return ['E', 'Pass'];
+        // Get point and grade from GradingSystem
+        $grading = GradingSystem::where('min_score', '<=', $score)
+            ->orderBy('min_score', 'desc')
+            ->first();
+
+        if ($grading) {
+            return [$grading->grade, $grading->description ?? ''];
+        }
 
         return ['F', 'Fail'];
     }

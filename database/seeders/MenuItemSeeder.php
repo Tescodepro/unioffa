@@ -349,6 +349,30 @@ class MenuItemSeeder extends Seeder
                 'sort_order' => 60,
             ],
 
+            // ── Admission (Center Director) ──────────────────────────────────
+            [
+                'section' => 'Admission',
+                'label' => 'Applicants',
+                'icon' => 'ti ti-users',
+                'route_name' => 'center-director.admission.applicants',
+                'route_pattern' => 'staff/center-director/admission/applicants',
+                'permission_identifier' => 'view_admission',
+                'sort_order' => 10,
+                'user_type_scope' => 'center-director',
+            ],
+
+            // ── Admission (Programme Director) ────────────────────────────────
+            [
+                'section' => 'Admission',
+                'label' => 'Applicants',
+                'icon' => 'ti ti-users',
+                'route_name' => 'programme-director.admission.applicants',
+                'route_pattern' => 'staff/programme-director/admission',
+                'permission_identifier' => 'view_admission',
+                'sort_order' => 10,
+                'user_type_scope' => 'programme-director',
+            ],
+
             // ── Agents ────────────────────────────────────────────────────────
             [
                 'section' => 'Agents',
@@ -362,10 +386,6 @@ class MenuItemSeeder extends Seeder
         ];
 
         foreach ($items as $item) {
-            // user_type_scope is not a DB column — remove before insert
-            $scope = $item['user_type_scope'] ?? null;
-            unset($item['user_type_scope']);
-            // Store scope as metadata in label suffix if needed — for now just insert
             MenuItem::create($item);
         }
     }

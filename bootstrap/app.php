@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'user.type' => \App\Http\Middleware\UserTypeMiddleware::class,
             'dynamic.permission' => \App\Http\Middleware\DynamicPermission::class,
         ]);
+
+        $middleware->redirectGuestsTo(fn (Request $request) => match (true) {
+            $request->is('admission/*') || $request->is('admission') => route('application.login'),
+            $request->is('students/*') || $request->is('students') => route('student.login'),
+            default => route('staff.login'),
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

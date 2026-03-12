@@ -362,15 +362,14 @@ class ResultController extends Controller
                 $unit = (int) $result->course_unit;
                 $score = (float) $result->total;
                 $totalUnitsOffered += $unit;
-                $points = 0;
-                if ($score >= 70) $points = 5;
-                elseif ($score >= 60) $points = 4;
-                elseif ($score >= 50) $points = 3;
-                elseif ($score >= 45) $points = 2;
-                elseif ($score >= 40) $points = 1;
-                else $points = 0;
+                
+                // Use dynamic grading system
+                $points = \App\Models\GradingSystem::getPoint($score);
+                
                 $totalGradePoints += ($unit * $points);
-                if ($score >= 40) $totalUnitsPassed += $unit;
+                if ($score >= 40) {
+                    $totalUnitsPassed += $unit;
+                }
             }
 
             $cgpa = $totalUnitsOffered > 0 ? $totalGradePoints / $totalUnitsOffered : 0;
@@ -657,20 +656,8 @@ class ResultController extends Controller
                     $totalUnitsOffered += $unit;
 
                     // --- 5.0 Grading System ---
-                    $points = 0;
-                    if ($score >= 70) {
-                        $points = 5;
-                    } elseif ($score >= 60) {
-                        $points = 4;
-                    } elseif ($score >= 50) {
-                        $points = 3;
-                    } elseif ($score >= 45) {
-                        $points = 2;
-                    } elseif ($score >= 40) {
-                        $points = 1;
-                    } else {
-                        $points = 0;
-                    }
+                    // Use dynamic grading system
+                    $points = \App\Models\GradingSystem::getPoint($score);
 
                     // Calculate Grade Points for this course
                     $totalGradePoints += ($unit * $points);
@@ -833,10 +820,13 @@ class ResultController extends Controller
 
             foreach ($sessionResults as $r) {
                 $unit = (int) ($r->course_unit ?? ($r->course->course_unit ?? 0));
-                $gp = $gradePoints[strtoupper($r->grade)] ?? 0;
+                
+                // Use dynamic points from score
+                $score = (float) ($r->total ?? (($r->ca ?? 0) + ($r->exam ?? 0)));
+                $gp = \App\Models\GradingSystem::getPoint($score);
                 
                 $tco += $unit;
-                if (strtoupper($r->grade) !== 'F') {
+                if ($score >= 40) {
                     $tcp += $unit;
                 }
                 $twgp += ($unit * $gp);
@@ -897,9 +887,10 @@ class ResultController extends Controller
             $tco = 0; $tcp = 0; $twgp = 0;
             foreach ($sessionResults as $r) {
                 $unit = (int) ($r->course_unit ?? ($r->course->course_unit ?? 0));
-                $gp = $gradePoints[strtoupper($r->grade)] ?? 0;
+                $score = (float) ($r->total ?? (($r->ca ?? 0) + ($r->exam ?? 0)));
+                $gp = \App\Models\GradingSystem::getPoint($score);
                 $tco += $unit;
-                if (strtoupper($r->grade) !== 'F') { $tcp += $unit; }
+                if ($score >= 40) { $tcp += $unit; }
                 $twgp += ($unit * $gp);
             }
             $gpa = $tco > 0 ? round($twgp / $tco, 2) : 0.00;
