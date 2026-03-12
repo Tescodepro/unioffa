@@ -34,11 +34,14 @@
 
                 @isset($student)
                     <div class="card shadow-sm border-0">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">
                                 <i class="fa fa-file-alt me-2"></i>
-                                Transcript for {{ $student->name }} ({{ $student->username }})
+                                Transcript for {{ $student->fullname }} ({{ $student->username }})
                             </h4>
+                            <a href="{{ route('results.printTranscript', ['matric' => $student->username]) }}" target="_blank" class="btn btn-light btn-sm">
+                                <i class="fa fa-print me-1"></i> Print Transcript
+                            </a>
                         </div>
 
                         <div class="card-body">
@@ -160,10 +163,63 @@
                                     </tbody>
                                 </table>
 
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <div class="bg-light p-3 border rounded">
+                                            <div class="row text-center">
+                                                <div class="col-md-2">
+                                                    <small class="text-muted d-block">TCO</small>
+                                                    <span class="fw-bold">{{ $sessionMetrics[$session]['tco'] }}</span>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <small class="text-muted d-block">TCP</small>
+                                                    <span class="fw-bold">{{ $sessionMetrics[$session]['tcp'] }}</span>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <small class="text-muted d-block">TWGP</small>
+                                                    <span class="fw-bold">{{ $sessionMetrics[$session]['twgp'] }}</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted d-block">GPA</small>
+                                                    <span class="badge bg-primary">{{ $sessionMetrics[$session]['gpa'] }}</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted d-block">CGPA</small>
+                                                    <span class="badge bg-dark">{{ $sessionMetrics[$session]['cgpa'] }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
 
                             @empty
                                 <p class="text-muted">No results found for this student.</p>
                             @endforelse
+
+                            @if($resultsBySession->isNotEmpty())
+                                <div class="mt-4 p-4 border-top">
+                                    <h4 class="text-center mb-3">FINAL CUMULATIVE SUMMARY</h4>
+                                    <div class="row justify-content-center">
+                                        <div class="col-md-8">
+                                            <table class="table table-bordered text-center h5">
+                                                <tr class="table-dark">
+                                                    <th>CTCO</th>
+                                                    <th>CTCP</th>
+                                                    <th>CTWGP</th>
+                                                    <th>CGPA</th>
+                                                </tr>
+                                                <tr>
+                                                    <td>{{ $finalMetrics['ctco'] }}</td>
+                                                    <td>{{ $finalMetrics['ctcp'] }}</td>
+                                                    <td>{{ $finalMetrics['ctwgp'] }}</td>
+                                                    <td class="fw-bold text-primary">{{ $finalMetrics['cgpa'] }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endisset

@@ -48,6 +48,28 @@ class BroadsheetService
             ->orderBy('matric_no')
             ->get();
 
+        // 1. Identify all unique courses registered or results uploaded for these students in this specific period
+        // This will form the dynamic columns (e.g., ACC 103, ACC 201...)
+        $registrationCodes = \App\Models\CourseRegistration::where('session', $session->name)
+            ->when($semesterFilter, fn($q) => $q->where('semester', $semesterFilter))
+            ->whereIn('matric_no', $students->pluck('matric_no'))
+            ->pluck('course_code')
+            ->toArray();
+
+        $resultCodes = \App\Models\Result::where('session', $session->name)
+            ->when($semesterFilter, fn($q) => $q->where('semester', $semesterFilter))
+            ->whereIn('student_id', $students->pluck('user_id'))
+            ->pluck('course_code')
+            ->toArray();
+
+        $courseCodes = collect(array_merge($registrationCodes, $resultCodes))
+            ->unique()
+            ->sort()
+            ->values();
+
+        // Get course details for the legend/key
+        $coursesInfo = \App\Models\Course::whereIn('course_code', $courseCodes)->get()->keyBy('course_code');
+
         $broadsheetData = [];
         $stats = [
             'total_students' => 0,
@@ -60,51 +82,100 @@ class BroadsheetService
             ],
         ];
 
+        // Ordering for "Previous" calculation
+        $allSessions = AcademicSession::orderBy('name', 'ASC')->pluck('name')->toArray();
+        $allSemesters = ['1st', '2nd', '3nd']; // Defined in DB
+
         foreach ($students as $student) {
             $stats['total_students']++;
 
-            // ── All historical results for CGPA ──────────────────────────────
+            // All registered courses (to find outstanding)
+            $registrations = \App\Models\CourseRegistration::where('student_id', $student->user_id)
+                ->where('session', $session->name)
+                ->when($semesterFilter, fn($q) => $q->where('semester', $semesterFilter))
+                ->get();
+
+            // All historical results
             $allResults = Result::where('student_id', $student->user_id)->get();
 
-            // ── Results for the requested period only ─────────────────────────
-            $periodResults = $allResults->filter(function (Result $r) use ($session, $semesterFilter) {
+            // Results for the requested (Current) period
+            $currentResults = $allResults->filter(function (Result $r) use ($session, $semesterFilter) {
                 $match = $r->session === $session->name;
-                if ($semesterFilter) {
-                    $match = $match && $r->semester === $semesterFilter;
-                }
+                if ($semesterFilter) { $match = $match && $r->semester === $semesterFilter; }
                 return $match;
             });
 
-            // Group period results by semester for the table rows
-            $resultsBySemester = $periodResults->groupBy('semester');
+            // Outstanding: Registered but no result record with a total/grade
+            $outstanding = $registrations->filter(function($reg) use ($currentResults) {
+                return !$currentResults->contains('course_code', $reg->course_code);
+            })->pluck('course_code')->toArray();
 
-            // ── Period GPA ───────────────────────────────────────────────────
-            $periodCalc = $this->calculateGPAFromResults($periodResults);
+            // Current metrics
+            $currentCalc = $this->calculateGPAFromResults($currentResults);
 
-            // ── Cumulative CGPA ──────────────────────────────────────────────
-            $cumulativeCalc = $this->calculateCGPAFromResults($allResults);
+            // Previous metrics: everything strictly before current session/semester
+            $previousResults = $allResults->filter(function (Result $r) use ($session, $semesterFilter, $allSessions, $allSemesters) {
+                $sessIdxC = array_search($session->name, $allSessions);
+                $sessIdxR = array_search($r->session, $allSessions);
 
-            // ── Stats bookkeeping ────────────────────────────────────────────
-            $hasFailures = $periodResults->contains(fn($r) => $r->total !== null && $r->total < 40);
-            if ($hasFailures) {
+                if ($sessIdxR < $sessIdxC) return true;
+                if ($sessIdxR > $sessIdxC) return false;
+
+                // Same session, compare semesters if we are filtering by semester
+                if ($semesterFilter) {
+                    $semIdxC = array_search($semesterFilter, $allSemesters);
+                    $semIdxR = array_search($r->semester, $allSemesters);
+                    return $semIdxR < $semIdxC;
+                }
+                return false;
+            });
+            $previousCalc = $this->calculateGPAFromResults($previousResults);
+
+            // Cumulative: Current + Previous (or just all results filtered to current point)
+            // Using all results up to AND including current
+            $cumulativeResults = $allResults->filter(function (Result $r) use ($session, $semesterFilter, $allSessions, $allSemesters) {
+                $sessIdxC = array_search($session->name, $allSessions);
+                $sessIdxR = array_search($r->session, $allSessions);
+
+                if ($sessIdxR < $sessIdxC) return true;
+                if ($sessIdxR > $sessIdxC) return false;
+
+                if ($semesterFilter) {
+                    $semIdxC = array_search($semesterFilter, $allSemesters);
+                    $semIdxR = array_search($r->semester, $allSemesters);
+                    return $semIdxR <= $semIdxC;
+                }
+                return true;
+            });
+            $cumulativeCalc = $this->calculateGPAFromResults($cumulativeResults);
+
+            // Results mapped to the dynamic course columns
+            $courseResults = [];
+            foreach ($courseCodes as $code) {
+                $res = $currentResults->firstWhere('course_code', $code);
+                $courseResults[$code] = $res ? ($res->total ?? '-') : '-';
+            }
+
+            // Stats booking
+            if ($currentResults->contains(fn($r) => ($r->total !== null && $r->total < 40) || $r->grade === 'F')) {
                 $stats['repeats']++;
             } else {
                 $stats['clear_passes']++;
             }
 
-            $cgpa = $cumulativeCalc['cgpa'];
-            if ($cgpa >= 4.5)
-                $stats['cgpa_classes']['first_class']++;
-            elseif ($cgpa >= 1.0 && $cgpa <= 1.5)
-                $stats['cgpa_classes']['counselling']++;
-            elseif ($cgpa < 1.0 && $cgpa > 0)
-                $stats['cgpa_classes']['withdrawal']++;
+            $cgpa = $cumulativeCalc['gpa']; // calculateGPAFromResults returns 'gpa' as the ratio
+            if ($cgpa >= 4.5) $stats['cgpa_classes']['first_class']++;
+            elseif ($cgpa >= 1.0 && $cgpa <= 1.5) $stats['cgpa_classes']['counselling']++;
+            elseif ($cgpa < 1.0 && $cgpa > 0) $stats['cgpa_classes']['withdrawal']++;
 
             $broadsheetData[] = [
                 'student' => $student,
-                'results_by_semester' => $resultsBySemester,
-                'period' => $periodCalc,
+                'course_results' => $courseResults,
+                'current' => $currentCalc,
+                'previous' => $previousCalc,
                 'cumulative' => $cumulativeCalc,
+                'outstanding' => $outstanding,
+                'academic_status' => $cgpa >= 1.5 ? 'GOOD STANDING' : ($cgpa > 0 ? 'PROBATION' : 'N/A'),
             ];
         }
 
@@ -113,6 +184,8 @@ class BroadsheetService
             'session' => $session,
             'semester' => $semester,
             'level' => $level,
+            'course_codes' => $courseCodes,
+            'courses_info' => $coursesInfo,
             'students_data' => $broadsheetData,
             'stats' => $stats,
         ];

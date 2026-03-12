@@ -49,7 +49,7 @@ class Result extends Model
     // Student that owns the result
     public function student()
     {
-        return $this->belongsTo(Student::class, 'student_id');
+        return $this->belongsTo(Student::class, 'user_id');
     }
 
     // The course this result belongs to
@@ -62,6 +62,12 @@ class Result extends Model
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    // The user (student) this result belongs to, linked via matric_no
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'matric_no', 'username');
     }
 
     /**

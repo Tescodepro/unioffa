@@ -136,7 +136,7 @@
                                             <select name="semester" id="semester" class="form-select select2" required>
                                                 <option value="">Select Semester</option>
                                                 @foreach ($semesters as $semester)
-                                                    <option value="{{ $semester->name }}">{{ $semester->name }}</option>
+                                                    <option value="{{ $semester->code }}">{{ $semester->name }}</option>
                                                 @endforeach
                                             </select>
                                             @if($semesters->isEmpty())

@@ -5,17 +5,7 @@
             <ul>
                 <li>
                     @php
-                        $dashboardRoute = match (auth()->user()->userType->name) {
-                            'administrator' => 'admin.dashboard',
-                            'vice-chancellor' => 'vc.dashboard',
-                            'registrar' => 'registrar.dashboard',
-                            'bursary' => 'burser.dashboard',
-                            'dean' => 'lecturer.dean.dashboard',
-                            'ict' => 'ict.dashboard',
-                            'center-director' => 'center-director.dashboard',
-                            'programme-director' => 'programme-director.dashboard',
-                            default => 'lecturer.dashboard',
-                        };
+                        $dashboardRoute = auth()->user()->userType?->dashboard_route ?? 'staff.login';
                     @endphp
                     <a href="{{ route($dashboardRoute) }}"
                         class="d-flex align-items-center border bg-white rounded p-2 mb-4">
@@ -53,16 +43,7 @@
             <ul>
                 {{-- MAIN: Dashboard (route varies by user type — legitimate) --}}
                 @php
-                    $dashRoute = match ($userType) {
-                        'administrator' => 'admin.dashboard',
-                        'vice-chancellor' => 'vc.dashboard',
-                        'registrar' => 'registrar.dashboard',
-                        'bursary' => 'burser.dashboard',
-                        'ict' => 'ict.dashboard',
-                        'dean' => 'lecturer.dean.dashboard',
-                        'center-director' => 'center-director.dashboard',
-                        default => 'lecturer.dashboard',
-                    };
+                    $dashRoute = auth()->user()->userType?->dashboard_route ?? 'staff.login';
                 @endphp
                 <li>
                     <h6 class="submenu-hdr"><span>Main</span></h6>

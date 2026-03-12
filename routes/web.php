@@ -66,19 +66,19 @@ Route::prefix('admission')->group(function () {
 
         Route::get('logout', 'logoutAction')->name('application.logout');
 
-        Route::get('/dashboard', 'dashboard')->middleware('user.type:applicant')->name('application.dashboard');
-        Route::post('/start-application', 'startApplication')->middleware('user.type:applicant')->name('application.start');
-        Route::get('/form/{user_application_id}', 'applicationForm')->middleware('user.type:applicant')->name('application.form');
+        Route::get('/dashboard', 'dashboard')->middleware(['auth', 'dynamic.permission'])->name('application.dashboard');
+        Route::post('/start-application', 'startApplication')->middleware(['auth', 'dynamic.permission'])->name('application.start');
+        Route::get('/form/{user_application_id}', 'applicationForm')->middleware(['auth', 'dynamic.permission'])->name('application.form');
 
         // ======= form submition ======= //
-        Route::post('/form/save-profile/{user_application_id}', 'saveProfile')->middleware('user.type:applicant')->name('application.personal_info.submit');
-        Route::post('/form/save-olevel/{user_application_id}', 'saveOlevel')->middleware('user.type:applicant')->name('application.olevel.submit');
-        Route::post('/form/save-alevel/{user_application_id}', 'saveAlevel')->middleware('user.type:applicant')->name('application.alevel.submit');
-        Route::post('/form/save-jamb-details/{user_application_id}', 'saveJambDetails')->middleware('user.type:applicant')->name('application.jamb_details.submit');
-        Route::post('/form/save-course-of-study/{user_application_id}', 'saveCourseOfStudy')->middleware('user.type:applicant')->name('application.course_of_study.submit');
-        Route::post('/form/save-documents/{user_application_id}', 'saveDocuments')->middleware('user.type:applicant')->name('application.documents.submit');
-        Route::post('/form/handle-form-submission/{user_application_id}', 'handleFormSubmission')->middleware('user.type:applicant')->name('application.handle_form_submission');
-        Route::delete('/application/{user_application_id}', 'deleteApplication')->middleware('user.type:applicant')->name('application.delete');
+        Route::post('/form/save-profile/{user_application_id}', 'saveProfile')->middleware(['auth', 'dynamic.permission'])->name('application.personal_info.submit');
+        Route::post('/form/save-olevel/{user_application_id}', 'saveOlevel')->middleware(['auth', 'dynamic.permission'])->name('application.olevel.submit');
+        Route::post('/form/save-alevel/{user_application_id}', 'saveAlevel')->middleware(['auth', 'dynamic.permission'])->name('application.alevel.submit');
+        Route::post('/form/save-jamb-details/{user_application_id}', 'saveJambDetails')->middleware(['auth', 'dynamic.permission'])->name('application.jamb_details.submit');
+        Route::post('/form/save-course-of-study/{user_application_id}', 'saveCourseOfStudy')->middleware(['auth', 'dynamic.permission'])->name('application.course_of_study.submit');
+        Route::post('/form/save-documents/{user_application_id}', 'saveDocuments')->middleware(['auth', 'dynamic.permission'])->name('application.documents.submit');
+        Route::post('/form/handle-form-submission/{user_application_id}', 'handleFormSubmission')->middleware(['auth', 'dynamic.permission'])->name('application.handle_form_submission');
+        Route::delete('/application/{user_application_id}', 'deleteApplication')->middleware(['auth', 'dynamic.permission'])->name('application.delete');
         Route::get('/admission-letter/{applicationId}', 'downloadAdmissionLetter')->name('student.admission.letter')->middleware('auth');
         Route::get('/forgot-password', 'showForgotPasswordForm')->name('application.forgot.password');
         Route::post('/forgot-password', 'postForgotPassword')->name('password.email');
@@ -110,7 +110,7 @@ Route::prefix('students')->group(function () {
         Route::post('/auth/change-password', 'verifyOtpAction');
     });
 
-    Route::middleware('user.type:student')->group(function () {
+    Route::middleware(['auth', 'dynamic.permission'])->group(function () {
         Route::controller(DashboardController::class)->group(function () {
             Route::get('/dashboard', 'index')->name('students.dashboard');
             Route::get('/payment', 'loadPayment')->name('students.load_payment');
@@ -147,8 +147,8 @@ Route::prefix('staff')->group(function () {
         Route::get('logout', 'logoutAction')->name('staff.logout');
     });
 
-    // Administrator dashboard & admission management
-    Route::middleware('user.type:administrator')->group(function () {
+    // Staff General Routes (Dashboard, Profile, Results etc.)
+    Route::middleware(['auth', 'dynamic.permission'])->group(function () {
         Route::get('/dashboard', [AdminGeneralController::class, 'index_admin'])->name('admin.dashboard');
         Route::controller(AdminGeneralController::class)->group(function () {
             Route::post('admit/{userId}', 'admitStudent')->name('admin.admit');
@@ -167,7 +167,7 @@ Route::prefix('staff')->group(function () {
     });
 
     // Vice-Chancellor — own dashboard + shared admission (same as admin)
-    Route::middleware('user.type:vice-chancellor')->prefix('vc')->group(function () {
+    Route::middleware(['auth', 'dynamic.permission'])->prefix('vc')->group(function () {
         Route::controller(\App\Http\Controllers\Staff\Vc\VcController::class)->group(function () {
             Route::get('/dashboard', 'dashboard')->name('vc.dashboard');
         });
@@ -180,7 +180,7 @@ Route::prefix('staff')->group(function () {
     });
 
     // Registrar — own dashboard + shared admission (same as admin)
-    Route::middleware('user.type:registrar')->prefix('registrar')->group(function () {
+    Route::middleware(['auth', 'dynamic.permission'])->prefix('registrar')->group(function () {
         Route::controller(\App\Http\Controllers\Staff\Registrar\RegistrarController::class)->group(function () {
             Route::get('/dashboard', 'dashboard')->name('registrar.dashboard');
         });
@@ -193,7 +193,7 @@ Route::prefix('staff')->group(function () {
     });
 
     // Center Director — read-only, campus-scoped admission view (no Admit action)
-    Route::middleware('user.type:center-director')
+    Route::middleware(['auth', 'dynamic.permission'])
         ->prefix('center-director')
         ->controller(\App\Http\Controllers\Staff\CenterDirector\CenterDirectorController::class)
         ->group(function () {
@@ -202,7 +202,7 @@ Route::prefix('staff')->group(function () {
         });
 
     // Programme Director — scoped admission view + Admit action
-    Route::middleware('user.type:programme-director')->prefix('programme-director')->group(function () {
+    Route::middleware(['auth', 'dynamic.permission'])->prefix('programme-director')->group(function () {
         Route::controller(\App\Http\Controllers\Staff\ProgrammeDirector\ProgrammeDirectorController::class)->group(function () {
             Route::get('/dashboard', 'dashboard')->name('programme-director.dashboard');
         });
@@ -269,7 +269,7 @@ Route::prefix('staff')->group(function () {
         Route::controller(\App\Http\Controllers\Staff\BroadsheetController::class)->group(function () {
             Route::get('/sessional', 'indexSessional')->name('broadsheet.sessional');
             Route::get('/semester', 'indexSemester')->name('broadsheet.semester');
-            Route::get('/generate', 'generate')->name('broadsheet.generate');
+            Route::get('/print-official', 'printOfficial')->name('broadsheet.printOfficial');
         });
     });
 
@@ -315,18 +315,21 @@ Route::prefix('staff')->group(function () {
         Route::get('/backlog-upload/template', [ResultController::class, 'downloadBacklogTemplate'])->name('backlog.upload.template');
         Route::put('/results/{id}', [ResultController::class, 'update'])->name('results.update');
         Route::delete('/results/{id}', [ResultController::class, 'destroy'])->name('results.delete');
-        Route::get('/results/view-uploaded', [ResultController::class, 'viewuploadReport'])->name('results.viewUploaded');
+        Route::get('/results/view-uploaded', [ResultController::class, 'viewUploadedResults'])->name('results.viewUploaded');
+        Route::get('/results/print-uploaded', [ResultController::class, 'printUploadedResults'])->name('results.printUploaded');
         Route::get('/results/download-uploaded-results', [ResultController::class, 'downloadResults'])->name('results.download');
         Route::get('/results/manage-status', [ResultController::class, 'manageStatus'])->name('results.manage.status');
         Route::post('/results/update-status', [ResultController::class, 'updateStatus'])->name('results.update.status');
         Route::post('/results/bulk-update-status', [ResultController::class, 'bulkUpdateStatus'])->name('results.bulk.update');
         Route::get('/results/summary', [ResultController::class, 'summaryByDepartment'])->name('results.summary');
+        Route::get('/results/print-summary', [ResultController::class, 'printSummaryReport'])->name('results.printSummary');
         Route::get('/transcript/result/view', [ResultController::class, 'searchTranscript'])->name('transcript.search');
         Route::get('/transcript/search', [ResultController::class, 'transcriptSearchPage'])->name('transcript.search.page');
+        Route::get('/transcript/print', [ResultController::class, 'printTranscript'])->name('results.printTranscript');
     });
 
     // ICT-specific routes — dynamic.permission handles authorization
-    Route::prefix('ict')->middleware(['user.type:ict', 'dynamic.permission'])->group(function () {
+    Route::prefix('ict')->middleware(['auth', 'dynamic.permission'])->group(function () {
         Route::get('/dashboard', [IctStudentController::class, 'dashboard'])->name('ict.dashboard');
 
         // Users

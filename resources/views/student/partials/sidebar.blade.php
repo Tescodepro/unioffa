@@ -39,7 +39,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="{{ request()->is('students/results*') ? 'active' : '' }}">
+                            <a href="{{ route('students.results') }}" class="{{ request()->is('students/results*') ? 'active' : '' }}">
                                 <i class="ti ti-file-text"></i>
                                 <span>Check Results</span>
                             </a>

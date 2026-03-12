@@ -28,18 +28,21 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Course</label>
-                                    <select name="course_id" class="form-select" required>
+                                    <select name="course" class="form-select select2" required>
                                         <option value="">Select Course</option>
                                         @foreach ($courses as $c)
-                                            <option value="{{ $c->id }}" {{ request('course_id') == $c->id ? 'selected' : '' }}>
-                                                {{ $c->course_title }}
+                                            <option value="{{ $c->course_code }}" {{ request('course') == $c->course_code ? 'selected' : '' }}>
+                                                {{ $c->course_title }} ({{ $c->course_code }})
                                             </option>
                                         @endforeach
                                     </select>
+                                    @error('course')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Session</label>
-                                    <select name="session" class="form-select" required>
+                                    <select name="session" class="form-select select2" required>
                                         <option value="">Select Session</option>
                                         @foreach ($sessions as $s)
                                             <option value="{{ $s->name }}" {{ request('session') == $s->name ? 'selected' : '' }}>
@@ -47,17 +50,23 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                    @error('session')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Semester</label>
-                                    <select name="semester" class="form-select" required>
+                                    <select name="semester" class="form-select select2" required>
                                         <option value="">Select Semester</option>
                                         @foreach ($semesters as $s)
-                                            <option value="{{ $s->name }}" {{ request('semester') == $s->name ? 'selected' : '' }}>
+                                            <option value="{{ $s->code }}" {{ request('semester') == $s->code ? 'selected' : '' }}>
                                                 {{ $s->name }}
                                             </option>
                                         @endforeach
                                     </select>
+                                    @error('semester')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
                                 <div class="col-md-2 d-flex align-items-end">
                                     <button class="btn btn-primary w-100">
@@ -77,22 +86,26 @@
                                 {{ $course->course_code }} &mdash; Uploaded Results
                                 <span class="badge bg-primary ms-2">{{ $results->count() }}</span>
                             </h5>
-                            <form action="{{ route('results.download') }}" method="GET" class="d-inline">
-                                <input type="hidden" name="course_id" value="{{ $course->id }}">
-                                <input type="hidden" name="session" value="{{ request('session') }}">
-                                <input type="hidden" name="semester" value="{{ request('semester') }}">
-                                <button class="btn btn-sm btn-success">
-                                    <i class="ti ti-download me-1"></i> Download Excel
-                                </button>
-                            </form>
+                            <div class="d-inline-flex gap-2">
+                                <form action="{{ route('results.download') }}" method="GET" class="d-inline d-print-none">
+                                    <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                    <input type="hidden" name="session" value="{{ request('session') }}">
+                                    <input type="hidden" name="semester" value="{{ request('semester') }}">
+                                </form>
+                                <a href="{{ route('results.printUploaded', ['course' => $course->course_code, 'session' => request('session'), 'semester' => request('semester')]) }}" 
+                                   target="_blank" class="btn btn-sm btn-success text-white">
+                                    <i class="ti ti-printer me-1"></i> Print Result
+                                </a>
+                            </div>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body px-4 pb-4">
                             <div class="table-responsive">
-                                <table class="table table-hover table-striped mb-0">
+                                <table id="resultsTable" class="table table-hover table-striped mb-0 w-100 align-middle">
                                     <thead class="table-light">
                                         <tr>
                                             <th>#</th>
                                             <th>Matric No</th>
+                                            <th>Name</th>
                                             <th class="text-center">CA</th>
                                             <th class="text-center">Exam</th>
                                             <th class="text-center">Total</th>
@@ -106,6 +119,7 @@
                                             <tr>
                                                 <td>{{ $i + 1 }}</td>
                                                 <td><code>{{ $r->matric_no }}</code></td>
+                                                <td>{{ $r->user->fullname ?? '---' }}</td>
                                                 <td class="text-center">{{ $r->ca }}</td>
                                                 <td class="text-center">{{ $r->exam }}</td>
                                                 <td class="text-center fw-semibold">{{ $r->total }}</td>
@@ -126,14 +140,44 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+
                         </div>
                     </div>
 
-                @elseif(request()->has('course_id'))
-                    <div class="alert alert-warning"><i class="ti ti-alert-triangle me-1"></i> No results found for your selection.</div>
+                @elseif(request()->has('course'))
+                    <div class="alert alert-warning text-center"><i class="ti ti-alert-triangle me-1"></i> No results found for your selection.</div>
                 @endif
 
             </div>
         </div>
     </div>
 @endsection
+
+@push('scripts')
+
+
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize Select2 for course, session, and semester
+            $('.select2').select2({ placeholder: 'Select an option', allowClear: true });
+
+            // Initialize DataTable for uploaded results
+            if ($('#resultsTable').length) {
+                var table = $('#resultsTable').DataTable({
+                    responsive: true,
+                    pageLength: 25,
+                    language: {
+                        search: "Search in table:"
+                    }
+                });
+
+
+            }
+        });
+    </script>
+@endpush

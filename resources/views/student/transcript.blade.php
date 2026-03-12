@@ -39,9 +39,6 @@
                         <a href="{{ route('students.transcript.download') }}" class="btn btn-primary me-2">
                             <i class="ti ti-download me-2"></i>Download PDF
                         </a>
-                        <button onclick="window.print()" class="btn btn-secondary">
-                            <i class="ti ti-printer me-2"></i>Print
-                        </button>
                     </div>
                 </div>
                 <!-- /Page Header -->
@@ -63,11 +60,11 @@
                                     </tr>
                                     <tr>
                                         <td class="fw-semibold">Department:</td>
-                                        <td>{{ $student->department->name ?? 'N/A' }}</td>
+                                        <td>{{ $student->department->department_name ?? 'N/A' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-semibold">Faculty:</td>
-                                        <td>{{ $student->department->faculty->name ?? 'N/A' }}</td>
+                                        <td>{{ $student->department->faculty->faculty_name ?? 'N/A' }}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -98,20 +95,18 @@
                 <!-- /Student Info Card -->
 
                 <!-- Results by Session -->
-                @forelse($resultsBySession as $session => $results)
+                @forelse($resultsBySession as $session => $sessionData)
                     <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">{{ $session }} Academic Session</h5>
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 text-white">{{ $session }} Academic Session</h5>
+                            <span class="badge bg-white text-primary fs-14">Session GPA: {{ $sessionData['gpa'] }}</span>
                         </div>
                         <div class="card-body">
-                            @php
-                                $sessionResults = collect($results);
-                                $firstSemester = $sessionResults->where('semester', '1st');
-                                $secondSemester = $sessionResults->where('semester', '2nd');
-                            @endphp
-
-                            @if($firstSemester->isNotEmpty())
-                                <h6 class="text-secondary mt-3 mb-2">First Semester</h6>
+                            @foreach($sessionData['semesters'] as $semCode => $semesterData)
+                                <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+                                    <h6 class="text-secondary mb-0">{{ $semCode == '1st' ? 'First' : 'Second' }} Semester</h6>
+                                    <span class="badge bg-dark text-white">Semester GPA: {{ $semesterData['gpa'] }}</span>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-hover">
                                         <thead class="table-light">
@@ -127,7 +122,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($firstSemester as $result)
+                                            @foreach($semesterData['results'] as $result)
                                                 <tr>
                                                     <td><strong>{{ $result->course_code }}</strong></td>
                                                     <td>{{ $result->course_title }}</td>
@@ -148,56 +143,11 @@
                                                         </span>
                                                     </td>
                                                     <td class="text-center">
-                                                        <span class="badge {{ $result->remark == 'Pass' ? 'bg-success' : 'bg-danger' }}">
-                                                            {{ $result->remark }}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @endif
-
-                            @if($secondSemester->isNotEmpty())
-                                <h6 class="text-secondary mt-4 mb-2">Second Semester</h6>
-<div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Course Code</th>
-                                                <th>Course Title</th>
-                                                <th class="text-center">Units</th>
-                                                <th class="text-center">CA</th>
-                                                <th class="text-center">Exam</th>
-                                                <th class="text-center">Total</th>
-                                                <th class="text-center">Grade</th>
-                                                <th class="text-center">Remark</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($secondSemester as $result)
-                                                <tr>
-                                                    <td><strong>{{ $result->course_code }}</strong></td>
-                                                    <td>{{ $result->course_title }}</td>
-                                                    <td class="text-center">{{ $result->course_unit }}</td>
-                                                    <td class="text-center">{{ $result->ca }}</td>
-                                                    <td class="text-center">{{ $result->exam }}</td>
-                                                    <td class="text-center"><strong>{{ $result->total }}</strong></td>
-                                                    <td class="text-center">
                                                         <span class="badge 
-                                                            @if($result->grade == 'A') bg-success
-                                                            @elseif($result->grade == 'B') bg-primary
-                                                            @elseif($result->grade == 'C') bg-info
-                                                            @elseif($result->grade == 'D') bg-warning
-                                                            @elseif($result->grade == 'E') bg-secondary
-                                                            @else bg-danger
+                                                            @if(in_array($result->remark, ['Excellent', 'Very Good', 'Good', 'Pass'])) bg-success 
+                                                            @elseif($result->remark == 'Fair') bg-warning 
+                                                            @else bg-danger 
                                                             @endif">
-                                                            {{ $result->grade }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <span class="badge {{ $result->remark == 'Pass' ? 'bg-success' : 'bg-danger' }}">
                                                             {{ $result->remark }}
                                                         </span>
                                                     </td>
@@ -206,7 +156,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                            @endif
+                            @endforeach
                         </div>
                     </div>
                 @empty

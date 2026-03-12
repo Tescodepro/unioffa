@@ -73,8 +73,10 @@ class BroadsheetController extends Controller
         $session = null;
         $semester = null;
         $level = null;
-        $studentsData = null;
+        $studentsData = [];
         $stats = null;
+        $course_codes = [];
+        $courses_info = [];
 
         // If the user has submitted the form, generate the report here
         if ($request->filled('department_id') && $request->filled('session_id') && $request->filled('level')) {
@@ -112,6 +114,8 @@ class BroadsheetController extends Controller
             $level = $data['level'];
             $studentsData = $data['students_data'];
             $stats = $data['stats'];
+            $course_codes = $data['course_codes'];
+            $courses_info = $data['courses_info'];
         }
 
         return view('staff.broadsheet.index', compact(
@@ -124,7 +128,33 @@ class BroadsheetController extends Controller
             'semester',
             'level',
             'studentsData',
-            'stats'
+            'stats',
+            'course_codes',
+            'courses_info'
         ));
+    }
+
+    /**
+     * Print the Official Standard Broadsheet.
+     */
+    public function printOfficial(Request $request)
+    {
+        $request->validate([
+            'department_id' => 'required',
+            'session_id' => 'required',
+            'level' => 'required',
+        ]);
+
+        $type = $request->input('type', 'sessional');
+        $semesterId = ($type === 'semester') ? $request->input('semester_id') : null;
+
+        $data = $this->broadsheetService->generateBroadsheet(
+            $request->department_id,
+            $request->session_id,
+            $request->level,
+            $semesterId
+        );
+
+        return view('staff.broadsheet.print-official', $data);
     }
 }

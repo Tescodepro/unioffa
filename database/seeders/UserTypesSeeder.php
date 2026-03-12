@@ -27,6 +27,8 @@ class UserTypesSeeder extends Seeder
             'lecturer' => 'lecturer.dashboard',
             'hod' => 'lecturer.dashboard',
             'center-director' => 'center-director.dashboard',
+            'programme-director' => 'programme-director.dashboard',
+            'public relations officer' => 'pro.dashboard', // Assuming pro.dashboard exists or will be generic
         ];
 
         foreach ($types as $name => $dashboardRoute) {

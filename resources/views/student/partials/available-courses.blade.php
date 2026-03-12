@@ -9,7 +9,7 @@
             <div class="custom-datatable-filter table-responsive">
                 <!-- Search Box Removed -->
 
-                <table class="table datatable align-middle" id="availableCoursesTable">
+                <table class="table align-middle" id="availableCoursesTable">
                     <thead class="thead-light">
                         <tr>
                             <th class="no-sort">
@@ -26,14 +26,22 @@
                     </thead>
                     <tbody>
                         @forelse($courses as $course)
+                            @php
+                                $isCarryOver = in_array($course->id, $failedCourseIds ?? []);
+                            @endphp
                             <tr>
                                 <td>
                                     <div class="form-check form-check-md">
                                         <input class="form-check-input course-checkbox" type="checkbox" name="courses[]"
-                                            value="{{ $course->id }}">
+                                            value="{{ $course->id }}" {{ $isCarryOver ? 'checked' : '' }}>
                                     </div>
                                 </td>
-                                <td class="searchable-cell">{{ $course->course_code }}</td>
+                                <td class="searchable-cell">
+                                    {{ $course->course_code }}
+                                    @if($isCarryOver)
+                                        <span class="badge bg-danger ms-1">Carry Over</span>
+                                    @endif
+                                </td>
                                 <td class="searchable-cell">{{ $course->course_title }}</td>
                                 <td>{{ $course->course_unit }}</td>
                                 <td>{{ $course->course_status ?? 'N/A' }}</td>
@@ -45,6 +53,7 @@
                                     @endif
                                 </td>
                             </tr>
+
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center text-muted">
@@ -77,12 +86,13 @@
         <div class="custom-datatable-filter table-responsive">
             <!-- Search Box Removed -->
 
-            <table class="table datatable align-middle" id="registeredCoursesTable">
+            <table class="table align-middle" id="registeredCoursesTable">
                 <thead class="thead-light">
                     <tr>
                         <th>Course Code</th>
                         <th>Title</th>
                         <th>Unit</th>
+                        <th>Status</th>
                         <th>Semester</th>
                         <th>Action</th>
                     </tr>
@@ -93,6 +103,7 @@
                             <td class="searchable-cell">{{ $course->course->course_code }}</td>
                             <td class="searchable-cell">{{ $course->course->course_title }}</td>
                             <td>{{ $course->course->course_unit }}</td>
+                            <td>{{ $course->course->course_status ?? 'N/A' }}</td>
                             <td>
                                 @if ($course->semester == '1st')
                                     <span class="badge bg-primary">First Semester</span>
@@ -109,7 +120,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">
+                            <td colspan="6" class="text-center text-muted">
                                 You have not registered any course yet.
                             </td>
                         </tr>
@@ -187,64 +198,68 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            // Initialize DataTables
-            var availableTable = $('#availableCoursesTable').DataTable({
-                paging: true,
-                searching: true, // Enable DataTables search
-                ordering: true,
-                columnDefs: [{
-                    orderable: false,
-                    targets: 0
-                }]
-            });
+            // Initialize DataTables only if not already initialized
+            if (!$.fn.DataTable.isDataTable('#availableCoursesTable')) {
+                $('#availableCoursesTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    columnDefs: [{
+                        orderable: false,
+                        targets: 0
+                    }]
+                });
+            }
 
-            var registeredTable = $('#registeredCoursesTable').DataTable({
-                paging: true,
-                searching: true, // Enable DataTables search
-                ordering: true,
-                columnDefs: [{
-                    orderable: false,
-                    targets: 4
-                }]
-            });
+            if (!$.fn.DataTable.isDataTable('#registeredCoursesTable')) {
+                $('#registeredCoursesTable').DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    columnDefs: [{
+                        orderable: false,
+                        targets: 5
+                    }]
+                });
+            }
 
             // Select all checkbox
             $('#select-all').on('click', function () {
                 var isChecked = this.checked;
-                $('#availableCoursesTable tbody .course-checkbox').prop('checked', isChecked);
+                $('.course-checkbox').prop('checked', isChecked);
             });
 
             // Update select-all checkbox based on individual checkboxes
-            $(document).on('change', '#availableCoursesTable tbody .course-checkbox', function () {
-                var totalCheckboxes = $('#availableCoursesTable tbody .course-checkbox').length;
-                var checkedCheckboxes = $('#availableCoursesTable tbody .course-checkbox:checked').length;
+            $(document).on('change', '.course-checkbox', function () {
+                var totalCheckboxes = $('.course-checkbox').length;
+                var checkedCheckboxes = $('.course-checkbox:checked').length;
                 $('#select-all').prop('checked', totalCheckboxes === checkedCheckboxes && totalCheckboxes > 0);
             });
 
             // Form submission validation
             $('#courseForm').on('submit', function (e) {
-                var checkedCount = $('input[name="courses[]"]:checked').length;
+                var checkedCount = $('.course-checkbox:checked').length;
                 if (checkedCount === 0) {
                     e.preventDefault();
-                    alert('Please select at least one course before registering.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Selection Required',
+                        text: 'Please select at least one course before registering.',
+                    });
                     return false;
                 }
             });
         });
 
         function confirmDelete(id, code, title, unit) {
-            // Populate modal data
             $('#modalCourseCode').text(code);
             $('#modalCourseTitle').text(title);
             $('#modalCourseUnit').text(unit);
 
-            // Update form action
-            // Use a temporary ID in the route generation to be replaced by JS
-            var url = "{{ route('students.course.remove', '000') }}";
-            url = url.replace('000', id);
+            var url = "{{ route('students.course.remove', ':id') }}";
+            url = url.replace(':id', id);
             $('#removeForm').attr('action', url);
 
-            // Show modal using Bootstrap 5 API or jQuery
             var modalEl = document.getElementById('removeConfirmModal');
             if (modalEl) {
                 var modal = new bootstrap.Modal(modalEl);
@@ -252,4 +267,5 @@
             }
         }
     </script>
+
 @endpush

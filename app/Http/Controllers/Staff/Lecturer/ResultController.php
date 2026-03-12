@@ -125,12 +125,12 @@ class ResultController extends Controller
             $registered = CourseRegistration::where([
                 'matric_no' => $matric_no,
                 'course_code' => $course->course_code,
-                'session' => $request->session,
-                'semester' => $request->semester,
+                'session' => $request->input('session'),
+                'semester' => $request->input('semester'),
             ])->exists();
 
             if (!$registered) {
-                $report['skipped_not_registered'][] = "Matric No: {$matric_no} — did not register {$course->course_code} ({$course->course_title}) for {$request->semester} Semester, {$request->session} session.";
+                $report['skipped_not_registered'][] = "Matric No: {$matric_no} — did not register {$course->course_code} ({$course->course_title}) for {$request->input('semester')} Semester, {$request->input('session')} session.";
 
                 continue;
             }
@@ -154,14 +154,14 @@ class ResultController extends Controller
                 // 4️⃣ Insert or update result
                 Result::updateOrCreate(
                     [
-                        'student_id' => $student->id,
+                        'student_id' => $student->user_id,
+                        'matric_no' => $student->matric_no,
                         'course_id' => $course->id,
-                        'session' => $request->session,
-                        'semester' => $request->semester,
+                        'course_code' => $course->course_code,
+                        'session' => $request->input('session'),
+                        'semester' => $request->input('semester'),
                     ],
                     [
-                        'matric_no' => $student->matric_no,
-                        'course_code' => $course->course_code,
                         'course_title' => $course->course_title,
                         'course_unit' => $course->course_unit,
                         'ca' => $ca,
@@ -205,15 +205,15 @@ class ResultController extends Controller
 
         // Fetch registered students using course_code, including the student and profile details
         $students = CourseRegistration::where('course_code', $courseCode)
-            ->where('session', $request->session)
-            ->where('semester', $request->semester)
+            ->where('session', $request->input('session'))
+            ->where('semester', $request->input('semester'))
             ->with('student')
             ->get();
 
         // Check for existing results for this course, session, and semester
         $existingResults = Result::where('course_code', $courseCode)
-            ->where('session', $request->session)
-            ->where('semester', $request->semester)
+            ->where('session', $request->input('session'))
+            ->where('semester', $request->input('semester'))
             ->get()
             ->keyBy('student_id'); // Key by student_id for reliable lookup
 
@@ -249,11 +249,12 @@ class ResultController extends Controller
     {
     }
 
-    public function viewuploadReport(Request $request)
+    public function viewUploadedResults(Request $request)
     {
         $user = auth()->user();
 
-        if ($user->hasRole('lecture')) {
+        // 1. Load Filter Data (always needed for the dropdowns)
+        if ($user->hasRole('lecturer')) {
             $courses = $user->courses()->orderBy('course_title')->get();
             $sessions = AcademicSession::where(function ($q) use ($user) {
                 $q->where('status_upload_result', '1')
@@ -270,25 +271,36 @@ class ResultController extends Controller
             $semesters = AcademicSemester::orderBy('name')->get();
         }
 
-        // If user submitted the form, fetch results too
+        // 2. Load Results if filters are provided
         $results = collect();
         $course = null;
 
-        if ($request->has(['course_id', 'session', 'semester'])) {
+        if ($request->has(['course', 'session', 'semester'])) {
             $request->validate([
-                'course_id' => 'required|uuid|exists:courses,id',
+                'course' => 'required|string|exists:courses,course_code',
                 'session' => 'required|string',
                 'semester' => 'required|string',
             ]);
 
-            $course = Course::find($request->course_id);
+            $course = Course::where('course_code', $request->course)->firstOrFail();
 
-            $results = Result::where([
-                'course_id' => $course->id,
-                'session' => $request->session,
-                'semester' => $request->semester,
+            if ($user->hasRole('lecturer')) {
+                $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
+                if (!$isAssigned) {
+                    return back()->with('error', 'You are not allowed to view results for this course.');
+                }
+            }
+
+            $results = Result::with('user')->where([
+                'course_code' => $course->course_code,
+                'session' => $request->input('session'),
+                'semester' => $request->input('semester'),
                 'uploaded_by' => $user->id,
             ])->orderBy('matric_no')->get();
+
+            if ($results->isEmpty()) {
+                session()->flash('warning', 'No uploaded results found for your selection.');
+            }
         }
 
         return view('staff.lecturer.results.view-uploaded', compact(
@@ -300,49 +312,88 @@ class ResultController extends Controller
         ));
     }
 
-    public function viewUploadedResults(Request $request)
+    public function printUploadedResults(Request $request)
     {
         $request->validate([
-            'course_id' => 'required|uuid|exists:courses,id',
-            'session' => 'required|string',
-            'semester' => 'required|string',
+            'course' => 'required',
+            'session' => 'required',
+            'semester' => 'required',
         ]);
 
-        $course = Course::findOrFail($request->course_id);
         $user = auth()->user();
+        $course = Course::with('department.faculty')->where('course_code', $request->course)->firstOrFail();
 
-        if ($user->hasRole('lecturer')) {
-            $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
-            if (!$isAssigned) {
-                return back()->with('error', 'You are not allowed to view results for this course.');
-            }
-        }
-
-        $results = Result::where([
-            'course_id' => $course->id,
-            'session' => $request->session,
-            'semester' => $request->semester,
+        $results = Result::with('user')->where([
+            'course_code' => $course->course_code,
+            'session' => $request->input('session'),
+            'semester' => $request->input('semester'),
             'uploaded_by' => $user->id,
         ])->orderBy('matric_no')->get();
 
-        if ($results->isEmpty()) {
-            return back()->with('error', 'No uploaded results found for your selection.');
-        }
+        return view('staff.lecturer.results.print-uploaded', compact('results', 'course'));
+    }
 
-        return view('staff.lecturer.results.view-uploaded', compact('course', 'results'));
+    public function printSummaryReport(Request $request)
+    {
+        $request->validate([
+            'department_id' => 'required',
+            'level' => 'required',
+        ]);
+
+        $selectedDepartment = Department::with('faculty')->findOrFail($request->department_id);
+        $studentTypeId = UserType::where('name', 'student')->value('id');
+
+
+        $students = User::query()
+            ->join('students', 'users.id', '=', 'students.user_id')
+            ->where('users.user_type_id', $studentTypeId)
+            ->where('students.department_id', $request->department_id)
+            ->where('students.level', $request->level)
+            ->select('users.*')
+            ->with('results')
+            ->get();
+
+        $students->transform(function ($student) {
+            $totalUnitsOffered = 0;
+            $totalUnitsPassed = 0;
+            $totalGradePoints = 0;
+
+            foreach ($student->results as $result) {
+                $unit = (int) $result->course_unit;
+                $score = (float) $result->total;
+                $totalUnitsOffered += $unit;
+                $points = 0;
+                if ($score >= 70) $points = 5;
+                elseif ($score >= 60) $points = 4;
+                elseif ($score >= 50) $points = 3;
+                elseif ($score >= 45) $points = 2;
+                elseif ($score >= 40) $points = 1;
+                else $points = 0;
+                $totalGradePoints += ($unit * $points);
+                if ($score >= 40) $totalUnitsPassed += $unit;
+            }
+
+            $cgpa = $totalUnitsOffered > 0 ? $totalGradePoints / $totalUnitsOffered : 0;
+            $student->units_offered = $totalUnitsOffered;
+            $student->units_passed = $totalUnitsPassed;
+            $student->cgpa = number_format($cgpa, 2);
+            return $student;
+        });
+
+        return view('staff.lecturer.results.print-summary', compact('students', 'selectedDepartment'));
     }
 
     public function downloadResults(Request $request)
     {
         // Validate input
         $request->validate([
-            'course_id' => 'required|uuid|exists:courses,id',
+            'course_id' => 'required|string|exists:courses,course_code',
             'session' => 'required|string',
             'semester' => 'required|string',
         ]);
 
         try {
-            $course = Course::findOrFail($request->course_id);
+            $course = Course::where('course_code', $request->course_id)->firstOrFail();
             $user = auth()->user();
 
             // ✅ Check if lecturer is authorized to download results for this course
@@ -357,8 +408,8 @@ class ResultController extends Controller
             // ✅ Fetch results uploaded by current user for the specified course, session, and semester
             $results = Result::where([
                 'course_id' => $course->id,
-                'session' => $request->session,
-                'semester' => $request->semester,
+                'session' => $request->input('session'),
+                'semester' => $request->input('semester'),
                 'uploaded_by' => $user->id, // ✅ Only results uploaded by current user
             ])
                 ->orderBy('matric_no')
@@ -392,8 +443,8 @@ class ResultController extends Controller
             $filename = sprintf(
                 '%s_%s_%s_%s_MyResults.xlsx',
                 $course->course_code,
-                str_replace('/', '-', $request->session),
-                $request->semester,
+                str_replace('/', '-', $request->input('session')),
+                $request->input('semester'),
                 now()->format('Y-m-d_His')
             );
 
@@ -515,13 +566,13 @@ class ResultController extends Controller
                     $result = Result::updateOrCreate(
                         [
                             'student_id' => $student->id,
+                            'matric_no' => $student->username,
                             'course_id' => $course->id,
+                            'course_code' => $course->course_code ?? $courseCode,
                             'session' => $session,
                             'semester' => $semester,
                         ],
                         [
-                            'matric_no' => $student->username,
-                            'course_code' => $course->course_code ?? $courseCode,
                             'course_title' => $course->course_title ?? $courseTitle,
                             'course_unit' => $course->course_unit ?? $courseUnit,
                             'ca' => $ca,
@@ -573,10 +624,13 @@ class ResultController extends Controller
 
         $students = [];
 
+        $selectedDepartment = null;
         if ($request->filled('department_id') && $request->filled('level')) {
+            $selectedDepartment = Department::with('faculty')->find($request->department_id);
 
             // 1. Get UserType ID for 'Student'
-            $studentTypeId = UserType::where('name', 'Student')->value('id');
+            $studentTypeId = UserType::where('name', 'student')->value('id');
+
 
             // 2. Query Users by Joining the 'students' profile table
             $students = User::query()
@@ -639,7 +693,7 @@ class ResultController extends Controller
             });
         }
 
-        return view('staff.lecturer.results.summary-report', compact('students', 'departments', 'levels'));
+        return view('staff.lecturer.results.summary-report', compact('students', 'departments', 'levels', 'selectedDepartment'));
     }
 
     public function manageStatus(Request $request)
@@ -663,8 +717,8 @@ class ResultController extends Controller
                 ->join('results', 'users.username', '=', 'results.matric_no')
                 ->where('students.department_id', $request->department_id)
                 ->where('students.level', $request->level)
-                ->where('results.session', $request->session)
-                ->where('results.semester', $request->semester)
+                ->where('results.session', $request->input('session'))
+                ->where('results.semester', $request->input('semester'))
                 ->select(
                     'users.first_name as name', // OR users.first_name, users.last_name if you have those columns
                     'users.username as matric_no',
@@ -715,8 +769,8 @@ class ResultController extends Controller
 
         // Update results for ALL selected matric numbers in that session/semester
         Result::whereIn('matric_no', $request->selected_students)
-            ->where('session', $request->session)
-            ->where('semester', $request->semester)
+            ->where('session', $request->input('session'))
+            ->where('semester', $request->input('semester'))
             ->update(['status' => $request->status]);
 
         return back()->with('success', 'Bulk update successful! Changed status to ' . ucfirst($request->status));
@@ -734,8 +788,8 @@ class ResultController extends Controller
 
         // Bulk update results for this student, session, and semester
         $updated = Result::where('matric_no', $request->matric_no)
-            ->where('session', $request->session)
-            ->where('semester', $request->semester)
+            ->where('session', $request->input('session'))
+            ->where('semester', $request->input('semester'))
             ->update(['status' => $request->status]);
 
         return back()->with('success', "Updated $updated result(s) to '{$request->status}' for {$request->matric_no}.");
@@ -758,15 +812,114 @@ class ResultController extends Controller
             return back()->with('error', 'Student not found.');
         }
 
-        $results = Result::where('student_id', $student->id)
+        $results = Result::where('matric_no', $request->matric)
             ->with('course')
             ->orderBy('session')
             ->orderBy('semester')
             ->get();
 
-        $resultsBySession = $results->groupBy('session');
+        $gradePoints = [
+            'A' => 5, 'B' => 4, 'C' => 3, 'D' => 2, 'E' => 1, 'F' => 0,
+        ];
 
-        return view('staff.lecturer.results.student-transcript', compact('student', 'resultsBySession'));
+        $resultsBySession = $results->groupBy('session');
+        $sessionMetrics = [];
+        $cumulativeTCO = 0;
+        $cumulativeTCP = 0;
+        $cumulativeTWGP = 0;
+
+        foreach ($resultsBySession as $session => $sessionResults) {
+            $tco = 0; $tcp = 0; $twgp = 0;
+
+            foreach ($sessionResults as $r) {
+                $unit = (int) ($r->course_unit ?? ($r->course->course_unit ?? 0));
+                $gp = $gradePoints[strtoupper($r->grade)] ?? 0;
+                
+                $tco += $unit;
+                if (strtoupper($r->grade) !== 'F') {
+                    $tcp += $unit;
+                }
+                $twgp += ($unit * $gp);
+            }
+
+            $gpa = $tco > 0 ? round($twgp / $tco, 2) : 0.00;
+            
+            $cumulativeTCO += $tco;
+            $cumulativeTCP += $tcp;
+            $cumulativeTWGP += $twgp;
+            
+            $cgpa = $cumulativeTCO > 0 ? round($cumulativeTWGP / $cumulativeTCO, 2) : 0.00;
+
+            $sessionMetrics[$session] = [
+                'tco' => $tco,
+                'tcp' => $tcp,
+                'twgp' => $twgp,
+                'gpa' => number_format($gpa, 2),
+                'cgpa' => number_format($cgpa, 2),
+            ];
+        }
+
+        $finalMetrics = [
+            'ctco' => $cumulativeTCO,
+            'ctcp' => $cumulativeTCP,
+            'ctwgp' => $cumulativeTWGP,
+            'cgpa' => $cumulativeTCO > 0 ? number_format($cumulativeTWGP / $cumulativeTCO, 2) : "0.00",
+        ];
+
+        return view('staff.lecturer.results.student-transcript', compact('student', 'resultsBySession', 'sessionMetrics', 'finalMetrics'));
+    }
+
+    public function printTranscript(Request $request)
+    {
+        $request->validate([
+            'matric' => 'required|string',
+        ]);
+
+        $student = User::with('student.department.faculty')->where('username', $request->matric)->firstOrFail();
+
+        $results = Result::where('matric_no', $request->matric)
+            ->with('course')
+            ->orderBy('session')
+            ->orderBy('semester')
+            ->get();
+
+        $gradePoints = [
+            'A' => 5, 'B' => 4, 'C' => 3, 'D' => 2, 'E' => 1, 'F' => 0,
+        ];
+
+        $resultsBySession = $results->groupBy('session');
+        $sessionMetrics = [];
+        $cumulativeTCO = 0;
+        $cumulativeTCP = 0;
+        $cumulativeTWGP = 0;
+
+        foreach ($resultsBySession as $session => $sessionResults) {
+            $tco = 0; $tcp = 0; $twgp = 0;
+            foreach ($sessionResults as $r) {
+                $unit = (int) ($r->course_unit ?? ($r->course->course_unit ?? 0));
+                $gp = $gradePoints[strtoupper($r->grade)] ?? 0;
+                $tco += $unit;
+                if (strtoupper($r->grade) !== 'F') { $tcp += $unit; }
+                $twgp += ($unit * $gp);
+            }
+            $gpa = $tco > 0 ? round($twgp / $tco, 2) : 0.00;
+            $cumulativeTCO += $tco;
+            $cumulativeTCP += $tcp;
+            $cumulativeTWGP += $twgp;
+            $cgpa = $cumulativeTCO > 0 ? round($cumulativeTWGP / $cumulativeTCO, 2) : 0.00;
+
+            $sessionMetrics[$session] = [
+                'tco' => $tco, 'tcp' => $tcp, 'twgp' => $twgp,
+                'gpa' => number_format($gpa, 2), 'cgpa' => number_format($cgpa, 2),
+            ];
+        }
+
+        $finalMetrics = [
+            'ctco' => $cumulativeTCO, 'ctcp' => $cumulativeTCP, 'ctwgp' => $cumulativeTWGP,
+            'cgpa' => $cumulativeTCO > 0 ? number_format($cumulativeTWGP / $cumulativeTCO, 2) : "0.00",
+        ];
+
+        return view('staff.lecturer.results.print-transcript', compact('student', 'resultsBySession', 'sessionMetrics', 'finalMetrics'));
     }
 
     public function update(Request $request, $id)

@@ -50,7 +50,7 @@
                     </div>
                     <div class="card-body">
                         <form action="{{ route('students.results') }}" method="GET" class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <label class="form-label">Session</label>
                                 <select name="session" class="form-select">
                                     <option value="">All Sessions</option>
@@ -61,7 +61,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <label class="form-label">Semester</label>
                                 <select name="semester" class="form-select">
                                     <option value="">All Semesters</option>
@@ -72,7 +72,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-4 d-flex align-items-end">
+                            <div class="col-md-2 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary me-2">
                                     <i class="ti ti-search me-2"></i>Filter
                                 </button>
@@ -192,8 +192,11 @@
                                                     </span>
                                                 </td>
                                                 <td class="text-center">
-                                                    <span
-                                                        class="badge {{ $result->remark == 'Pass' ? 'bg-success' : 'bg-danger' }}">
+                                                    <span class="badge 
+                                                        @if(in_array($result->remark, ['Excellent', 'Very Good', 'Good', 'Pass'])) bg-success 
+                                                        @elseif($result->remark == 'Fair') bg-warning 
+                                                        @else bg-danger 
+                                                        @endif">
                                                         {{ $result->remark }}
                                                     </span>
                                                 </td>

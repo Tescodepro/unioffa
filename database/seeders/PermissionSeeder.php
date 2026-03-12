@@ -11,6 +11,19 @@ class PermissionSeeder extends Seeder
     public function run()
     {
         $permissions = [
+            // Portal Access Permissions
+            ['identifier' => 'access_admin_portal', 'name' => 'Access Admin Portal'],
+            ['identifier' => 'access_vc_portal', 'name' => 'Access VC Portal'],
+            ['identifier' => 'access_registrar_portal', 'name' => 'Access Registrar Portal'],
+            ['identifier' => 'access_bursary_portal', 'name' => 'Access Bursary Portal'],
+            ['identifier' => 'access_ict_portal', 'name' => 'Access ICT Portal'],
+            ['identifier' => 'access_dean_portal', 'name' => 'Access Dean Portal'],
+            ['identifier' => 'access_hod_portal', 'name' => 'Access Hod Portal'],
+            ['identifier' => 'access_lecturer_portal', 'name' => 'Access Lecturer Portal'],
+            ['identifier' => 'access_programme_director_portal', 'name' => 'Access Programme Director Portal'],
+            ['identifier' => 'access_center_director_portal', 'name' => 'Access Center Director Portal'],
+            ['identifier' => 'access_pro_portal', 'name' => 'Access PRO Portal'],
+
             // General
             ['identifier' => 'view_dashboard', 'name' => 'View Dashboard'],
 

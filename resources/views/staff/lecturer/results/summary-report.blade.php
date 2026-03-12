@@ -31,7 +31,6 @@
                     </div>
                     <div class="card-body">
                         <form action="{{ route('results.summary') }}" method="GET" class="row g-3">
-
                             {{-- Department Dropdown --}}
                             <div class="col-md-5">
                                 <label class="form-label">Department</label>
@@ -71,13 +70,14 @@
                 {{-- Results Table Section --}}
                 @if(request()->has('department_id'))
                     <div class="card shadow-sm border-0">
-                        <div class="card-header border-0 bg-white d-flex justify-content-between align-items-center">
+                        <div class="card-header border-0 bg-white d-flex justify-content-between align-items-center d-print-none">
                             <h5 class="card-title mb-0">
                                 <i class="ti ti-list me-2 text-primary"></i> Summary List
                             </h5>
-                            <button onclick="window.print()" class="btn btn-outline-primary btn-sm">
-                                <i class="ti ti-printer me-1"></i> Print
-                            </button>
+                            <a href="{{ route('results.printSummary', ['department_id' => request('department_id'), 'level' => request('level')]) }}" 
+                               target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="ti ti-printer me-1"></i> Print Result
+                            </a>
                         </div>
 
                         <div class="card-body">
@@ -120,6 +120,8 @@
                                         </tbody>
                                     </table>
                                 </div>
+
+
                             @else
                                 <div class="alert alert-warning text-center">
                                     No students found for the selected Department and Level.
@@ -133,3 +135,25 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <!-- Print Styles -->
+    <style>
+        @media print {
+            body { background-color: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; }
+            .header, .sidebar, .page-header, .breadcrumb, .card-header, form, .alert, .d-print-none { display: none !important; }
+            .main-wrapper, .page-wrapper { margin: 0 !important; padding: 0 !important; width: 100% !important; background: transparent !important; }
+            .content { padding: 0 !important; }
+            .card { border: none !important; box-shadow: none !important; background: transparent !important; margin: 0 !important; }
+            .card-body { padding: 0 !important; position: relative; min-height: 100vh; }
+            table { width: 100% !important; border-collapse: collapse !important; border-color: #000 !important; margin-bottom: 150px !important; }
+            th, td { font-size: 12px !important; padding: 6px !important; color: #000 !important; vertical-align: middle !important; }
+            th { border: 1px solid #000 !important; background-color: #f0f0f0 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            td { border: 1px solid #000 !important; }
+            .d-print-flex { display: flex !important; }
+            .badge { border: none !important; color: #000 !important; background: transparent !important; font-weight: bold; padding: 0 !important; margin: 0 !important; }
+            .print-content-start { margin-left: 50px; margin-right: 50px; }
+            .table-responsive { overflow: visible !important; }
+        }
+    </style>
+@endpush

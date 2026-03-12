@@ -135,9 +135,20 @@
                             &mdash; <strong>{{ count($studentsData) }}</strong> student(s)
                         </p>
                     </div>
-                    <button onclick="window.print()" class="btn btn-primary">
-                        <i class="ti ti-printer me-1"></i> Print / Download PDF
-                    </button>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('broadsheet.printOfficial', [
+                            'department_id' => request('department_id'),
+                            'session_id' => request('session_id'),
+                            'level' => request('level'),
+                            'semester_id' => request('semester_id'),
+                            'type' => $type
+                        ]) }}" target="_blank" class="btn btn-secondary">
+                            <i class="ti ti-printer me-1"></i> Print Official Broadsheet
+                        </a>
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="ti ti-printer me-1"></i> Print / Download PDF
+                        </button>
+                    </div>
                 </div>
 
                 <!-- BROADSHEET TABLE -->
@@ -147,7 +158,7 @@
                         <h5 class="fw-bold text-uppercase mb-0">{{ $department->faculty->faculty_name ?? '' }}</h5>
                         <h6 class="fw-semibold mb-0">{{ $department->department_name }}</h6>
                         <p class="mb-0 text-muted small">
-                            {{ $type === 'sessional' ? 'Result Broadsheet' : 'Semester Result' }}
+                            Official Broadsheet Report
                             &mdash; {{ $level }} Level &mdash; {{ $session->name }}
                             @if($semester) &mdash; {{ $semester->name }} Semester @endif
                         </p>
@@ -157,12 +168,16 @@
                         <table class="table table-bordered table-sm broadsheet-table">
                             <thead class="table-secondary">
                                 <tr>
-                                    <th style="min-width:190px;">Student Info</th>
-                                    <th>Uploaded Course Details</th>
-                                    <th style="min-width:150px;white-space:nowrap;">
-                                        Present {{ $semester ? 'Semester' : 'Session' }}
-                                    </th>
-                                    <th style="min-width:150px;white-space:nowrap;">Final Cumulative</th>
+                                    <th style="min-width:150px;">Student Info</th>
+                                    @foreach($course_codes as $code)
+                                        <th class="text-center" title="{{ $courses_info[$code]->course_title ?? '' }}">
+                                            {{ $code }}<br>
+                                            <small>{{ $courses_info[$code]->course_unit ?? '' }}C</small>
+                                        </th>
+                                    @endforeach
+                                    <th class="text-center">Current GPA</th>
+                                    <th class="text-center">Cumulative CGPA</th>
+                                    <th class="text-center">Academic Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,87 +186,37 @@
                                         <!-- Student Info -->
                                         <td class="align-top">
                                             <div class="fw-bold text-primary">{{ $data['student']->matric_no }}</div>
-                                            {{ strtoupper($data['student']->user->last_name ?? '') }},
-                                            {{ $data['student']->user->first_name ?? '' }}
-                                            {{ $data['student']->user->middle_name ?? '' }}
+                                            <small class="text-uppercase">
+                                                {{ $data['student']->user->last_name ?? '' }},
+                                                {{ $data['student']->user->first_name ?? '' }}
+                                            </small>
                                         </td>
 
-                                        <!-- Uploaded Courses -->
-                                        <td class="p-0">
-                                            @if($data['results_by_semester']->isEmpty())
-                                                <div class="p-2 text-muted text-center small">No results uploaded</div>
-                                            @else
-                                                <table class="table table-sm mb-0 inner-table">
-                                                    <thead>
-                                                        <tr class="inner-head">
-                                                            <td class="ps-2">Course Code</td>
-                                                            <td class="text-center">Unit</td>
-                                                            <td class="text-center">CA</td>
-                                                            <td class="text-center">Exam</td>
-                                                            <td class="text-center">Total</td>
-                                                            <td class="text-center">Grade</td>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($data['results_by_semester'] as $semName => $semResults)
-                                                            <tr>
-                                                                <td colspan="6" class="sem-label ps-2 py-1">
-                                                                    &raquo; {{ $semName }} Semester Courses
-                                                                </td>
-                                                            </tr>
-                                                            @foreach($semResults as $result)
-                                                                @php $g = $result->grade ?? '-'; @endphp
-                                                                <tr>
-                                                                    <td class="ps-2">{{ $result->course_code }}</td>
-                                                                    <td class="text-center">{{ $result->course_unit }}</td>
-                                                                    <td class="text-center">{{ $result->ca ?? '-' }}</td>
-                                                                    <td class="text-center">{{ $result->exam ?? '-' }}</td>
-                                                                    <td class="text-center fw-semibold">{{ $result->total ?? '-' }}</td>
-                                                                    <td class="text-center">
-                                                                        <span class="grade-badge grade-{{ strtolower($g) }}">{{ $g }}</span>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            @endif
-                                        </td>
+                                        <!-- Course Results -->
+                                        @foreach($course_codes as $code)
+                                            <td class="text-center">
+                                                {{ $data['course_results'][$code] }}
+                                            </td>
+                                        @endforeach
 
-                                        <!-- Period GPA -->
-                                        <td class="align-top p-0">
-                                            <table class="table table-sm mb-0 inner-table">
-                                                <thead>
-                                                    <tr class="inner-head">
-                                                        <td>TCO</td><td>WGP</td><td>GPA</td>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>{{ $data['period']['tco'] }}</td>
-                                                        <td>{{ $data['period']['wgp'] }}</td>
-                                                        <td class="fw-bold">{{ number_format($data['period']['gpa'], 2) }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                        <!-- Current GPA -->
+                                        <td class="text-center align-middle">
+                                            <div class="fw-bold">{{ number_format($data['current']['gpa'], 2) }}</div>
+                                            <small class="text-muted">{{ $data['current']['tco'] }} TU</small>
                                         </td>
 
                                         <!-- Cumulative CGPA -->
-                                        <td class="align-top p-0">
-                                            <table class="table table-sm mb-0 inner-table">
-                                                <thead>
-                                                    <tr class="inner-head">
-                                                        <td>CTCO</td><td>CWGP</td><td>CGPA</td>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr>
-                                                        <td>{{ $data['cumulative']['ctco'] }}</td>
-                                                        <td>{{ $data['cumulative']['cwgp'] }}</td>
-                                                        <td class="fw-bold">{{ number_format($data['cumulative']['cgpa'], 2) }}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                        <td class="text-center align-middle">
+                                            <div class="fw-bold text-success">{{ number_format($data['cumulative']['gpa'], 2) }}</div>
+                                            <small class="text-muted">{{ $data['cumulative']['tco'] }} TU</small>
+                                        </td>
+
+                                        <!-- Status -->
+                                        <td class="text-center align-middle">
+                                            @php $status = $data['academic_status']; @endphp
+                                            <span class="badge {{ $status === 'GOOD STANDING' ? 'bg-success' : 'bg-danger' }}">
+                                                {{ $status }}
+                                            </span>
                                         </td>
                                     </tr>
                                 @endforeach

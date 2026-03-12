@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Course;
+use App\Models\Department;
+use App\Models\Result;
 use App\Models\CourseRegistration;
 use App\Models\Student;
+use App\Models\Course;
 use App\Services\PaymentStatusService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -33,24 +35,28 @@ class CourseRegistrationController extends Controller
         if (!$payment_status['allCleared']) {
             return view('student.course-registration', [
                 'courses' => collect(),
-                'registrations' => collect(),
                 'registeredCourses' => collect(),
                 'payment_status' => $payment_status,
                 'error' => 'You must clear all outstanding payments before registering courses.',
             ]);
         }
 
-        $departmentId = $student->department_id;
-        $level = $student->level;
-
         $currentSession = activeSession()->name;
-        $currentSemester = activeSemester()->code;
+        $currentSemester = activeSemester()->code ?? (activeSemester()->name ?? '1st'); // Handle potential null
+
+        // Filters
+        $departments = Department::orderBy('department_name')->get();
+        $levels = ['100', '200', '300', '400', '500'];
+        
+        $selectedDepartmentId = $request->input('department_id', $student->department_id);
+        $selectedLevel = $request->input('level', $student->level);
 
         $courses = Course::where('active_for_register', 1)
-            ->where('level', $level)
-            ->where(function ($query) use ($departmentId) {
-                $query->where('department_id', $departmentId)
-                    ->orWhereJsonContains('other_departments', $departmentId);
+            ->where('level', $selectedLevel)
+            ->where('semester', $currentSemester)
+            ->where(function ($query) use ($selectedDepartmentId) {
+                $query->where('department_id', $selectedDepartmentId)
+                    ->orWhereJsonContains('other_departments', $selectedDepartmentId);
             })
             ->get();
 
@@ -61,7 +67,39 @@ class CourseRegistrationController extends Controller
             ->where('semester', $currentSemester)
             ->get();
 
-        return view('student.course-registration', compact('courses', 'registeredCourses', 'payment_status'));
+        // Unit Summary
+        $maxSemesterUnits = (int) \App\Models\SystemSetting::get('max_units_per_semester', 24);
+        $maxSessionUnits = (int) \App\Models\SystemSetting::get('max_units_per_session', 48);
+        $currentSemesterUnits = $registeredCourses->sum('course_unit');
+        $currentSessionUnits = CourseRegistration::where('student_id', $user->id)
+            ->where('session', $currentSession)
+            ->sum('course_unit');
+
+        // Failed courses for Carry Over
+        $failedCourseIds = Result::where('student_id', $user->id)
+            ->where(function($q) {
+                $q->where('grade', 'F')
+                  ->orWhere('remark', 'Fail');
+            })
+            ->where('semester', $currentSemester)
+            ->pluck('course_id')
+            ->unique()
+            ->toArray();
+
+        return view('student.course-registration', compact(
+            'courses', 
+            'registeredCourses', 
+            'payment_status', 
+            'departments', 
+            'levels', 
+            'selectedDepartmentId', 
+            'selectedLevel',
+            'failedCourseIds',
+            'maxSemesterUnits',
+            'maxSessionUnits',
+            'currentSemesterUnits',
+            'currentSessionUnits'
+        ));
     }
 
     public function store(Request $request)
@@ -85,38 +123,71 @@ class CourseRegistrationController extends Controller
         }
 
         $currentSession = activeSession()->name;
-        $currentSemester = activeSemester()->code;
+        $currentSemester = activeSemester()->code ?? (activeSemester()->name ?? '1st');
         $successCount = 0;
 
+        // Unit Limit Validation
+        $maxSemesterUnits = (int) \App\Models\SystemSetting::get('max_units_per_semester', 24);
+        $maxSessionUnits = (int) \App\Models\SystemSetting::get('max_units_per_session', 48);
+
+        // Calculate units for new courses only
+        $newRequestedCourseIds = [];
+        $newUnits = 0;
+        
         foreach ($request->courses as $courseId) {
-            $course = Course::findOrFail($courseId);
+            $course = Course::find($courseId);
+            if (!$course || !$course->active_for_register) continue;
 
-            // Verify course belongs to student's department/level
-            if ($course->level != $student->level) {
-                continue; // Skip if course is not for student's level
-            }
-
-            // Prevent duplicate registration
             $exists = CourseRegistration::where('student_id', $user->id)
-                ->where('course_id', $course->id)
+                ->where('course_id', $courseId)
                 ->where('session', $currentSession)
                 ->where('semester', $currentSemester)
                 ->exists();
 
             if (!$exists) {
-                CourseRegistration::create([
-                    'student_id' => $user->id,
-                    'matric_no' => $student->matric_no,
-                    'course_id' => $course->id,
-                    'course_code' => $course->course_code,
-                    'course_title' => $course->course_title,
-                    'course_unit' => $course->course_unit,
-                    'session' => $currentSession,
-                    'semester' => $currentSemester,
-                    'status' => 'pending',
-                ]);
-                $successCount++;
+                $newRequestedCourseIds[] = $courseId;
+                $newUnits += $course->course_unit;
             }
+        }
+
+        if (empty($newRequestedCourseIds)) {
+            return redirect()->back()->with('info', 'No new courses were selected for registration.');
+        }
+
+        // Check current semester total
+        $currentSemesterTotal = CourseRegistration::where('student_id', $user->id)
+            ->where('session', $currentSession)
+            ->where('semester', $currentSemester)
+            ->sum('course_unit');
+
+        if (($currentSemesterTotal + $newUnits) > $maxSemesterUnits) {
+            return redirect()->back()->with('error', "Limit Exceeded: Adding these courses would bring your total to " . ($currentSemesterTotal + $newUnits) . " units, which exceeds the semester limit of {$maxSemesterUnits}.");
+        }
+
+        // Check current session total
+        $currentSessionTotal = CourseRegistration::where('student_id', $user->id)
+            ->where('session', $currentSession)
+            ->sum('course_unit');
+
+        if (($currentSessionTotal + $newUnits) > $maxSessionUnits) {
+            return redirect()->back()->with('error', "Limit Exceeded: Adding these courses would bring your total to " . ($currentSessionTotal + $newUnits) . " units, which exceeds the session limit of {$maxSessionUnits}.");
+        }
+
+        foreach ($newRequestedCourseIds as $courseId) {
+            $course = Course::findOrFail($courseId);
+
+            CourseRegistration::create([
+                'student_id' => $user->id,
+                'matric_no' => $student->matric_no,
+                'course_id' => $course->id,
+                'course_code' => $course->course_code,
+                'course_title' => $course->course_title,
+                'course_unit' => $course->course_unit,
+                'session' => $currentSession,
+                'semester' => $currentSemester,
+                'status' => 'pending',
+            ]);
+            $successCount++;
         }
 
         if ($successCount > 0) {
@@ -152,9 +223,8 @@ class CourseRegistrationController extends Controller
         }
 
         $registeredCourses = CourseRegistration::with('course')
-            ->where('student_id', $user->id)
+            ->where('matric_no', $student->matric_no)
             ->where('session', activeSession()->name ?? null)
-            ->where('semester', activeSemester()->code ?? null)
             ->get();
 
         $pdf = Pdf::loadView('student.course-registration-printable', [
@@ -163,9 +233,10 @@ class CourseRegistrationController extends Controller
             'registeredCourses' => $registeredCourses,
             'session' => activeSession(),
             'semester' => activeSemester(),
+            'schoolName' => \App\Models\SystemSetting::get('school_name', 'University of Offa'),
         ]);
 
-        return $pdf->download('course_form_' . $student->first_name . '_' . $student->last_name . '.pdf');
+        return $pdf->download('course_form_' . $student->user->full_name . '.pdf');
     }
 
     public function removeCourse($id)

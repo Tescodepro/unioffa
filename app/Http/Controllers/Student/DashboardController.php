@@ -317,7 +317,7 @@ class DashboardController extends Controller
         $pdf = Pdf::loadView('student.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
+        return $pdf->download('Admission_Letter_'.$student->user->full_name.'.pdf');
     }
 
     // ==================== Profile ================================
@@ -507,8 +507,21 @@ class DashboardController extends Controller
             ->orderBy('semester')
             ->get();
 
-        $resultsBySession = $results->groupBy('session');
         $cgpa = $this->calculateCGPA($results);
+
+        $resultsBySession = $results->groupBy('session')->map(function ($sessionResults) {
+            $sessionGpa = $this->calculateGPA($sessionResults)['gpa'];
+            $semesters = $sessionResults->groupBy('semester')->map(function ($semesterResults) {
+                return [
+                    'results' => $semesterResults,
+                    'gpa' => $this->calculateGPA($semesterResults)['gpa']
+                ];
+            });
+            return [
+                'semesters' => $semesters,
+                'gpa' => $sessionGpa
+            ];
+        });
 
         return view('student.transcript', compact('student', 'resultsBySession', 'cgpa'));
     }
@@ -531,13 +544,26 @@ class DashboardController extends Controller
             ->orderBy('semester')
             ->get();
 
-        $resultsBySession = $results->groupBy('session');
         $cgpa = $this->calculateCGPA($results);
 
-        $pdf = Pdf::loadView('student.transcript-pdf', compact('student', 'resultsBySession', 'cgpa'))
-            ->setPaper('A4', 'portrait');
+        $resultsBySession = $results->groupBy('session')->map(function ($sessionResults) {
+            $sessionGpa = $this->calculateGPA($sessionResults)['gpa'];
+            $semesters = $sessionResults->groupBy('semester')->map(function ($semesterResults) {
+                return [
+                    'results' => $semesterResults,
+                    'gpa' => $this->calculateGPA($semesterResults)['gpa']
+                ];
+            });
+            return [
+                'semesters' => $semesters,
+                'gpa' => $sessionGpa
+            ];
+        });
 
-        return $pdf->download('Transcript_'.$student->first_name.'_'.$student->last_name.'.pdf');
+        $schoolName = \App\Models\SystemSetting::get('school_name', 'University of Offa');
+        $pdf = Pdf::loadView('student.transcript-pdf', compact('student', 'resultsBySession', 'cgpa', 'schoolName'))
+            ->setPaper('A4', 'portrait');
+        return $pdf->download('Transcript_'.$student->user->fullname.'.pdf');
     }
 
     /**

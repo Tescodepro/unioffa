@@ -37,7 +37,9 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'view_transcripts',
             'view_all_courses',
             'view_course_assignments',
+            'view_course_assignments',
             'manage_staff',
+            'access_ict_portal',
         ],
 
         // ─── Bursary: financial management ───────────────────────────────────
@@ -51,6 +53,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'view_reports',
             'manage_payment_settings',
             'manage_transactions',
+            'access_bursary_portal',
         ],
 
         // ─── Dean: academic leadership ────────────────────────────────────────
@@ -64,6 +67,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'view_all_courses',
             'view_course_assignments',
             'manage_staff',
+            'access_dean_portal',
         ],
 
         // ─── HOD: departmental management (subset of dean) ────────────────────
@@ -75,6 +79,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'view_all_courses',
             'view_course_assignments',
             'manage_staff',
+            'access_hod_portal',
         ],
 
         // ─── Lecturer: teaching staff ─────────────────────────────────────────
@@ -85,6 +90,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'view_result_summary',
             'view_all_courses',
             'view_course_assignments',
+            'access_lecturer_portal',
         ],
 
         // ─── Registrar: student records ───────────────────────────────────────
@@ -94,6 +100,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'view_transcripts',
             'view_result_summary',
             'manage_staff',
+            'access_registrar_portal',
         ],
 
         // ─── Vice-Chancellor: full read + approval ────────────────────────────
@@ -107,6 +114,39 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'view_payment_summary',
             'approve_payments',
             'manage_agents',
+            'access_vc_portal',
+        ],
+
+        // ─── Programme Director ──────────────────────────────────────────────
+        'programme-director' => [
+            'view_dashboard',
+            'access_programme_director_portal',
+            'view_admission',
+        ],
+
+        // ─── Center Director ──────────────────────────────────────────────
+        'center-director' => [
+            'view_dashboard',
+            'access_center_director_portal',
+            'view_admission',
+        ],
+
+        // ─── PRO ──────────────────────────────────────────────
+        'public relations officer' => [
+            'view_dashboard',
+            'access_pro_portal',
+        ],
+
+        // ─── Applicant ──────────────────────────────────────────────
+        'applicant' => [
+            'view_dashboard',
+            'access_applicant_portal',
+        ],
+
+        // ─── Student ──────────────────────────────────────────────
+        'student' => [
+            'view_dashboard',
+            'access_student_portal',
         ],
     ];
 

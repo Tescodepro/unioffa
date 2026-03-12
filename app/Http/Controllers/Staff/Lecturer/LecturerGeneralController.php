@@ -96,10 +96,40 @@ class LecturerGeneralController extends Controller
     // ============================== STAFF PROFILE ================================== //
     public function listStaff()
     {
-        // Fetch all staff with their associated user, faculty, and department
-        $staffs = Staff::with(['user', 'faculty', 'department'])->get();
+        $user = auth()->user();
+        $staff = $user->staff;
 
-        return view('staff.lecturer.staff_list', compact('staffs'));
+        if (!$staff && !$user->hasUserType('administrator')) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $query = Staff::with(['user', 'faculty', 'department']);
+
+        // Role-based filtering
+        if ($user->hasUserType('dean')) {
+            $query->where('faculty_id', $staff->faculty_id);
+        } elseif ($user->hasUserType('hod')) {
+            $query->where('department_id', $staff->department_id);
+        }
+
+        $staffs = $query->get();
+
+        // Data for modals
+        $faculties = Faculty::all();
+        $userTypes = UserType::whereIn('name', ['dean', 'hod', 'lecturer', 'staff'])->get();
+        
+        // Filter departments based on role
+        if ($user->hasUserType('dean')) {
+            $departments = Department::where('faculty_id', $staff->faculty_id)->get();
+            $faculties = Faculty::where('id', $staff->faculty_id)->get();
+        } elseif ($user->hasUserType('hod')) {
+            $departments = Department::where('id', $staff->department_id)->get();
+            $faculties = Faculty::where('id', $staff->faculty_id)->get();
+        } else {
+            $departments = Department::all();
+        }
+
+        return view('staff.lecturer.staff_list', compact('staffs', 'faculties', 'departments', 'userTypes'));
     }
 
     public function addStaff(Request $request)
@@ -116,6 +146,14 @@ class LecturerGeneralController extends Controller
             'user_type_id' => 'required|exists:user_types,id',
             'username' => 'required|unique:users,username',
         ]);
+
+        $caller = auth()->user();
+        if ($caller->hasUserType('dean') && $request->faculty_id != $caller->staff->faculty_id) {
+            return redirect()->back()->withErrors(['error' => 'You can only add staff to your own faculty.']);
+        }
+        if ($caller->hasUserType('hod') && $request->department_id != $caller->staff->department_id) {
+            return redirect()->back()->withErrors(['error' => 'You can only add staff to your own department.']);
+        }
 
         // Check if a staff already exists with the same email or phone number
         $existingUser = User::where('email', $request->email)->orWhere('phone', $request->phone)->first();
@@ -228,6 +266,14 @@ class LecturerGeneralController extends Controller
             'user_type_id' => 'required|exists:user_types,id',
         ]);
 
+        $caller = auth()->user();
+        if ($caller->hasUserType('dean') && $request->faculty_id != $caller->staff->faculty_id) {
+            return redirect()->back()->withErrors(['error' => 'You can only manage staff within your own faculty.']);
+        }
+        if ($caller->hasUserType('hod') && $request->department_id != $caller->staff->department_id) {
+            return redirect()->back()->withErrors(['error' => 'You can only manage staff within your own department.']);
+        }
+
         // Update user info
         $user->update([
             'first_name' => $request->first_name,
@@ -251,6 +297,15 @@ class LecturerGeneralController extends Controller
     {
         $staff = Staff::findOrFail($id);
 
+        $caller = auth()->user();
+        if ($caller->hasUserType('dean') && $staff->faculty_id != $caller->staff->faculty_id) {
+            abort(403, 'You are not authorized to delete staff outside your faculty.');
+        }
+        if ($caller->hasUserType('hod') && $staff->department_id != $caller->staff->department_id) {
+            abort(403, 'You are not authorized to delete staff outside your department.');
+        }
+
+
         // Force delete associated user
         if ($staff->user) {
             $staff->user->forceDelete();
@@ -264,22 +319,52 @@ class LecturerGeneralController extends Controller
 
     public function courseAssignments()
     {
-        $assignments = DB::table('course_user')
+        $user = auth()->user();
+        $staff = $user->staff;
+
+        $query = DB::table('course_user')
             ->join('courses', 'course_user.course_id', '=', 'courses.id')
             ->join('users', 'course_user.user_id', '=', 'users.id')
+            ->leftJoin('staff', 'users.id', '=', 'staff.user_id')
             ->select(
                 'course_user.id',
                 'courses.course_code',
                 'courses.course_title',
                 'users.first_name',
                 'users.last_name'
-            )
-            ->get();
+            );
 
-        $courses = Course::orderBy('course_code')->get();
-        $lecturers = User::whereHas('userType', function ($q) {
-            $q->whereIn('name', ['Lecturer', 'HOD', 'Dean']);
-        })->orderBy('first_name')->get();
+        // Role-based filtering for assignments
+        if ($user->hasUserType('dean')) {
+            $query->where('staff.faculty_id', $staff->faculty_id);
+        } elseif ($user->hasUserType('hod')) {
+            $query->where('staff.department_id', $staff->department_id);
+        }
+
+        $assignments = $query->get();
+
+        $courseQuery = Course::orderBy('course_code');
+        $lecturerQuery = User::whereHas('userType', function ($q) {
+            $q->whereIn('name', ['dean', 'hod', 'lecturer', 'staff']); // Match types in listStaff
+        });
+
+        // Filter selectable courses and lecturers based on role
+        if ($user->hasUserType('dean')) {
+            $courseQuery->whereHas('department', function($q) use ($staff) {
+                $q->where('faculty_id', $staff->faculty_id);
+            });
+            $lecturerQuery->whereHas('staff', function($q) use ($staff) {
+                $q->where('faculty_id', $staff->faculty_id);
+            });
+        } elseif ($user->hasUserType('hod')) {
+            $courseQuery->where('department_id', $staff->department_id);
+            $lecturerQuery->whereHas('staff', function($q) use ($staff) {
+                $q->where('department_id', $staff->department_id);
+            });
+        }
+
+        $courses = $courseQuery->get();
+        $lecturers = $lecturerQuery->orderBy('first_name')->get();
 
         return view('staff.lecturer.course_assignment', compact('assignments', 'courses', 'lecturers'));
     }
@@ -298,6 +383,27 @@ class LecturerGeneralController extends Controller
             ->first();
 
         if (! $existing) {
+            $caller = auth()->user();
+            $lecturerStaff = Staff::where('user_id', $request->user_id)->first();
+            $targetCourse = Course::find($request->course_id);
+
+            // Permission checks
+            if ($caller->hasUserType('dean')) {
+                if ($lecturerStaff && $lecturerStaff->faculty_id != $caller->staff->faculty_id) {
+                    return back()->withErrors(['error' => 'You can only assign courses to staff in your faculty.']);
+                }
+                if ($targetCourse && $targetCourse->department->faculty_id != $caller->staff->faculty_id) {
+                    return back()->withErrors(['error' => 'You can only assign courses that belong to your faculty.']);
+                }
+            } elseif ($caller->hasUserType('hod')) {
+                if ($lecturerStaff && $lecturerStaff->department_id != $caller->staff->department_id) {
+                    return back()->withErrors(['error' => 'You can only assign courses to staff in your department.']);
+                }
+                if ($targetCourse && $targetCourse->department_id != $caller->staff->department_id) {
+                    return back()->withErrors(['error' => 'You can only assign courses that belong to your department.']);
+                }
+            }
+
             DB::table('course_user')->insert([
                 'id' => Str::uuid(), // ✅ Fix for the missing UUID
                 'course_id' => $request->course_id,

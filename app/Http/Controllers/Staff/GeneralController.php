@@ -235,7 +235,7 @@ class GeneralController extends Controller
         if ($user->hasRole('programme-director')) {
             $assignedTypes = $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray();
             if (! in_array($application->application_setting_id, $assignedTypes)) {
-                abort(403, 'Unauthorized: You cannot view this application type.');
+                abort(403, 'Unauthorized: You are not assigned to manage this application type (' . optional($application->applicationSetting)->name . ').');
             }
         }
 

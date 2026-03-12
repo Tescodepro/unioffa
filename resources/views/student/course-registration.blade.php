@@ -39,8 +39,23 @@
                             <p class="mb-1"><strong>Current Session:</strong>
                                 {{ activeSession()->name ?? 'No active session' }}
                             </p>
-                            <p class="mb-0"><strong>Current Semester:</strong>
+                            <p class="mb-2"><strong>Current Semester:</strong>
                                 {{ activeSemester()->name ?? 'No active semester' }}</p>
+                            
+                            <div class="border-top pt-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">Semester Units:</small>
+                                    <span class="badge {{ $currentSemesterUnits >= $maxSemesterUnits ? 'bg-danger' : 'bg-primary' }}">
+                                        {{ $currentSemesterUnits }} / {{ $maxSemesterUnits }}
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Session Units:</small>
+                                    <span class="badge {{ $currentSessionUnits >= $maxSessionUnits ? 'bg-danger' : 'bg-success' }}">
+                                        {{ $currentSessionUnits }} / {{ $maxSessionUnits }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -50,6 +65,7 @@
 
                 @if (!$payment_status['allCleared'] && (isset($payment_status['tuition']) && $payment_status['tuition']['percentage_paid'] >= 60 && strtolower($current_semester ?? '') === '1st'))
                     {{-- Tuition ≥ 60% and it’s first semester --}}
+                    @include('student.partials.filter-form')
                     @include('student.partials.available-courses')
 
                 @elseif (!$payment_status['allCleared'])
@@ -58,10 +74,9 @@
 
                 @else
                     {{-- All cleared --}}
+                    @include('student.partials.filter-form')
                     @include('student.partials.available-courses')
                 @endif
-
-
             </div>
         </div>
     </div>
@@ -70,14 +85,4 @@
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            // $('.datatable').DataTable(); // Removed to prevent double initialization conflict with available-courses.blade.php
-
-            $('#select-all').on('click', function () {
-                $('input[name="courses[]"]').prop('checked', this.checked);
-            });
-        });
-    </script>
 @endpush

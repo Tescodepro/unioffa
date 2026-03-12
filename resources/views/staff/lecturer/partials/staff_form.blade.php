@@ -1,89 +1,98 @@
-<div class="row g-3">
+@php
+    $caller = auth()->user();
+    $isDean = $caller->hasUserType('dean');
+    $isHOD = $caller->hasUserType('hod');
+    $isAdmin = $caller->hasUserType('administrator');
+    
+    // Determine pre-selected values
+    $selectedFacultyId = isset($staff) ? $staff->faculty_id : ($isDean ? $caller->staff->faculty_id : null);
+    $selectedDepartmentId = isset($staff) ? $staff->department_id : ($isHOD ? $caller->staff->department_id : null);
+@endphp
 
-    <!-- First Name -->
-    <div class="col-md-6">
-        <label for="first_name" class="form-label">First Name</label>
-        <input type="text" id="first_name" name="first_name" class="form-control form-control-sm" 
-               value="{{ $staff->user->first_name ?? '' }}" placeholder="Enter first name" required>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">First Name <span class="text-danger">*</span></label>
+            <input type="text" name="first_name" class="form-control" value="{{ old('first_name', $staff->user->first_name ?? '') }}" required>
+        </div>
     </div>
-
-    <!-- Last Name -->
-    <div class="col-md-6">
-        <label for="last_name" class="form-label">Last Name</label>
-        <input type="text" id="last_name" name="last_name" class="form-control form-control-sm" 
-               value="{{ $staff->user->last_name ?? '' }}" placeholder="Enter last name" required>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">Last Name <span class="text-danger">*</span></label>
+            <input type="text" name="last_name" class="form-control" value="{{ old('last_name', $staff->user->last_name ?? '') }}" required>
+        </div>
     </div>
-
-    <!-- Username -->
-    <div class="col-md-6">
-        <label for="username" class="form-label">Username</label>
-        <input type="text" id="username" name="username" class="form-control form-control-sm"
-               value="{{ $staff->user->username ?? '' }}" placeholder="Enter username" required>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+            <input type="text" name="username" class="form-control" value="{{ old('username', $staff->user->username ?? '') }}"  required>
+        </div>
     </div>
-
-    <!-- Email -->
-    <div class="col-md-6">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" id="email" name="email" class="form-control form-control-sm" 
-               value="{{ $staff->user->email ?? '' }}" placeholder="Enter email address" required>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+            <input type="email" name="email" class="form-control" value="{{ old('email', $staff->user->email ?? '') }}" required>
+        </div>
     </div>
-
-    <!-- Phone -->
-    <div class="col-md-6">
-        <label for="phone" class="form-label">Phone</label>
-        <input type="text" id="phone" name="phone" class="form-control form-control-sm" 
-               value="{{ $staff->user->phone ?? '' }}" placeholder="Enter phone number" required>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">Phone Number <span class="text-danger">*</span></label>
+            <input type="text" name="phone" class="form-control" value="{{ old('phone', $staff->user->phone ?? '') }}" required>
+        </div>
     </div>
-
-    <!-- Faculty -->
-    <div class="col-md-6">
-        <label for="faculty_id" class="form-label">Faculty</label>
-        <select id="faculty_id" name="faculty_id" class="form-select form-select-sm" required>
-            <option value="">Select Faculty</option>
-            @foreach(\App\Models\Faculty::all() as $faculty)
-                <option value="{{ $faculty->id }}" 
-                    {{ isset($staff) && $staff->faculty_id == $faculty->id ? 'selected' : '' }}>
-                    {{ $faculty->faculty_name }}
-                </option>
-            @endforeach
-        </select>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">User Type <span class="text-danger">*</span></label>
+            <select name="user_type_id" class="form-select" required>
+                <option value="">Select User Type</option>
+                @foreach($userTypes as $type)
+                    <option value="{{ $type->id }}" {{ old('user_type_id', $staff->user->user_type_id ?? '') == $type->id ? 'selected' : '' }}>
+                        {{ $type->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
     </div>
-
-    <!-- Department -->
-    <div class="col-md-6">
-        <label for="department_id" class="form-label">Department</label>
-        <select id="department_id" name="department_id" class="form-select form-select-sm" required>
-            <option value="">Select Department</option>
-            @foreach(\App\Models\Department::all() as $department)
-                <option value="{{ $department->id }}" 
-                    {{ isset($staff) && $staff->department_id == $department->id ? 'selected' : '' }}>
-                    {{ $department->department_name }}
-                </option>
-            @endforeach
-        </select>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">Faculty <span class="text-danger">*</span></label>
+            <select name="faculty_id" class="form-select" required {{ ($isDean || $isHOD) ? 'disabled' : '' }}>
+                <option value="">Select Faculty</option>
+                @foreach($faculties as $faculty)
+                    <option value="{{ $faculty->id }}" {{ old('faculty_id', $selectedFacultyId) == $faculty->id ? 'selected' : '' }}>
+                        {{ $faculty->faculty_name }}
+                    </option>
+                @endforeach
+            </select>
+            @if($isDean || $isHOD)
+                <input type="hidden" name="faculty_id" value="{{ $selectedFacultyId }}">
+            @endif
+        </div>
     </div>
-
-    <!-- User Type -->
-    <div class="col-md-6">
-        <label for="user_type_id" class="form-label">User Type</label>
-        <select id="user_type_id" name="user_type_id" class="form-select form-select-sm" required>
-            <option value="">Select User Type</option>
-            @foreach(\App\Models\UserType::whereIn('name', ['dean','hod','lecturer','dean'])->get() as $type)
-                <option value="{{ $type->id }}" 
-                    {{ isset($staff) && $staff->user->user_type_id == $type->id ? 'selected' : '' }}>
-                    {{ $type->name }}
-                </option>
-            @endforeach
-        </select>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">Department <span class="text-danger">*</span></label>
+            <select name="department_id" class="form-select" required {{ $isHOD ? 'disabled' : '' }}>
+                <option value="">Select Department</option>
+                @foreach($departments as $department)
+                    <option value="{{ $department->id }}" {{ old('department_id', $selectedDepartmentId) == $department->id ? 'selected' : '' }}>
+                        {{ $department->department_name }}
+                    </option>
+                @endforeach
+            </select>
+            @if($isHOD)
+                <input type="hidden" name="department_id" value="{{ $selectedDepartmentId }}">
+            @endif
+        </div>
     </div>
-
-    <!-- Status -->
-    <div class="col-md-6">
-        <label for="status" class="form-label">Status</label>
-        <select id="status" name="status" class="form-select form-select-sm" required>
-            <option value="active" {{ isset($staff) && $staff->status == 'active' ? 'selected' : '' }}>Active</option>
-            <option value="inactive" {{ isset($staff) && $staff->status == 'inactive' ? 'selected' : '' }}>Inactive</option>
-        </select>
+    <div class="col-md-6 mb-3">
+        <div class="form-group">
+            <label class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+            <select name="status" class="form-select" required>
+                <option value="active" {{ old('status', $staff->status ?? '') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ old('status', $staff->status ?? '') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+        </div>
     </div>
-
 </div>

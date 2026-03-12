@@ -87,6 +87,22 @@ class SystemSettingSeeder extends Seeder
                 'group' => 'academics',
                 'type' => 'string',
                 'description' => 'Current Academic Session'
+            ],
+
+            // Unit Limits Group
+            [
+                'key' => 'max_units_per_semester',
+                'value' => '24',
+                'group' => 'academics',
+                'type' => 'number',
+                'description' => 'Maximum allowed units per semester'
+            ],
+            [
+                'key' => 'max_units_per_session',
+                'value' => '48',
+                'group' => 'academics',
+                'type' => 'number',
+                'description' => 'Maximum allowed units per session'
             ]
         ];
 
