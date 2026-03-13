@@ -44,6 +44,7 @@ class RoutePermissionSeeder extends Seeder
             'ict.students.destroy' => 'manage_students',
             'ict.students.bulk' => 'manage_students',
             'ict.students.bulk.upload' => 'manage_students',
+            'ict.students.bulk.template' => 'manage_students',
 
             // --- Financial / Bursary ---
             'bursary.transactions' => 'view_transactions',
@@ -142,6 +143,8 @@ class RoutePermissionSeeder extends Seeder
             'ict.news.create' => 'manage_website',
             'ict.news.store' => 'manage_website',
             'ict.user-types.index' => 'manage_user_types',
+            'ict.user-types.create' => 'manage_user_types',
+            'ict.user-types.store' => 'manage_user_types',
             'ict.user-types.permissions' => 'manage_user_types',
             'ict.user-types.permissions.update' => 'manage_user_types',
             'ict.permissions.index' => 'manage_user_types',

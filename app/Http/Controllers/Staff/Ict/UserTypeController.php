@@ -36,18 +36,15 @@ class UserTypeController extends Controller
         return redirect()->route('ict.user-types.index')->with('success', 'User Type created successfully.');
     }
 
-    public function permissions($id)
+    public function permissions(UserType $userType)
     {
-        $userType = UserType::findOrFail($id);
         $permissions = Permission::all();
 
         return view('staff.ict.user-types.permissions', compact('userType', 'permissions'));
     }
 
-    public function updatePermissions(Request $request, $id)
+    public function updatePermissions(Request $request, UserType $userType)
     {
-        $userType = UserType::findOrFail($id);
-
         // Sync permissions
         $userType->permissions()->sync($request->permissions ?? []);
 

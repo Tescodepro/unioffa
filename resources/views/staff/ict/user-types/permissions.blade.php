@@ -16,7 +16,7 @@
                         <h3 class="page-title mb-1">Manage Permissions</h3>
                         <p class="text-muted mb-0">Assign permissions for {{ ucfirst($userType->name) }}</p>
                     </div>
-                    <a href="{{ route('user-types.index') }}" class="btn btn-secondary">Back</a>
+                    <a href="{{ route('ict.user-types.index') }}" class="btn btn-secondary">Back</a>
                 </div>
 
                 @if(session('success'))
@@ -25,7 +25,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ route('user-types.permissions.update', $userType->id) }}" method="POST">
+                        <form action="{{ route('ict.user-types.permissions.update', $userType->id) }}" method="POST">
                             @csrf
                             <h5 class="card-title mb-4">Select Permissions</h5>
                             <div class="row">
