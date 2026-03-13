@@ -210,7 +210,7 @@ class MenuItemSeeder extends Seeder
                 'section' => 'System Management',
                 'label' => 'Application Settings',
                 'icon' => 'ti ti-adjustments',
-                'route_name' => 'ict.application_settings.index',
+                'route_name' => 'ict.application-settings.index',
                 'route_pattern' => 'staff/ict/application-settings*',
                 'permission_identifier' => 'manage_settings',
                 'sort_order' => 30,
@@ -232,6 +232,64 @@ class MenuItemSeeder extends Seeder
                 'route_pattern' => 'staff/ict/news*',
                 'permission_identifier' => 'manage_website',
                 'sort_order' => 50,
+            ],
+
+            // ── Academic Setup ──────────────────────────────────────────────
+            [
+                'section' => 'Academic Setup',
+                'label' => 'Sessions',
+                'icon' => 'ti ti-calendar-event',
+                'route_name' => 'ict.sessions.index',
+                'route_pattern' => 'staff/ict/sessions*',
+                'permission_identifier' => 'manage_settings',
+                'sort_order' => 10,
+            ],
+            [
+                'section' => 'Academic Setup',
+                'label' => 'Semesters',
+                'icon' => 'ti ti-calendar-stats',
+                'route_name' => 'ict.semesters.index',
+                'route_pattern' => 'staff/ict/semesters*',
+                'permission_identifier' => 'manage_settings',
+                'sort_order' => 20,
+            ],
+            [
+                'section' => 'Academic Setup',
+                'label' => 'Faculties',
+                'icon' => 'ti ti-building-arch',
+                'route_name' => 'ict.faculties.index',
+                'route_pattern' => 'staff/ict/faculties*',
+                'permission_identifier' => 'manage_settings',
+                'sort_order' => 30,
+            ],
+            [
+                'section' => 'Academic Setup',
+                'label' => 'Departments',
+                'icon' => 'ti ti-building',
+                'route_name' => 'ict.departments.index',
+                'route_pattern' => 'staff/ict/departments*',
+                'permission_identifier' => 'manage_settings',
+                'sort_order' => 40,
+            ],
+
+            // ── User Search ───────────────────────────────────────────────────
+            [
+                'section' => 'User Search',
+                'label' => 'Search Students',
+                'icon' => 'ti ti-user-search',
+                'route_name' => 'ict.search.students',
+                'route_pattern' => 'staff/ict/search/students',
+                'permission_identifier' => 'view_students',
+                'sort_order' => 10,
+            ],
+            [
+                'section' => 'User Search',
+                'label' => 'Search Lecturers',
+                'icon' => 'ti ti-users-plus',
+                'route_name' => 'ict.search.lecturers',
+                'route_pattern' => 'staff/ict/search/lecturers',
+                'permission_identifier' => 'view_staff',
+                'sort_order' => 20,
             ],
 
             // ── Finance ───────────────────────────────────────────────────────
@@ -347,6 +405,15 @@ class MenuItemSeeder extends Seeder
                 'route_pattern' => 'staff/agent-applicants*',
                 'permission_identifier' => 'manage_agents',
                 'sort_order' => 10,
+            ],
+            [
+                'section' => 'Admission',
+                'label' => 'Incomplete Applications',
+                'icon' => 'ti ti-user-x',
+                'route_name' => 'ict.applications.incomplete',
+                'route_pattern' => 'staff/ict/applications/incomplete',
+                'permission_identifier' => 'manage_admission',
+                'sort_order' => 30,
             ],
         ];
 

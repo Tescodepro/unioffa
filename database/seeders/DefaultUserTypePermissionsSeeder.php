@@ -28,6 +28,8 @@ class DefaultUserTypePermissionsSeeder extends Seeder
                 'view_transcripts', 'view_all_courses', 'view_course_assignments',
                 'manage_staff', 'access_ict_portal', 'manage_admission',
                 'access_bursary_portal', 'view_payment_summary',
+                'view_agent_applications', 'manage_agent_applications',
+                'view_students', 'view_staff', 'manage_course_assignments',
             ],
         ],
         'bursary' => [
@@ -43,14 +45,14 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'perms' => [
                 'view_dashboard', 'upload_results', 'view_uploaded_results', 'manage_result_status',
                 'view_result_summary', 'view_transcripts', 'view_all_courses', 'view_course_assignments',
-                'manage_staff', 'access_dean_portal',
+                'manage_staff', 'access_dean_portal', 'manage_course_assignments',
             ],
         ],
         'hod' => [
             'route' => 'lecturer.dashboard',
             'perms' => [
                 'view_dashboard', 'upload_results', 'view_uploaded_results', 'view_result_summary',
-                'view_all_courses', 'view_course_assignments', 'manage_staff', 'access_hod_portal',
+                'view_all_courses', 'view_course_assignments', 'manage_staff', 'access_hod_portal', 'manage_course_assignments',
             ],
         ],
         'lecturer' => [
@@ -64,7 +66,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'route' => 'registrar.dashboard',
             'perms' => [
                 'view_dashboard', 'manage_students', 'view_transcripts', 'view_result_summary',
-                'manage_staff', 'access_registrar_portal', 'manage_admission',
+                'manage_staff', 'access_registrar_portal', 'manage_admission', 'view_admission',
             ],
         ],
         'vice-chancellor' => [
@@ -72,7 +74,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'perms' => [
                 'view_dashboard', 'manage_students', 'view_uploaded_results', 'view_result_summary',
                 'view_transcripts', 'view_reports', 'view_payment_summary', 'approve_payments',
-                'manage_agents', 'access_vc_portal', 'manage_admission',
+                'manage_agents', 'access_vc_portal', 'manage_admission', 'view_agent_applications', 'view_admission',
             ],
         ],
         'administrator' => [
@@ -83,18 +85,20 @@ class DefaultUserTypePermissionsSeeder extends Seeder
                 'view_uploaded_results', 'manage_result_status', 'view_result_summary',
                 'view_transcripts', 'view_all_courses', 'view_course_assignments',
                 'manage_staff', 'access_admin_portal', 'manage_admission',
+                'view_agent_applications', 'manage_agent_applications',
+                'view_students', 'view_staff', 'manage_course_assignments', 'view_admission',
             ],
         ],
         'programme-director' => [
             'route' => 'programme-director.dashboard',
             'perms' => [
-                'view_dashboard', 'access_programme_director_portal', 'manage_admission',
+                'view_dashboard', 'access_programme_director_portal', 'manage_admission', 'view_admission',
             ],
         ],
         'center-director' => [
             'route' => 'center-director.dashboard',
             'perms' => [
-                'view_dashboard', 'access_center_director_portal', 'manage_admission',
+                'view_dashboard', 'access_center_director_portal', 'manage_admission', 'view_admission',
             ],
         ],
         'public relations officer' => [

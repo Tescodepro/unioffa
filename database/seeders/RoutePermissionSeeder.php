@@ -8,14 +8,34 @@ use Illuminate\Support\Facades\Cache;
 
 class RoutePermissionSeeder extends Seeder
 {
-    /**
-     * Maps every named staff route to its required permission identifier.
-     * Edit this table in the DB to change access — no code deploy needed.
-     */
-    public function run(): void
+    public function run()
     {
         $mappings = [
-            // ── Student Management ────────────────────────────────────────────
+            // --- Admission Management ---
+            'admission.overview' => 'manage_admission',
+            'admission.applicants' => 'manage_admission',
+            'admission.details' => 'manage_admission',
+            'admission.admit' => 'manage_admission',
+            'admission.recommend' => 'manage_admission',
+            'admission.exportApplicants' => 'manage_admission',
+            'admin.agent.applicants' => 'view_agent_applications',
+            'admin.agent.application.update_status' => 'manage_agent_applications',
+
+            // --- Dashboards ---
+            'admin.dashboard' => 'view_dashboard',
+            'vc.dashboard' => 'access_vc_portal',
+            'registrar.dashboard' => 'access_registrar_portal',
+            'center-director.dashboard' => 'access_center_director_portal',
+            'center-director.admission.applicants' => 'access_center_director_portal',
+            'programme-director.dashboard' => 'access_programme_director_portal',
+            'burser.dashboard' => 'access_bursary_portal',
+            'ict.dashboard' => 'access_ict_portal',
+            'lecturer.dean.dashboard' => 'access_dean_portal',
+            'lecturer.dashboard' => 'access_lecturer_portal',
+
+            // --- Student & ICT Management ---
+            'admitted-students.index' => 'manage_students',
+            'admitted-students.download' => 'manage_students',
             'ict.students.index' => 'manage_students',
             'ict.students.create' => 'manage_students',
             'ict.students.store' => 'manage_students',
@@ -24,126 +44,116 @@ class RoutePermissionSeeder extends Seeder
             'ict.students.destroy' => 'manage_students',
             'ict.students.bulk' => 'manage_students',
             'ict.students.bulk.upload' => 'manage_students',
-            'ict.students.bulk.template' => 'manage_students',
-            'admitted-students.index' => 'manage_students',
-            'admitted-students.download' => 'manage_students',
 
-            // ── Academic Reports ─────────────────────────────────────────────
-            'broadsheet.sessional' => 'view_broadsheet',
-            'broadsheet.semester' => 'view_semester_result',
-
-            // ── Financial / Bursary ──────────────────────────────────────────
-            'bursary.student.history' => 'view_transactions',
-            'bursary.student.receipt' => 'view_transactions',
+            // --- Financial / Bursary ---
             'bursary.transactions' => 'view_transactions',
-            'bursary.transactions.export' => 'view_transactions',
-            'bursary.transactions.verify' => 'view_transactions',
-            'bursary.verify.form' => 'verify_payments',
-            'bursary.verify.action' => 'verify_payments',
-            'bursary.transactions.create' => 'upload_manual_payment',
-            'bursary.transactions.store' => 'upload_manual_payment',
-            'bursary.transactions.update' => 'upload_manual_payment',
-            'bursary.transactions.destroy' => 'upload_manual_payment',
             'bursary.reports.faculty' => 'view_reports',
             'bursary.reports.department' => 'view_reports',
             'bursary.reports.level' => 'view_reports',
             'bursary.reports.student' => 'view_reports',
             'bursary.reports.export' => 'view_reports',
+            'bursary.student.history' => 'view_transactions',
+            'bursary.student.receipt' => 'view_transactions',
+            'bursary.transactions.export' => 'view_transactions',
+            'bursary.transactions.verify' => 'verify_payments',
+            'bursary.verify.form' => 'verify_payments',
+            'bursary.verify.action' => 'verify_payments',
+            'bursary.transactions.create' => 'manage_transactions',
+            'bursary.transactions.store' => 'manage_transactions',
+            'bursary.transactions.update' => 'manage_transactions',
+            'bursary.transactions.destroy' => 'manage_transactions',
             'bursary.payment-settings.index' => 'manage_payment_settings',
-            'bursary.payment-settings.create' => 'manage_payment_settings',
             'bursary.payment-settings.store' => 'manage_payment_settings',
             'bursary.payment-settings.edit' => 'manage_payment_settings',
             'bursary.payment-settings.update' => 'manage_payment_settings',
             'bursary.payment-settings.destroy' => 'manage_payment_settings',
 
-            // ── Results ──────────────────────────────────────────────────────
-            'staff.results.upload' => 'upload_results',
-            'staff.results.process' => 'upload_results',
-            'staff.results.template' => 'upload_results',
-            'staff.results.download' => 'upload_results',
-            'backlog.upload.page' => 'upload_results',
-            'backlog.upload.process' => 'upload_results',
-            'backlog.upload.template' => 'upload_results',
-            'results.update' => 'upload_results',
-            'results.delete' => 'upload_results',
-            'results.viewUploaded' => 'view_uploaded_results',
-            'results.download' => 'view_uploaded_results',
-            'results.manage.status' => 'manage_result_status',
-            'results.update.status' => 'manage_result_status',
-            'results.bulk.update' => 'manage_result_status',
-            'results.summary' => 'view_result_summary',
-
-            // ── Transcripts ──────────────────────────────────────────────────
-            'transcript.search' => 'view_transcripts',
-            'transcript.search.page' => 'view_transcripts',
-
-            // ── Courses ──────────────────────────────────────────────────────
-            'staff.courses.index' => 'view_all_courses',
-            'staff.courses.store' => 'view_all_courses',
-            'staff.courses.update' => 'view_all_courses',
-            'staff.courses.destroy' => 'view_all_courses',
-            'staff.course.assignments' => 'view_course_assignments',
-            'staff.course.assign' => 'view_course_assignments',
-            'staff.course.assign.delete' => 'view_course_assignments',
-
-            // ── Staff Management ─────────────────────────────────────────────
+            // --- Staff & Course Management ---
+            'staff.users.index' => 'manage_staff',
+            'staff.users.store' => 'manage_staff',
+            'staff.users.update' => 'manage_staff',
+            'staff.users.destroy' => 'manage_staff',
+            'staff.course.assignments' => 'manage_course_assignments',
+            'staff.course.assign' => 'manage_course_assignments',
+            'staff.course.assign.delete' => 'manage_course_assignments',
+            'dean.department.students' => 'manage_staff',
             'staff.index' => 'manage_staff',
             'staff.store' => 'manage_staff',
             'staff.update' => 'manage_staff',
             'staff.destroy' => 'manage_staff',
+            'staff.courses.index' => 'view_all_courses',
+            'staff.courses.store' => 'manage_settings',
+            'staff.courses.update' => 'manage_settings',
+            'staff.courses.destroy' => 'manage_settings',
 
-            // ── ICT / Users / Settings ───────────────────────────────────────
+            // --- Academic / Results ---
+            'broadsheet.sessional' => 'view_result_summary',
+            'broadsheet.semester' => 'view_result_summary',
+            'broadsheet.printOfficial' => 'view_result_summary',
+            'staff.results.upload' => 'upload_results',
+            'staff.results.process' => 'upload_results',
+            'staff.results.download' => 'view_uploaded_results',
+            'results.manage.status' => 'manage_result_status',
+            'results.update.status' => 'manage_result_status',
+            'transcript.search.page' => 'view_transcripts',
+            'results.printTranscript' => 'view_transcripts',
+            'results.viewUploaded' => 'view_uploaded_results',
+            'results.printUploaded' => 'view_uploaded_results',
+            'results.download' => 'view_uploaded_results',
+            'results.summary' => 'view_result_summary',
+            'results.printSummary' => 'view_result_summary',
+            'transcript.search' => 'view_transcripts',
+            'results.bulk.update' => 'manage_result_status',
+            'backlog.upload.page' => 'upload_results',
+            'backlog.upload.process' => 'upload_results',
+            'backlog.upload.template' => 'upload_results',
+
+            // --- ICT / System Setup ---
+            'ict.application-settings.index' => 'manage_settings',
+            'ict.application-settings.create' => 'manage_settings',
+            'ict.application-settings.store' => 'manage_settings',
+            'ict.application-settings.edit' => 'manage_settings',
+            'ict.application-settings.update' => 'manage_settings',
+            'ict.semesters.index' => 'manage_settings',
+            'ict.semesters.store' => 'manage_settings',
+            'ict.semesters.update' => 'manage_settings',
+            'ict.semesters.destroy' => 'manage_settings',
+            'ict.sessions.index' => 'manage_settings',
+            'ict.sessions.store' => 'manage_settings',
+            'ict.sessions.update' => 'manage_settings',
+            'ict.sessions.destroy' => 'manage_settings',
+            'ict.faculties.index' => 'manage_settings',
+            'ict.faculties.store' => 'manage_settings',
+            'ict.faculties.update' => 'manage_settings',
+            'ict.faculties.destroy' => 'manage_settings',
+            'ict.departments.index' => 'manage_settings',
+            'ict.departments.store' => 'manage_settings',
+            'ict.departments.update' => 'manage_settings',
+            'ict.departments.destroy' => 'manage_settings',
             'ict.staff.users.index' => 'manage_users',
+            'ict.staff.users.store' => 'manage_users',
             'ict.staff.users.update' => 'manage_users',
-            'ict.staff.users.disable' => 'manage_users',
-            'ict.staff.users.enable' => 'manage_users',
             'ict.staff.users.destroy' => 'manage_users',
+            'ict.applications.incomplete' => 'manage_admission',
+            'ict.applications.unsubmit' => 'manage_admission',
+            'ict.search.students' => 'view_students',
+            'ict.search.lecturers' => 'view_staff',
             'ict.news.index' => 'manage_website',
             'ict.news.create' => 'manage_website',
             'ict.news.store' => 'manage_website',
-            'ict.news.edit' => 'manage_website',
-            'ict.news.update' => 'manage_website',
-            'ict.news.destroy' => 'manage_website',
-            'ict.application_settings.index' => 'manage_settings',
-            'ict.application_settings.create' => 'manage_settings',
-            'ict.application_settings.store' => 'manage_settings',
-            'ict.application_settings.edit' => 'manage_settings',
-            'ict.application_settings.update' => 'manage_settings',
-            'ict.system_settings.index' => 'manage_settings',
-            'ict.system_settings.update' => 'manage_settings',
-            'ict.system_settings.grading.update' => 'manage_settings',
             'ict.user-types.index' => 'manage_user_types',
-            'ict.user-types.create' => 'manage_user_types',
-            'ict.user-types.store' => 'manage_user_types',
             'ict.user-types.permissions' => 'manage_user_types',
             'ict.user-types.permissions.update' => 'manage_user_types',
-
-            // ── Admission ────────────────────────────────────────────────────
-            'admission.overview' => 'view_admission_overview',
-            'admission.applicants' => 'view_applicants',
-            'admission.details' => 'view_applicant_details',
-            'admission.admit' => 'admit_student',
-            'admission.recommend' => 'recommend_student',
-            'admission.exportApplicants' => 'export_applicants',
-
-            // ── Dashboards & Portal Access ─────────────────────────────────────
-            'admin.dashboard' => 'access_admin_portal',
-            'vc.dashboard' => 'access_vc_portal',
-            'registrar.dashboard' => 'access_registrar_portal',
-            'burser.dashboard' => 'access_bursary_portal',
-            'ict.dashboard' => 'access_ict_portal',
-            'lecturer.dean.dashboard' => 'access_dean_portal',
-            'lecturer.dashboard' => 'access_lecturer_portal',
-            'centre-director.dashboard' => 'access_center_director_portal',
-            'programme-director.dashboard' => 'access_programme_director_portal',
-            'pro.dashboard' => 'access_pro_portal',
-
-            // ── Common Staff Routes ──────────────────────────────────────────
-            'staff.admission.details' => 'manage_admission',
-
-            // ── Agents ───────────────────────────────────────────────────────
-            'admin.agent.applicants' => 'manage_agents',
-            'admin.agent.application.update_status' => 'manage_agents',
+            'ict.permissions.index' => 'manage_user_types',
+            'ict.permissions.store' => 'manage_user_types',
+            'ict.permissions.update' => 'manage_user_types',
+            'ict.permissions.destroy' => 'manage_user_types',
+            'ict.menu-items.index' => 'manage_settings',
+            'ict.menu-items.store' => 'manage_settings',
+            'ict.menu-items.update' => 'manage_settings',
+            'ict.menu-items.destroy' => 'manage_settings',
+            'ict.system_settings.index' => 'manage_settings',
+            'ict.system_settings.update' => 'manage_settings',
         ];
 
         foreach ($mappings as $route => $permission) {
@@ -153,7 +163,6 @@ class RoutePermissionSeeder extends Seeder
             );
         }
 
-        // Bust the middleware cache so changes take effect immediately
         Cache::forget('route_permissions_map');
     }
 }

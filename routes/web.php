@@ -7,12 +7,27 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Staff\AuthController as StaffAuthController;
 use App\Http\Controllers\Staff\BursaryController;
-use App\Http\Controllers\Staff\GeneralController as AdminGeneralController;
+use App\Http\Controllers\Staff\GeneralController as StaffGeneralController;
+use App\Http\Controllers\Staff\Ict\AcademicSemesterController;
+use App\Http\Controllers\Staff\Ict\AcademicSessionController;
+use App\Http\Controllers\Staff\Ict\ApplicationSettingController;
+use App\Http\Controllers\Staff\Ict\DepartmentController as IctDepartmentController;
+use App\Http\Controllers\Staff\Ict\FacultyController as IctFacultyController;
+use App\Http\Controllers\Staff\Ict\IctApplicationController;
 use App\Http\Controllers\Staff\Ict\IctStudentController;
+use App\Http\Controllers\Staff\Ict\MenuItemController;
+use App\Http\Controllers\Staff\Ict\PermissionController;
+use App\Http\Controllers\Staff\Ict\UserSearchController;
+use App\Http\Controllers\Staff\Ict\UserTypeController;
 use App\Http\Controllers\Staff\Lecturer\CourseController;
 use App\Http\Controllers\Staff\Lecturer\LecturerGeneralController;
 use App\Http\Controllers\Staff\Lecturer\ResultController;
 use App\Http\Controllers\Staff\PaymentSettingController;
+use App\Http\Controllers\Staff\Registrar\RegistrarController;
+use App\Http\Controllers\Staff\SystemSettingController;
+use App\Http\Controllers\Staff\Vc\VcController;
+use App\Http\Controllers\Staff\CenterDirector\CenterDirectorController;
+use App\Http\Controllers\Staff\ProgrammeDirector\ProgrammeDirectorController;
 use App\Http\Controllers\Student\AuthController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
@@ -147,64 +162,41 @@ Route::prefix('students')->group(function () {
 // =========================================================================
 
 Route::prefix('staff')->group(function () {
-    // --- Staff Authentication ---
+    // --- Staff Authentication (Keep as is, but remove dynamic.permission from auth-logout) ---
     Route::controller(StaffAuthController::class)->group(function () {
         Route::get('/', 'login')->name('staff.login');
         Route::post('/', 'loginAction');
         Route::get('logout', 'logoutAction')->name('staff.logout');
     });
 
-    // --- Staff Base & Admissions Management ---
-    Route::middleware(['auth', 'dynamic.permission'])->group(function () {
-        // Unified Admission Management
-        Route::prefix('admission')->group(function () {
-            Route::controller(AdminGeneralController::class)->group(function () {
-                Route::get('/overview', 'index_admin')->name('admission.overview');
-                Route::get('/applicants', 'index_admin')->name('admission.applicants');
-                Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admission.details');
-                Route::post('/admit/{userId}', 'admitStudent')->name('admission.admit');
-                Route::post('/recommend/{userId}', 'recommendStudent')->name('admission.recommend');
-                Route::get('/export-applicants', 'exportApplicants')->name('admission.exportApplicants');
-            });
-        });
+    // --- Unified Staff Portal ---
+    // All staff access is now purely determined by the 'dynamic.permission' middleware
+    // which checks the 'route_permissions' table mappings.
+    Route::middleware(['auth', 'user.type:staff', 'dynamic.permission'])->group(function () {
 
-        // Admin Dashboard & Agent Management
-        Route::get('/dashboard', [AdminGeneralController::class, 'index_admin'])->name('admin.dashboard');
-        Route::controller(AdminGeneralController::class)->group(function () {
-            // Agent Application Management
+        // --- Admissions & Agent Management ---
+        Route::controller(StaffGeneralController::class)->group(function () {
+            Route::get('/admission/overview', 'index_admin')->name('admission.overview');
+            Route::get('/admission/applicants', 'index_admin')->name('admission.applicants');
+            Route::get('/admission/applicants/{user}/{application}', 'showApplicantDetails')->name('admission.details');
+            Route::post('/admission/admit/{userId}', 'admitStudent')->name('admission.admit');
+            Route::post('/admission/recommend/{userId}', 'recommendStudent')->name('admission.recommend');
+            Route::get('/admission/export-applicants', 'exportApplicants')->name('admission.exportApplicants');
+            
             Route::get('/agent-applicants', 'showAgentDetail')->name('admin.agent.applicants');
-            Route::post('/agent-applicants/update-status', 'changeAgentStatus')->name('admin.agent.application.update_status');
+            Route::post('/agent-applicants/status', 'changeAgentStatus')->name('admin.agent.application.update_status');
         });
 
-        // Vice-Chancellor Dashboard
-        Route::prefix('vc')->group(function () {
-            Route::controller(\App\Http\Controllers\Staff\Vc\VcController::class)->group(function () {
-                Route::get('/dashboard', 'dashboard')->name('vc.dashboard');
-            });
-        });
+        // --- Dashboards (Permission-Driven) ---
+        Route::get('/dashboard', [StaffGeneralController::class, 'index_admin'])->name('admin.dashboard');
 
-        // Registrar Dashboard
-        Route::prefix('registrar')->group(function () {
-            Route::controller(\App\Http\Controllers\Staff\Registrar\RegistrarController::class)->group(function () {
-                Route::get('/dashboard', 'dashboard')->name('registrar.dashboard');
-            });
-        });
+        Route::get('/vc/dashboard', [VcController::class, 'dashboard'])->name('vc.dashboard');
+        Route::get('/registrar/dashboard', [RegistrarController::class, 'dashboard'])->name('registrar.dashboard');
+        Route::get('/center-director/dashboard', [CenterDirectorController::class, 'dashboard'])->name('center-director.dashboard');
+        Route::get('/center-director/admission/applicants', [CenterDirectorController::class, 'admissionApplicants'])->name('center-director.admission.applicants');
+        Route::get('/programme-director/dashboard', [ProgrammeDirectorController::class, 'dashboard'])->name('programme-director.dashboard');
 
-        // Center Director
-        Route::prefix('center-director')
-            ->controller(\App\Http\Controllers\Staff\CenterDirector\CenterDirectorController::class)
-            ->group(function () {
-                Route::get('/dashboard', 'dashboard')->name('center-director.dashboard');
-            });
-
-        // Programme Director
-        Route::prefix('programme-director')->group(function () {
-            Route::controller(\App\Http\Controllers\Staff\ProgrammeDirector\ProgrammeDirectorController::class)->group(function () {
-                Route::get('/dashboard', 'dashboard')->name('programme-director.dashboard');
-            });
-        });
-
-        // --- Student Management (ICT/Bursary view) ---
+        // --- Student & ICT Management ---
         Route::controller(AdmittedStudentsDownloadController::class)->group(function () {
             Route::get('/admitted-students', 'index')->name('admitted-students.index');
             Route::post('/admitted-students/download', 'download')->name('admitted-students.download');
@@ -219,16 +211,20 @@ Route::prefix('staff')->group(function () {
             Route::delete('/ict/students/{student}', 'destroy')->name('ict.students.destroy');
             Route::get('/ict/students/bulk', 'bulkUploadForm')->name('ict.students.bulk');
             Route::post('/ict/students/bulk', 'bulkUpload')->name('ict.students.bulk.upload');
-            Route::get('/ict/students/bulk/template', 'downloadTemplate')->name('ict.students.bulk.template');
         });
 
         // --- Financial / Bursary Management ---
         Route::prefix('burser')->group(function () {
             Route::controller(BursaryController::class)->group(function () {
                 Route::get('/dashboard', 'dashboard')->name('burser.dashboard');
+                Route::get('/transactions', 'transactions')->name('bursary.transactions');
+                Route::get('/reports/faculty', 'reportByFaculty')->name('bursary.reports.faculty');
+                Route::get('/reports/department', 'reportByDepartment')->name('bursary.reports.department');
+                Route::get('/reports/level', 'reportByLevel')->name('bursary.reports.level');
+                Route::get('/reports/student', 'reportByStudent')->name('bursary.reports.student');
+                Route::get('/reports/export/{type}/{format}', 'export')->name('bursary.reports.export');
                 Route::get('/student-history', 'searchStudentHistory')->name('bursary.student.history');
                 Route::get('/student-receipt/{reference}', 'downloadReceipt')->name('bursary.student.receipt');
-                Route::get('/transactions', 'transactions')->name('bursary.transactions');
                 Route::get('/transactions/export/{format}', 'exportTransactions')->name('bursary.transactions.export');
                 Route::get('/transactions/{id}/verify', 'verifySingle')->name('bursary.transactions.verify');
                 Route::get('/verify-payment', 'verifyPaymentForm')->name('bursary.verify.form');
@@ -237,15 +233,9 @@ Route::prefix('staff')->group(function () {
                 Route::post('/transactions/store', 'storeManual')->name('bursary.transactions.store');
                 Route::put('/transactions/update/{transaction}', 'updateManual')->name('bursary.transactions.update');
                 Route::delete('/transactions/destroy/{transaction}', 'destroyManual')->name('bursary.transactions.destroy');
-                Route::get('/reports/faculty', 'reportByFaculty')->name('bursary.reports.faculty');
-                Route::get('/reports/department', 'reportByDepartment')->name('bursary.reports.department');
-                Route::get('/reports/level', 'reportByLevel')->name('bursary.reports.level');
-                Route::get('/reports/student', 'reportByStudent')->name('bursary.reports.student');
-                Route::get('/reports/{type}/export/{format}', 'export')->name('bursary.reports.export');
             });
             Route::controller(PaymentSettingController::class)->group(function () {
                 Route::get('/payment-settings', 'index')->name('bursary.payment-settings.index');
-                Route::get('/payment-settings/create', 'create')->name('bursary.payment-settings.create');
                 Route::post('/payment-settings', 'store')->name('bursary.payment-settings.store');
                 Route::get('/payment-settings/{paymentSetting}/edit', 'edit')->name('bursary.payment-settings.edit');
                 Route::put('/payment-settings/{paymentSetting}', 'update')->name('bursary.payment-settings.update');
@@ -254,167 +244,115 @@ Route::prefix('staff')->group(function () {
         });
 
         // --- Academic / Result Management ---
-        Route::middleware(['user.type:staff'])->group(function () {
-            // Broadsheets
-            Route::prefix('reports/broadsheet')->group(function () {
-                Route::controller(\App\Http\Controllers\Staff\BroadsheetController::class)->group(function () {
-                    Route::get('/sessional', 'indexSessional')->name('broadsheet.sessional');
-                    Route::get('/semester', 'indexSemester')->name('broadsheet.semester');
-                    Route::get('/print-official', 'printOfficial')->name('broadsheet.printOfficial');
-                });
+        // REMOVED 'user.type:staff' as it's now in the parent group
+        Route::prefix('reports/broadsheet')->group(function () {
+            Route::controller(\App\Http\Controllers\Staff\BroadsheetController::class)->group(function () {
+                Route::get('/sessional', 'indexSessional')->name('broadsheet.sessional');
+                Route::get('/semester', 'indexSemester')->name('broadsheet.semester');
+                Route::get('/print-official', 'printOfficial')->name('broadsheet.printOfficial');
+            });
+        });
+
+        Route::prefix('dean')->group(function () {
+            Route::controller(LecturerGeneralController::class)->group(function () {
+                Route::get('/dashboard', 'dean_dashboard')->name('lecturer.dean.dashboard');
+                Route::get('/lecturer/dashboard', 'lecturer_dashboard')->name('lecturer.dashboard');
+                Route::get('/department/{department}/students', 'department_students')->name('dean.department.students');
+                Route::get('/staff-list', 'listStaff')->name('staff.users.index');
+                Route::post('/staff-list', 'addStaff')->name('staff.users.store');
+                Route::put('/staff-list/{id}', 'updateStaff')->name('staff.users.update');
+                Route::delete('/staff-list/{id}', 'destroyStaff')->name('staff.users.destroy');
+                
+                Route::get('/course-assignments', 'courseAssignments')->name('staff.course.assignments');
+                Route::post('/course-assignments', 'assignCourse')->name('staff.course.assign');
+                Route::delete('/course-assignments/{id}', 'deleteAssignment')->name('staff.course.assign.delete');
+
+                // Legacy names for compatibility (optional)
+                Route::get('/staff', 'listStaff')->name('staff.index');
+                Route::post('/staff', 'addStaff')->name('staff.store');
+                Route::put('/staff/{staff}', 'updateStaff')->name('staff.update');
+                Route::delete('/staff/{staff}', 'destroyStaff')->name('staff.destroy');
             });
 
-            // Dean / Lecturer Portal
-            Route::prefix('dean')->group(function () {
-                Route::controller(LecturerGeneralController::class)->group(function () {
-                    Route::get('/dashboard', 'dean_dashboard')->name('lecturer.dean.dashboard');
-                    Route::get('/lecturer/dashboard', 'lecturer_dashboard')->name('lecturer.dashboard');
-                    Route::get('/department/{department}/students', 'department_students')->name('dean.department.students');
+            Route::controller(CourseController::class)->group(function () {
+                Route::get('/courses', 'index_course')->name('staff.courses.index');
+                Route::post('/courses', 'store')->name('staff.courses.store');
+                Route::put('/courses/{course}', 'update')->name('staff.courses.update');
+                Route::delete('/courses/{course}', 'destroy')->name('staff.courses.destroy');
+            });
 
-                    // Staff management
-                    Route::get('/staff', 'listStaff')->name('staff.index');
-                    Route::post('/staff', 'addStaff')->name('staff.store');
-                    Route::put('/staff/{staff}', 'updateStaff')->name('staff.update');
-                    Route::delete('/staff/{staff}', 'destroyStaff')->name('staff.destroy');
-
-                    // Course assignments
-                    Route::get('staff/course-assignments', 'courseAssignments')->name('staff.course.assignments');
-                    Route::post('staff/course-assignments', 'assignCourse')->name('staff.course.assign');
-                    Route::delete('staff/course-assignments/{id}', 'deleteAssignment')->name('staff.course.assign.delete');
-                });
-
-                // Course management
-                Route::controller(CourseController::class)->group(function () {
-                    Route::get('/courses', 'index_course')->name('staff.courses.index');
-                    Route::post('/courses', 'store')->name('staff.courses.store');
-                    Route::put('/courses/{course}', 'update')->name('staff.courses.update');
-                    Route::delete('/courses/{course}', 'destroy')->name('staff.courses.destroy');
-                });
-
-                // Results
-                Route::controller(ResultController::class)->group(function () {
-                    Route::get('results/upload', 'uploadPage')->name('staff.results.upload');
-                    Route::post('results/upload', 'processUpload')->name('staff.results.process');
-                    Route::get('results/download-template/{courseId}', 'downloadTemplate')->name('staff.results.template');
-                    Route::get('results/download', 'downloadSheet')->name('staff.results.download');
-                    Route::get('/backlog-upload', 'showBacklogUploadPage')->name('backlog.upload.page');
-                    Route::post('/backlog-upload/process', 'processBacklogUpload')->name('backlog.upload.process');
-                    Route::get('/backlog-upload/template', 'downloadBacklogTemplate')->name('backlog.upload.template');
-                    Route::put('/results/{id}', 'update')->name('results.update');
-                    Route::delete('/results/{id}', 'destroy')->name('results.delete');
-                    Route::get('/results/view-uploaded', 'viewUploadedResults')->name('results.viewUploaded');
-                    Route::get('/results/print-uploaded', 'printUploadedResults')->name('results.printUploaded');
-                    Route::get('/results/download-uploaded-results', 'downloadResults')->name('results.download');
-                    Route::get('/results/manage-status', 'manageStatus')->name('results.manage.status');
-                    Route::post('/results/update-status', 'updateStatus')->name('results.update.status');
-                    Route::post('/results/bulk-update-status', 'bulkUpdateStatus')->name('results.bulk.update');
-                    Route::get('/results/summary', 'summaryByDepartment')->name('results.summary');
-                    Route::get('/results/print-summary', 'printSummaryReport')->name('results.printSummary');
-                    Route::get('/transcript/result/view', 'searchTranscript')->name('transcript.search');
-                    Route::get('/transcript/search', 'transcriptSearchPage')->name('transcript.search.page');
-                    Route::get('/transcript/print', 'printTranscript')->name('results.printTranscript');
-                });
+            Route::controller(ResultController::class)->group(function () {
+                Route::get('results/upload', 'uploadPage')->name('staff.results.upload');
+                Route::post('results/upload', 'processUpload')->name('staff.results.process');
+                Route::get('results/download', 'downloadSheet')->name('staff.results.download');
+                Route::get('/results/manage-status', 'manageStatus')->name('results.manage.status');
+                Route::post('/results/update-status', 'updateStatus')->name('results.update.status');
+                Route::get('/results/view-uploaded', 'viewUploadedResults')->name('results.viewUploaded');
+                Route::get('/results/print-uploaded', 'printUploadedResults')->name('results.printUploaded');
+                Route::get('/results/download-detailed', 'downloadResults')->name('results.download');
+                Route::get('/results/summary', 'summaryByDepartment')->name('results.summary');
+                Route::get('/results/print-summary', 'printSummaryReport')->name('results.printSummary');
+                Route::get('/results/transcript/search', 'transcriptSearchPage')->name('transcript.search.page');
+                Route::get('/results/transcript/action', 'searchTranscript')->name('transcript.search');
+                Route::post('/results/bulk-update-status', 'bulkUpdateStatus')->name('results.bulk.update');
+                Route::get('/results/backlog-upload', 'showBacklogUploadPage')->name('backlog.upload.page');
+                Route::post('/results/backlog-upload', 'processBacklogUpload')->name('backlog.upload.process');
+                Route::get('/results/backlog-template', 'downloadBacklogTemplate')->name('backlog.upload.template');
             });
         });
 
         // --- ICT Management / System Setup ---
-        Route::prefix('ict')->group(function () {
-            Route::get('/dashboard', [IctStudentController::class, 'dashboard'])->name('ict.dashboard');
+        Route::prefix('ict')->name('ict.')->group(function () {
+            Route::get('/dashboard', [IctStudentController::class, 'dashboard'])->name('dashboard');
 
-            // User Management
+            Route::resource('application-settings', ApplicationSettingController::class)->except(['show', 'destroy']);
+            Route::resource('semesters', AcademicSemesterController::class)->except(['show', 'create', 'edit']);
+            Route::resource('sessions', AcademicSessionController::class)->except(['show', 'create', 'edit']);
+            Route::resource('faculties', IctFacultyController::class)->except(['show', 'create', 'edit']);
+            Route::resource('departments', IctDepartmentController::class)->except(['show', 'create', 'edit']);
+
             Route::controller(IctStudentController::class)->group(function () {
-                Route::get('/users', 'getAllUsers')->name('ict.staff.users.index');
-                Route::post('/users', 'storeUsers');
-                Route::post('users/{id}', 'updateUsers')->name('ict.staff.users.update');
-                Route::post('users/{id}/disable', 'disableUser')->name('ict.staff.users.disable');
-                Route::post('users/{id}/enable', 'enableUser')->name('ict.staff.users.enable');
-                Route::delete('users/{id}/force-delete', 'forceDeleteUser')->name('ict.staff.users.destroy');
-
-                // Search API
-                Route::get('/api/search/students', [App\Http\Controllers\Staff\Ict\UserSearchController::class, 'searchStudents'])->name('ict.search.students');
-                Route::get('/api/search/lecturers', [App\Http\Controllers\Staff\Ict\UserSearchController::class, 'searchLecturers'])->name('ict.search.lecturers');
+                Route::get('/staff/users', 'getAllUsers')->name('staff.users.index');
+                Route::post('/staff/users', 'storeUsers')->name('staff.users.store');
+                Route::post('/staff/users/{id}', 'updateUsers')->name('staff.users.update');
+                Route::delete('/staff/users/{id}/force-delete', 'forceDeleteUser')->name('staff.users.destroy');
             });
 
-            // Website / News Management
-            Route::resource('news', NewsController::class)->names('ict.news');
-
-            // Application Setup
-            Route::controller(\App\Http\Controllers\Staff\Ict\IctApplicationController::class)->group(function () {
-                Route::get('/applications/incomplete', 'incompleteApplications')->name('ict.applications.incomplete');
-                Route::post('/applications/unsubmit/{id}', 'unsubmitApplication')->name('ict.applications.unsubmit');
+            Route::controller(IctApplicationController::class)->prefix('applications')->group(function () {
+                Route::get('/incomplete', 'incompleteApplications')->name('applications.incomplete');
+                Route::post('/{id}/unsubmit', 'unsubmitApplication')->name('applications.unsubmit');
             });
 
-            Route::controller(\App\Http\Controllers\Staff\Ict\ApplicationSettingController::class)->group(function () {
-                Route::get('/application-settings', 'index')->name('ict.application_settings.index');
-                Route::get('/application-settings/create', 'create')->name('ict.application_settings.create');
-                Route::post('/application-settings', 'store')->name('ict.application_settings.store');
-                Route::get('/application-settings/{id}/edit', 'edit')->name('ict.application_settings.edit');
-                Route::post('/application-settings/{id}', 'update')->name('ict.application_settings.update');
+            Route::controller(UserSearchController::class)->prefix('search')->group(function () {
+                Route::get('/students', 'searchStudents')->name('search.students');
+                Route::get('/lecturers', 'searchLecturers')->name('search.lecturers');
             });
 
-            // System Settings
-            Route::controller(\App\Http\Controllers\Staff\SystemSettingController::class)->group(function () {
-                Route::get('/system-settings', 'index')->name('ict.system_settings.index');
-                Route::post('/system-settings', 'update')->name('ict.system_settings.update');
-                Route::post('/system-settings/grading', 'updateGrading')->name('ict.system_settings.grading.update');
+            Route::resource('news', NewsController::class)->names('news');
+
+            Route::controller(UserTypeController::class)->group(function () {
+                Route::get('/user-types', 'index')->name('user-types.index');
+                Route::get('/user-types/{id}/permissions', 'permissions')->name('user-types.permissions');
+                Route::post('/user-types/{id}/permissions', 'updatePermissions')->name('user-types.permissions.update');
             });
 
-            // User Types & Permissions
-            Route::controller(\App\Http\Controllers\Staff\Ict\UserTypeController::class)->group(function () {
-                Route::get('/user-types', 'index')->name('ict.user-types.index');
-                Route::get('/user-types/create', 'create')->name('ict.user-types.create');
-                Route::post('/user-types', 'store')->name('ict.user-types.store');
-                Route::get('/user-types/{id}/permissions', 'permissions')->name('ict.user-types.permissions');
-                Route::post('/user-types/{id}/permissions', 'updatePermissions')->name('ict.user-types.permissions.update');
+            Route::controller(PermissionController::class)->group(function () {
+                Route::get('/permissions', 'index')->name('permissions.index');
+                Route::post('/permissions', 'store')->name('permissions.store');
+                Route::put('/permissions/{permission}', 'update')->name('permissions.update');
+                Route::delete('/permissions/{permission}', 'destroy')->name('permissions.destroy');
             });
 
-            Route::controller(\App\Http\Controllers\Staff\Ict\PermissionController::class)->group(function () {
-                Route::get('/permissions', 'index')->name('ict.permissions.index');
-                Route::get('/permissions/create', 'create')->name('ict.permissions.create');
-                Route::post('/permissions', 'store')->name('ict.permissions.store');
-                Route::get('/permissions/{permission}/edit', 'edit')->name('ict.permissions.edit');
-                Route::put('/permissions/{permission}', 'update')->name('ict.permissions.update');
-                Route::delete('/permissions/{permission}', 'destroy')->name('ict.permissions.destroy');
+            Route::controller(MenuItemController::class)->group(function () {
+                Route::get('/menu-items', 'index')->name('menu-items.index');
+                Route::post('/menu-items', 'store')->name('menu-items.store');
+                Route::put('/menu-items/{menuItem}', 'update')->name('menu-items.update');
+                Route::delete('/menu-items/{menuItem}', 'destroy')->name('menu-items.destroy');
             });
 
-            // Menu Management
-            Route::controller(\App\Http\Controllers\Staff\Ict\MenuItemController::class)->group(function () {
-                Route::get('/menu-items', 'index')->name('ict.menu-items.index');
-                Route::get('/menu-items/create', 'create')->name('ict.menu-items.create');
-                Route::post('/menu-items', 'store')->name('ict.menu-items.store');
-                Route::get('/menu-items/{menuItem}/edit', 'edit')->name('ict.menu-items.edit');
-                Route::put('/menu-items/{menuItem}', 'update')->name('ict.menu-items.update');
-                Route::post('/menu-items/{menuItem}/toggle', 'toggle')->name('ict.menu-items.toggle');
-                Route::delete('/menu-items/{menuItem}', 'destroy')->name('ict.menu-items.destroy');
-            });
-
-            // Academic Setup
-            Route::controller(\App\Http\Controllers\Staff\Ict\FacultyController::class)->group(function () {
-                Route::get('/faculties', 'index')->name('ict.faculties.index');
-                Route::post('/faculties', 'store')->name('ict.faculties.store');
-                Route::put('/faculties/{id}', 'update')->name('ict.faculties.update');
-                Route::delete('/faculties/{id}', 'destroy')->name('ict.faculties.destroy');
-            });
-
-            Route::controller(\App\Http\Controllers\Staff\Ict\DepartmentController::class)->group(function () {
-                Route::get('/departments', 'index')->name('ict.departments.index');
-                Route::post('/departments', 'store')->name('ict.departments.store');
-                Route::put('/departments/{id}', 'update')->name('ict.departments.update');
-                Route::delete('/departments/{id}', 'destroy')->name('ict.departments.destroy');
-            });
-
-            Route::controller(\App\Http\Controllers\Staff\Ict\AcademicSessionController::class)->group(function () {
-                Route::get('/sessions', 'index')->name('ict.sessions.index');
-                Route::post('/sessions', 'store')->name('ict.sessions.store');
-                Route::put('/sessions/{id}', 'update')->name('ict.sessions.update');
-                Route::delete('/sessions/{id}', 'destroy')->name('ict.sessions.destroy');
-            });
-
-            Route::controller(\App\Http\Controllers\Staff\Ict\AcademicSemesterController::class)->group(function () {
-                Route::get('/semesters', 'index')->name('ict.semesters.index');
-                Route::post('/semesters', 'store')->name('ict.semesters.store');
-                Route::put('/semesters/{id}', 'update')->name('ict.semesters.update');
-                Route::delete('/semesters/{id}', 'destroy')->name('ict.semesters.destroy');
+            Route::controller(SystemSettingController::class)->group(function () {
+                Route::get('/system-settings', 'index')->name('system_settings.index');
+                Route::post('/system-settings', 'update')->name('system_settings.update');
             });
         });
     });

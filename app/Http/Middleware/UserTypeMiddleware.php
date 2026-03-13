@@ -9,45 +9,17 @@ use Illuminate\Http\Request;
 class UserTypeMiddleware
 {
     /**
-     * All staff types in the system.
-     * The special keyword 'staff' in a route means "any of these types".
-     */
-    const STAFF_TYPES = [
-        'administrator',
-        'dean',
-        'lecturer',
-        'hod',
-        'registrar',
-        'vice-chancellor',
-        'bursary',
-        'ict',
-        'center-director',
-        'programme-director',
-    ];
-
-    /**
      * Handle an incoming request.
      *
-     * $type can be:
-     *   - A single type:              'user.type:dean'
-     *   - Pipe-separated list:        'user.type:dean|hod|lecturer'
-     *   - The keyword 'staff':        'user.type:staff'  → any staff type is allowed
+     * $category can be: 'staff', 'student', 'applicant'
      */
-    public function handle(Request $request, Closure $next, string $type)
+    public function handle(Request $request, Closure $next, string $category)
     {
-        $allowedTypes = explode('|', $type);
-
-        // Expand the 'staff' keyword to all known staff types
-        if (in_array('staff', $allowedTypes)) {
-            $allowedTypes = self::STAFF_TYPES;
-        }
-
         // 1️⃣ Not logged in → send to correct login page
         if (!Auth::check()) {
-            $firstType = $allowedTypes[0] ?? 'staff';
-            $redirectRoute = match (true) {
-                $firstType === 'applicant' => route('application.login'),
-                $firstType === 'student' => route('student.login'),
+            $redirectRoute = match ($category) {
+                'applicant' => route('application.login'),
+                'student' => route('student.login'),
                 default => route('staff.login'),
             };
 
@@ -55,25 +27,31 @@ class UserTypeMiddleware
                 ->with('error', 'You need to be logged in to access this page.');
         }
 
-        // 2️⃣ Logged in but no user type set (corrupt account)
-        $userType = Auth::user()->userType->name ?? null;
+        $user = Auth::user();
+        $userType = $user->userType->name ?? null;
+
         if (!$userType) {
             Auth::logout();
             return redirect()->route('staff.login')
-                ->with('error', 'Your account has no user type assigned. Please contact the administrator.');
+                ->with('error', 'Your account has no user type assigned.');
         }
 
-        // 3️⃣ Student can access both student and applicant routes
-        if ($userType === 'student' && array_intersect(['student', 'applicant'], $allowedTypes)) {
-            return $next($request);
-        }
+        // 2️⃣ Verify the user belongs to the requested category
+        // This logic remains flexible: Staff are anything that isn't student/applicant
+        $actualCategory = match ($userType) {
+            'student' => 'student',
+            'applicant' => 'applicant',
+            default => 'staff',
+        };
 
-        // 4️⃣ Type check — DO NOT log out on failure, just redirect to their dashboard
-        if (!in_array($userType, $allowedTypes)) {
-            // Redirect to the staff login page only if they have no session-based
-            // dashboard to go back to; otherwise send them back so they stay logged in.
+        if ($actualCategory !== $category) {
+            // Special case: Students can often access applicant routes
+            if ($userType === 'student' && $category === 'applicant') {
+                return $next($request);
+            }
+
             return redirect()->back()
-                ->with('error', 'You do not have permission to access this page.');
+                ->with('error', 'Unauthorized area.');
         }
 
         return $next($request);

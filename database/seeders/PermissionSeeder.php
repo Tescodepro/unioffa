@@ -65,6 +65,15 @@ class PermissionSeeder extends Seeder
 
             // Agent Management
             ['identifier' => 'manage_agents', 'name' => 'Manage Agents'],
+            ['identifier' => 'view_agent_applications', 'name' => 'View Agent Applications'],
+            ['identifier' => 'manage_agent_applications', 'name' => 'Manage Agent Applications'],
+
+            // ICT Specialized Search
+            ['identifier' => 'view_students', 'name' => 'View Students'],
+            ['identifier' => 'view_staff', 'name' => 'View Staff'],
+
+            // Specialized Admission
+            ['identifier' => 'view_admission', 'name' => 'View Admission'],
         ];
 
         foreach ($permissions as $perm) {

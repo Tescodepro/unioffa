@@ -21,26 +21,34 @@ class DynamicPermission
     {
         $routeName = $request->route()?->getName();
 
+        // If route has no name, we can't look up a permission mapping.
+        // For our architecture, all staff/portal routes MUST be named.
         if (!$routeName) {
             return $next($request);
         }
 
-        // Load all route→permission mappings from cache (refreshed when seeder runs)
-        $map = Cache::remember('route_permissions_map', 60, function () {
+        // Load all route→permission mappings from cache
+        $map = Cache::rememberForever('route_permissions_map', function () {
             return RoutePermission::pluck('permission_identifier', 'route_name')->all();
         });
 
+        // If no restriction is defined in the database, we treat it as "Staff Only"
+        // provided they are authenticated (the 'auth' middleware handles that).
         if (!isset($map[$routeName])) {
-            // No restriction defined — allow any authenticated staff
             return $next($request);
         }
 
         $user = $request->user();
-        if (!$user || !$user->hasPermission($map[$routeName])) {
+        $permission = $map[$routeName];
+
+        // Explicit "public" or "open" bypass can be handled if needed,
+        // but for now, we check the user's permissions.
+        if (!$user || !$user->hasPermission($permission)) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Forbidden.'], 403);
+                return response()->json(['message' => 'Unauthorized access.'], 403);
             }
-            return redirect()->back()->with('error', 'You do not have permission to access this page.');
+
+            return redirect()->back()->with('error', "You do not have the required permission ($permission) to access this page.");
         }
 
         return $next($request);

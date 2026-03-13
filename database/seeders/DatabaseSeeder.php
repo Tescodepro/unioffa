@@ -14,6 +14,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(PermissionSeeder::class);
         $this->call(DefaultUserTypePermissionsSeeder::class);
+        $this->call(RoutePermissionSeeder::class);
+        $this->call(MenuItemSeeder::class);
 
         // $this->call(NigeriaLocationsSeeder::class);
         // $this->call(UserTypesSeeder::class);
