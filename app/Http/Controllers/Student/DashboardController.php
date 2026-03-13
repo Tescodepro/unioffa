@@ -111,6 +111,9 @@ class DashboardController extends Controller
 
         $student = $user->student;
         $effectiveLevel = (int) $student->level;
+        if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
+            $effectiveLevel = 100;
+        }
 
         // Determine if this student is semester-affected based on the active semester's
         // override fields: stream, campus_id, and programme.
