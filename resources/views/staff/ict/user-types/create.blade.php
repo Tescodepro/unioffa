@@ -22,7 +22,7 @@
                     <div class="col-md-8 mx-auto">
                         <div class="card">
                             <div class="card-body">
-                                <form action="{{ route('ict.user-types.store') }}" method="POST">
+                                <form action="{{ route('user-types.store') }}" method="POST">
                                     @csrf
                                     <div class="mb-3">
                                         <label for="name" class="form-label">User Type Name</label>
@@ -34,7 +34,7 @@
                                     </div>
                                     <div class="d-flex gap-2">
                                         <button type="submit" class="btn btn-primary">Create User Type</button>
-                                        <a href="{{ route('ict.user-types.index') }}" class="btn btn-secondary">Cancel</a>
+                                        <a href="{{ route('user-types.index') }}" class="btn btn-secondary">Cancel</a>
                                     </div>
                                 </form>
                             </div>

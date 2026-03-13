@@ -140,6 +140,7 @@ class GeneralController extends Controller
             });
 
         $faculties = Faculty::all();
+        $departments = Department::all();
 
         $dashRoute = $request->route()->getName();
 

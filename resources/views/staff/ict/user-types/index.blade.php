@@ -18,7 +18,7 @@
                     </div>
                     @include('layouts.flash-message')
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ route('ict.user-types.create') }}" class="btn btn-primary">
+                        <a href="{{ route('user-types.create') }}" class="btn btn-primary">
                             <i class="ti ti-plus"></i> Add New User Type
                         </a>
                     </div>
@@ -43,7 +43,7 @@
                                     <tr>
                                         <td>{{ ucfirst($type->name) }}</td>
                                         <td>
-                                            <a href="{{ route('ict.user-types.permissions', $type->id) }}"
+                                            <a href="{{ route('user-types.permissions', $type->id) }}"
                                                 class="btn btn-sm btn-info">
                                                 <i class="ti ti-lock"></i> Manage Permissions
                                             </a>

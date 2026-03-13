@@ -333,6 +333,8 @@ Route::prefix('staff')->group(function () {
 
             Route::controller(UserTypeController::class)->group(function () {
                 Route::get('/user-types', 'index')->name('user-types.index');
+                Route::get('/user-types/create', 'create')->name('user-types.create');
+                Route::post('/user-types', 'store')->name('user-types.store');
                 Route::get('/user-types/{id}/permissions', 'permissions')->name('user-types.permissions');
                 Route::post('/user-types/{id}/permissions', 'updatePermissions')->name('user-types.permissions.update');
             });
