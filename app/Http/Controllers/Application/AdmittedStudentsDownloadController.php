@@ -19,12 +19,6 @@ class AdmittedStudentsDownloadController extends Controller
      */
     public function index(Request $request)
     {
-        // Check authorization
-        $user = Auth::user();
-        if (!$user->hasAnyRole(['vice-chancellor', 'ict', 'registrar', 'administrator'])) {
-            return redirect()->back()->with('error', 'Unauthorized access');
-        }
-
         // Fetch filter options
         $sessions = AcademicSession::select('name')->distinct()->orderBy('name', 'desc')->pluck('name');
         $departments = Department::select('id', 'department_name')->orderBy('department_name')->get();
@@ -82,12 +76,6 @@ class AdmittedStudentsDownloadController extends Controller
      */
     public function download(Request $request)
     {
-        // Check authorization
-        $user = Auth::user();
-        if (!$user->hasAnyRole(['vice-chancellor', 'ict', 'registrar', 'administrator'])) {
-            return redirect()->back()->with('error', 'Unauthorized access');
-        }
-
         // Validate filters
         $validated = $request->validate([
             'session' => 'nullable|string',
