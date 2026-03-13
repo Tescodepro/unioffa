@@ -23,6 +23,8 @@ class GeneralController extends Controller
     {
         $user = \Illuminate\Support\Facades\Auth::user();
         $isProgDir = $user->hasRole('programme-director');
+        $isCenterDir = $user->hasRole('center-director');
+
         $assignedTypeIds = $isProgDir
             ? $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray()
             : [];
@@ -46,7 +48,7 @@ class GeneralController extends Controller
         }
 
         // Read selected filters
-        $selectedCampusId = $request->get('campus_id');
+        $selectedCampusId = $isCenterDir ? $user->campus_id : $request->get('campus_id');
         $selectedApplicationId = $request->get('application_id');
 
         // If they select an application ID they don't own, override
@@ -267,7 +269,7 @@ class GeneralController extends Controller
 
         $modules = is_array($application->applicationSetting->modules_enable)
             ? $application->applicationSetting->modules_enable
-            : json_decode($application->applicationSetting->modules_enable, true);
+            : json_decode((string) $application->applicationSetting->modules_enable, true);
 
         $departments = \App\Models\Department::orderBy('department_name')->get();
 

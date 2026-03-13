@@ -10,22 +10,14 @@
 @section('content')
     @php
         $userType = auth()->user()->userType?->name ?? '';
-        if (in_array($userType, ['vice-chancellor'])) {
-            $dashRoute = 'vc.admission.applicants';
-            $detailRoute = 'vc.applicants.details';
-            $admitRoute = 'vc.admit';
-        } elseif (in_array($userType, ['registrar'])) {
-            $dashRoute = 'registrar.admission.applicants';
-            $detailRoute = 'registrar.applicants.details';
-            $admitRoute = 'registrar.admit';
-        } elseif (in_array($userType, ['programme-director'])) {
-            $dashRoute = 'programme-director.admission.applicants';
-            $detailRoute = 'programme-director.applicants.details';
-            $admitRoute = 'programme-director.admit';
+        if (in_array($userType, ['vice-chancellor', 'registrar', 'programme-director', 'center-director'])) {
+            $dashRoute = 'admission.applicants';
+            $detailRoute = 'admission.details';
+            $admitRoute = 'admission.admit';
         } else {
             $dashRoute = 'admin.dashboard';
             $detailRoute = 'admin.applicants.details';
-            $admitRoute = 'admin.admit';
+            $admitRoute = 'admission.admit';
         }
     @endphp
     <div class="main-wrapper">

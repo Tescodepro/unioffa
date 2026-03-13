@@ -195,7 +195,6 @@ Route::prefix('staff')->group(function () {
             ->controller(\App\Http\Controllers\Staff\CenterDirector\CenterDirectorController::class)
             ->group(function () {
                 Route::get('/dashboard', 'dashboard')->name('center-director.dashboard');
-                Route::get('/admission/applicants', 'admissionApplicants')->name('center-director.admission.applicants');
             });
 
         // Programme Director

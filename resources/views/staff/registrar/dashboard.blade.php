@@ -109,7 +109,7 @@
                         <div>
                             <strong>{{ $pendingAdmissions }} applicant(s)</strong> have submitted their applications and are
                             awaiting admission.
-                            <a href="{{ route('registrar.admission.applicants') }}" class="alert-link ms-2">Process Now →</a>
+                            <a href="{{ route('admission.applicants') }}" class="alert-link ms-2">Process Now →</a>
                         </div>
                     </div>
                 @endif
@@ -122,14 +122,14 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <a href="{{ route('registrar.admission.applicants') }}"
+                                <a href="{{ route('admission.applicants') }}"
                                     class="btn btn-outline-primary w-100 py-3">
                                     <i class="ti ti-users d-block fs-3 mb-1"></i>
                                     Admission &amp; Applicants
                                 </a>
                             </div>
                             <div class="col-md-6">
-                                <a href="{{ route('registrar.admission.applicants') }}"
+                                <a href="{{ route('admission.applicants') }}"
                                     class="btn btn-outline-danger w-100 py-3">
                                     <i class="ti ti-users d-block fs-3 mb-1"></i>
                                     Applicants

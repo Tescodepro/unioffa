@@ -178,7 +178,7 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <a href="{{ route('vc.admission.applicants') }}" class="btn btn-outline-primary w-100 py-3">
+                                <a href="{{ route('admission.applicants') }}" class="btn btn-outline-primary w-100 py-3">
                                     <i class="ti ti-users d-block fs-3 mb-1"></i>
                                     Admission &amp; Applicants
                                 </a>
