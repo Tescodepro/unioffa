@@ -209,6 +209,7 @@ Route::prefix('staff')->group(function () {
             Route::get('/ict/students/{student}/edit', 'edit')->name('ict.students.edit');
             Route::put('/ict/students/{student}', 'update')->name('ict.students.update');
             Route::delete('/ict/students/{student}', 'destroy')->name('ict.students.destroy');
+            Route::get('/ict/students/template', 'downloadTemplate')->name('ict.students.bulk.template');
             Route::get('/ict/students/bulk', 'bulkUploadForm')->name('ict.students.bulk');
             Route::post('/ict/students/bulk', 'bulkUpload')->name('ict.students.bulk.upload');
         });
