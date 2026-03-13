@@ -318,6 +318,8 @@ Route::prefix('staff')->group(function () {
                 Route::post('/staff/users', 'storeUsers')->name('staff.users.store');
                 Route::post('/staff/users/{id}', 'updateUsers')->name('staff.users.update');
                 Route::delete('/staff/users/{id}/force-delete', 'forceDeleteUser')->name('staff.users.destroy');
+                Route::post('/staff/users/{id}/disable', 'disableUser')->name('staff.users.disable');
+                Route::post('/staff/users/{id}/enable', 'enableUser')->name('staff.users.enable');
             });
 
             Route::controller(IctApplicationController::class)->prefix('applications')->group(function () {

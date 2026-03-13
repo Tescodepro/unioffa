@@ -135,6 +135,8 @@ class RoutePermissionSeeder extends Seeder
             'ict.staff.users.store' => 'manage_users',
             'ict.staff.users.update' => 'manage_users',
             'ict.staff.users.destroy' => 'manage_users',
+            'ict.staff.users.disable' => 'manage_users',
+            'ict.staff.users.enable' => 'manage_users',
             'ict.applications.incomplete' => 'manage_admission',
             'ict.applications.unsubmit' => 'manage_admission',
             'ict.search.students' => 'view_students',
