@@ -8,18 +8,6 @@
 @endpush
 
 @section('content')
-    @php
-        $userType = auth()->user()->userType?->name ?? '';
-        if (in_array($userType, ['vice-chancellor', 'registrar', 'programme-director', 'center-director'])) {
-            $dashRoute = 'admission.applicants';
-            $detailRoute = 'admission.details';
-            $admitRoute = 'admission.admit';
-        } else {
-            $dashRoute = 'admin.dashboard';
-            $detailRoute = 'admin.applicants.details';
-            $admitRoute = 'admission.admit';
-        }
-    @endphp
     <div class="main-wrapper">
 
         @include('staff.layouts.header')
@@ -160,13 +148,6 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($students as $student)
-                                            @php
-                                                $modules = $student->application_modules_enable;
-                                                if (is_string($modules)) {
-                                                    $modules = json_decode($modules, true);
-                                                }
-                                                $modules = is_array($modules) ? $modules : [];
-                                            @endphp
                                             <tr>
                                                 <td>{{ $student->registration_no }}</td>
                                                 <td>{{ $student->full_name }}</td>
@@ -207,7 +188,7 @@
                                                 </td>
                                                 <td>
                                                     @if ($student->application_id)
-                                                        <a href="{{ route($detailRoute, [$student->id, $student->application_id]) }}"
+                                                        <a href="{{ route('admission.details', [$student->id, $student->application_id]) }}"
                                                             class="btn btn-sm btn-success">
                                                             View Details
                                                         </a>
@@ -223,16 +204,13 @@
                                                         @if ($student->application_status !== 'submitted')
                                                             <span class="badge bg-secondary">Application Not
                                                                 Submitted</span>
-
-                                                            {{-- If Registrar or Vice-Chancellor --}}
-                                                        @elseif (auth()->user()->hasUserType(['registrar', 'vice-chancellor','programme-director']))
+                                                        @elseif (auth()->user()->canAccessRoute('admission.admit'))
                                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                                 data-bs-target="#admitModal{{ $student->id }}">
                                                                 Admit
                                                             </button>
 
-                                                            {{-- If Administrator --}}
-                                                        @elseif (auth()->user()->hasUserType('administrator'))
+                                                        @elseif (auth()->user()->canAccessRoute('admission.recommend'))
                                                             <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
                                                                 data-bs-target="#recommendModal{{ $student->id }}">
                                                                 Recommend
@@ -334,7 +312,7 @@
                                                                     </div>
 
                                                                     <form method="POST"
-                                                                        action="{{ route('admin.recommend', $student->id) }}"
+                                                                        action="{{ route('admission.recommend', $student->id) }}"
                                                                         id="admitForm{{ $student->id }}"> <!-- Body -->
                                                                         <div class="modal-body">
                                                                             <center>

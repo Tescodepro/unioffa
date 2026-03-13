@@ -165,6 +165,21 @@ class User extends Authenticatable
         return $this->userType?->permissions->contains('identifier', $permission) ?? false;
     }
 
+    public function canAccessRoute(string $routeName): bool
+    {
+        $permissions = \Illuminate\Support\Facades\Cache::rememberForever('route_permissions_map', function () {
+            return \App\Models\RoutePermission::pluck('permission_identifier', 'route_name')->all();
+        });
+
+        $requiredPermission = $permissions[$routeName] ?? null;
+
+        if ($requiredPermission) {
+            return $this->hasPermission($requiredPermission);
+        }
+
+        return true; // If no permission is mapped, assume allowed or handle accordingly
+    }
+
     /**
      * Application types (entry modes) assigned to this programme-director.
      */

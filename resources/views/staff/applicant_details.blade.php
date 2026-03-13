@@ -216,7 +216,7 @@
 
                         {{-- Back Button --}}
                         <div class="text-end">
-                            <a href="{{ route($backRoute ?? 'admin.dashboard') }}" class="btn btn-secondary">
+                            <a href="{{ route('admission.applicants') }}" class="btn btn-secondary">
                                 <i class="ti ti-arrow-left me-1"></i> Back to Applicants
                             </a>
                         </div>

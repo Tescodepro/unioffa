@@ -119,12 +119,12 @@ class RoutePermissionSeeder extends Seeder
             'ict.user-types.permissions.update' => 'manage_user_types',
 
             // ── Admission ────────────────────────────────────────────────────
-            'admission.overview' => 'manage_admission',
-            'admission.applicants' => 'manage_admission',
-            'admission.applicants.details' => 'manage_admission',
-            'admission.admit' => 'manage_admission',
-            'admission.recommend' => 'manage_admission',
-            'admission.exportApplicants' => 'manage_admission',
+            'admission.overview' => 'view_admission_overview',
+            'admission.applicants' => 'view_applicants',
+            'admission.details' => 'view_applicant_details',
+            'admission.admit' => 'admit_student',
+            'admission.recommend' => 'recommend_student',
+            'admission.exportApplicants' => 'export_applicants',
 
             // ── Dashboards & Portal Access ─────────────────────────────────────
             'admin.dashboard' => 'access_admin_portal',

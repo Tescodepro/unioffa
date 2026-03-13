@@ -139,8 +139,9 @@ class GeneralController extends Controller
                 ];
             });
 
-        $departments = Department::all();
         $faculties = Faculty::all();
+
+        $dashRoute = $request->route()->getName();
 
         return view('staff.admin_dashboard', compact(
             'sessions',
@@ -156,6 +157,9 @@ class GeneralController extends Controller
             'selectedApplicationId',
             'departments',
             'faculties',
+            'dashRoute',
+            'detailRoute',
+            'admitRoute',
         ));
     }
 
@@ -273,13 +277,7 @@ class GeneralController extends Controller
 
         $departments = \App\Models\Department::orderBy('department_name')->get();
 
-        $admitRoute = 'admission.admit';
-        $backRoute = 'admission.applicants';
-
-        return view('staff.applicant_details', compact('application', 'modules', 'departments'), [
-            'admitRoute' => $admitRoute,
-            'backRoute' => $backRoute,
-        ]);
+        return view('staff.applicant_details', compact('application', 'modules', 'departments'));
     }
 
     public function showAgentDetail()

@@ -161,7 +161,7 @@ Route::prefix('staff')->group(function () {
             Route::controller(AdminGeneralController::class)->group(function () {
                 Route::get('/overview', 'index_admin')->name('admission.overview');
                 Route::get('/applicants', 'index_admin')->name('admission.applicants');
-                Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admission.applicants.details');
+                Route::get('/applicants/{user}/{application}', 'showApplicantDetails')->name('admission.details');
                 Route::post('/admit/{userId}', 'admitStudent')->name('admission.admit');
                 Route::post('/recommend/{userId}', 'recommendStudent')->name('admission.recommend');
                 Route::get('/export-applicants', 'exportApplicants')->name('admission.exportApplicants');
