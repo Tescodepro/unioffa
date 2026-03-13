@@ -297,6 +297,9 @@ Route::prefix('staff')->group(function () {
                 Route::get('/results/transcript/search', 'transcriptSearchPage')->name('transcript.search.page');
                 Route::get('/results/transcript/action', 'searchTranscript')->name('transcript.search');
                 Route::post('/results/bulk-update-status', 'bulkUpdateStatus')->name('results.bulk.update');
+                Route::get('/results/transcript/print', 'printTranscript')->name('results.printTranscript');
+                Route::put('/results/{id}', 'update')->name('results.update');
+                Route::delete('/results/{id}', 'destroy')->name('results.delete');
                 Route::get('/results/backlog-upload', 'showBacklogUploadPage')->name('backlog.upload.page');
                 Route::post('/results/backlog-upload', 'processBacklogUpload')->name('backlog.upload.process');
                 Route::get('/results/backlog-template', 'downloadBacklogTemplate')->name('backlog.upload.template');

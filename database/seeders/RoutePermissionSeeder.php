@@ -104,6 +104,8 @@ class RoutePermissionSeeder extends Seeder
             'results.summary' => 'view_result_summary',
             'results.printSummary' => 'view_result_summary',
             'transcript.search' => 'view_transcripts',
+            'results.update' => 'upload_results',
+            'results.delete' => 'upload_results',
             'results.bulk.update' => 'manage_result_status',
             'backlog.upload.page' => 'upload_results',
             'backlog.upload.process' => 'upload_results',
