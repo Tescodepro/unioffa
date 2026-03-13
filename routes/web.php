@@ -238,6 +238,7 @@ Route::prefix('staff')->group(function () {
             Route::controller(PaymentSettingController::class)->group(function () {
                 Route::get('/payment-settings', 'index')->name('bursary.payment-settings.index');
                 Route::post('/payment-settings', 'store')->name('bursary.payment-settings.store');
+                Route::get('/payment-settings/create', 'create')->name('bursary.payment-settings.create');
                 Route::get('/payment-settings/{paymentSetting}/edit', 'edit')->name('bursary.payment-settings.edit');
                 Route::put('/payment-settings/{paymentSetting}', 'update')->name('bursary.payment-settings.update');
                 Route::delete('/payment-settings/{paymentSetting}', 'destroy')->name('bursary.payment-settings.destroy');
