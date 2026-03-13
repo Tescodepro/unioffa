@@ -143,6 +143,8 @@ class GeneralController extends Controller
         $departments = Department::all();
 
         $dashRoute = $request->route()->getName();
+        $detailRoute = 'admission.details';
+        $admitRoute = 'admission.admit';
 
         return view('staff.admin_dashboard', compact(
             'sessions',
