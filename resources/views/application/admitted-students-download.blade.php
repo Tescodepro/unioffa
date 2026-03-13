@@ -22,7 +22,7 @@
                 <div class="d-md-flex d-block align-items-center justify-content-between mb-3">
                     <div>
                         <h3 class="page-title mb-1">Admitted Students</h3>
-                        <p class="text-muted mb-0">View, filter, and download admitted student records</p>
+                        <p class="text-muted mb-0">View, filter, and download admitted student records. <strong>Note:</strong> This list contains applicants who have been successfully migrated to students.</p>
                     </div>
                     @include('layouts.flash-message')
                 </div>

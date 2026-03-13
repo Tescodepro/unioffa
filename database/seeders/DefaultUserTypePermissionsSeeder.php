@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\UserType;
 use App\Models\Permission;
+use App\Models\UserType;
+use Illuminate\Database\Seeder;
 
 /**
  * Seeds the default permissions for each user type.
@@ -26,7 +26,8 @@ class DefaultUserTypePermissionsSeeder extends Seeder
                 'manage_settings', 'manage_website', 'manage_agents', 'upload_results',
                 'view_uploaded_results', 'manage_result_status', 'view_result_summary',
                 'view_transcripts', 'view_all_courses', 'view_course_assignments',
-                'manage_staff', 'access_ict_portal',
+                'manage_staff', 'access_ict_portal', 'manage_admission',
+                'access_bursary_portal', 'view_payment_summary',
             ],
         ],
         'bursary' => [
@@ -63,7 +64,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'route' => 'registrar.dashboard',
             'perms' => [
                 'view_dashboard', 'manage_students', 'view_transcripts', 'view_result_summary',
-                'manage_staff', 'access_registrar_portal',
+                'manage_staff', 'access_registrar_portal', 'manage_admission',
             ],
         ],
         'vice-chancellor' => [
@@ -71,7 +72,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
             'perms' => [
                 'view_dashboard', 'manage_students', 'view_uploaded_results', 'view_result_summary',
                 'view_transcripts', 'view_reports', 'view_payment_summary', 'approve_payments',
-                'manage_agents', 'access_vc_portal',
+                'manage_agents', 'access_vc_portal', 'manage_admission',
             ],
         ],
         'administrator' => [
@@ -81,19 +82,19 @@ class DefaultUserTypePermissionsSeeder extends Seeder
                 'manage_settings', 'manage_website', 'manage_agents', 'upload_results',
                 'view_uploaded_results', 'manage_result_status', 'view_result_summary',
                 'view_transcripts', 'view_all_courses', 'view_course_assignments',
-                'manage_staff', 'access_admin_portal',
+                'manage_staff', 'access_admin_portal', 'manage_admission',
             ],
         ],
         'programme-director' => [
             'route' => 'programme-director.dashboard',
             'perms' => [
-                'view_dashboard', 'access_programme_director_portal', 'view_admission',
+                'view_dashboard', 'access_programme_director_portal', 'manage_admission',
             ],
         ],
         'center-director' => [
             'route' => 'center-director.dashboard',
             'perms' => [
-                'view_dashboard', 'access_center_director_portal', 'view_admission',
+                'view_dashboard', 'access_center_director_portal', 'manage_admission',
             ],
         ],
         'public relations officer' => [
@@ -120,13 +121,14 @@ class DefaultUserTypePermissionsSeeder extends Seeder
         foreach ($this->defaults as $userTypeName => $data) {
             $userType = UserType::where('name', $userTypeName)->first();
 
-            if (!$userType) {
+            if (! $userType) {
                 // Try case-insensitive or slugified search if exact match fails
                 $userType = UserType::where('name', 'like', $userTypeName)->first();
             }
 
-            if (!$userType) {
+            if (! $userType) {
                 $this->command->warn("UserType '{$userTypeName}' not found — skipping.");
+
                 continue;
             }
 
@@ -135,15 +137,15 @@ class DefaultUserTypePermissionsSeeder extends Seeder
 
             // Resolve identifiers to UUIDs
             $ids = collect($data['perms'])
-                ->filter(fn($id) => $allPermissions->has($id))
-                ->map(fn($id) => $allPermissions->get($id)->id)
+                ->filter(fn ($id) => $allPermissions->has($id))
+                ->map(fn ($id) => $allPermissions->get($id)->id)
                 ->values()
                 ->toArray();
 
             // syncWithoutDetaching = only ADD, never remove existing assignments
             $userType->permissions()->syncWithoutDetaching($ids);
 
-            $this->command->info("✓ '{$userTypeName}' — route: {$data['route']}, assigned " . count($ids) . " default permissions.");
+            $this->command->info("✓ '{$userTypeName}' — route: {$data['route']}, assigned ".count($ids).' default permissions.');
         }
     }
 }

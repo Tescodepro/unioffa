@@ -22,47 +22,24 @@ class MenuItemSeeder extends Seeder
         MenuItem::truncate();
 
         $items = [
-            // ── Admission (VC view) ───────────────────────────────────────────
+            // ── Admission Management ──────────────────────────────────────────
             [
                 'section' => 'Admission',
                 'label' => 'Overview',
                 'icon' => 'ti ti-layout-dashboard',
-                'route_name' => 'vc.admission.overview',
-                'route_pattern' => 'staff/vc/admission/overview',
-                'permission_identifier' => 'view_admission',
+                'route_name' => 'admission.overview',
+                'route_pattern' => 'staff/admission/overview',
+                'permission_identifier' => 'manage_admission',
                 'sort_order' => 10,
-                'user_type_scope' => 'vice-chancellor',
-            ],
-            [
-                'section' => 'Admission',
-                'label' => 'All Applicants',
-                'icon' => 'ti ti-users',
-                'route_name' => 'vc.admission.applicants',
-                'route_pattern' => 'staff/vc/admission/applicants',
-                'permission_identifier' => 'view_admission',
-                'sort_order' => 20,
-                'user_type_scope' => 'vice-chancellor',
-            ],
-            // ── Admission (Registrar view) ────────────────────────────────────
-            [
-                'section' => 'Admission',
-                'label' => 'Overview',
-                'icon' => 'ti ti-layout-dashboard',
-                'route_name' => 'registrar.admission.overview',
-                'route_pattern' => 'staff/registrar/admission/overview',
-                'permission_identifier' => 'view_admission',
-                'sort_order' => 10,
-                'user_type_scope' => 'registrar',
             ],
             [
                 'section' => 'Admission',
                 'label' => 'Applicants',
                 'icon' => 'ti ti-users',
-                'route_name' => 'registrar.admission.applicants',
-                'route_pattern' => 'staff/registrar/admission/applicants',
-                'permission_identifier' => 'view_admission',
+                'route_name' => 'admission.applicants',
+                'route_pattern' => 'staff/admission/applicants',
+                'permission_identifier' => 'manage_admission',
                 'sort_order' => 20,
-                'user_type_scope' => 'registrar',
             ],
 
             // ── Results ───────────────────────────────────────────────────────
@@ -359,18 +336,6 @@ class MenuItemSeeder extends Seeder
                 'permission_identifier' => 'view_admission',
                 'sort_order' => 10,
                 'user_type_scope' => 'center-director',
-            ],
-
-            // ── Admission (Programme Director) ────────────────────────────────
-            [
-                'section' => 'Admission',
-                'label' => 'Applicants',
-                'icon' => 'ti ti-users',
-                'route_name' => 'programme-director.admission.applicants',
-                'route_pattern' => 'staff/programme-director/admission',
-                'permission_identifier' => 'view_admission',
-                'sort_order' => 10,
-                'user_type_scope' => 'programme-director',
             ],
 
             // ── Agents ────────────────────────────────────────────────────────

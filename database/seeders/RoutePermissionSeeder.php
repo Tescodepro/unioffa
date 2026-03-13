@@ -119,11 +119,12 @@ class RoutePermissionSeeder extends Seeder
             'ict.user-types.permissions.update' => 'manage_user_types',
 
             // ── Admission ────────────────────────────────────────────────────
-            'vc.admission.overview' => 'access_vc_portal',
-            'vc.admission.applicants' => 'access_vc_portal',
-            'registrar.admission.overview' => 'access_registrar_portal',
-            'registrar.admission.applicants' => 'access_registrar_portal',
-            'registrar.admit' => 'access_registrar_portal',
+            'admission.overview' => 'manage_admission',
+            'admission.applicants' => 'manage_admission',
+            'admission.applicants.details' => 'manage_admission',
+            'admission.admit' => 'manage_admission',
+            'admission.recommend' => 'manage_admission',
+            'admission.exportApplicants' => 'manage_admission',
 
             // ── Dashboards & Portal Access ─────────────────────────────────────
             'admin.dashboard' => 'access_admin_portal',
@@ -138,12 +139,7 @@ class RoutePermissionSeeder extends Seeder
             'pro.dashboard' => 'access_pro_portal',
 
             // ── Common Staff Routes ──────────────────────────────────────────
-            'programme-director.admission.applicants' => 'access_programme_director_portal',
-            'programme-director.admission.details' => 'access_programme_director_portal',
-            'staff.admission.details' => 'view_admission',
-            'admin.admit' => 'access_admin_portal',
-            'vc.admit' => 'access_vc_portal',
-            'admin.recommend' => 'access_admin_portal',
+            'staff.admission.details' => 'manage_admission',
 
             // ── Agents ───────────────────────────────────────────────────────
             'admin.agent.applicants' => 'manage_agents',

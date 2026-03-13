@@ -235,7 +235,7 @@ class GeneralController extends Controller
         if ($user->hasRole('programme-director')) {
             $assignedTypes = $user->assignedApplicationTypes()->pluck('application_settings.id')->toArray();
             if (! in_array($application->application_setting_id, $assignedTypes)) {
-                abort(403, 'Unauthorized: You are not assigned to manage this application type (' . optional($application->applicationSetting)->name . ').');
+                abort(403, 'Unauthorized: You are not assigned to manage this application type ('.optional($application->applicationSetting)->name.').');
             }
         }
 
@@ -271,17 +271,8 @@ class GeneralController extends Controller
 
         $departments = \App\Models\Department::orderBy('department_name')->get();
 
-        $userType = auth()->user()->userType?->name ?? '';
-        if ($userType === 'vice-chancellor') {
-            $admitRoute = 'vc.admit';
-            $backRoute = 'vc.admission.applicants';
-        } elseif ($userType === 'registrar') {
-            $admitRoute = 'registrar.admit';
-            $backRoute = 'registrar.admission.applicants';
-        } else {
-            $admitRoute = 'admin.admit';
-            $backRoute = 'admin.dashboard';
-        }
+        $admitRoute = 'admission.admit';
+        $backRoute = 'admission.applicants';
 
         return view('staff.applicant_details', compact('application', 'modules', 'departments'), [
             'admitRoute' => $admitRoute,

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Permission;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class PermissionSeeder extends Seeder
@@ -23,6 +23,7 @@ class PermissionSeeder extends Seeder
             ['identifier' => 'access_programme_director_portal', 'name' => 'Access Programme Director Portal'],
             ['identifier' => 'access_center_director_portal', 'name' => 'Access Center Director Portal'],
             ['identifier' => 'access_pro_portal', 'name' => 'Access PRO Portal'],
+            ['identifier' => 'manage_admission', 'name' => 'Manage Admission'],
 
             // General
             ['identifier' => 'view_dashboard', 'name' => 'View Dashboard'],
@@ -71,7 +72,7 @@ class PermissionSeeder extends Seeder
                 ['identifier' => $perm['identifier']],
                 [
                     'id' => Str::uuid(),
-                    'name' => $perm['name']
+                    'name' => $perm['name'],
                 ]
             );
         }
