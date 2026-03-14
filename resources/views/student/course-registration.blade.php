@@ -63,7 +63,7 @@
 
                 @include('layouts.flash-message')
 
-                @if (!$payment_status['allCleared'] && (isset($payment_status['tuition']) && $payment_status['tuition']['percentage_paid'] >= 60 && strtolower($current_semester ?? '') === '1st'))
+                @if (!$payment_status['allCleared'] && (isset($payment_status['status']['tuition']) && $payment_status['status']['tuition']['percentage_paid'] >= 60 && strtolower($currentSemester ?? '') === '1st'))
                     {{-- Tuition ≥ 60% and it’s first semester --}}
                     @include('student.partials.filter-form')
                     @include('student.partials.available-courses')

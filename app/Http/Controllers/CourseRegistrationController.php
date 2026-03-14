@@ -23,44 +23,30 @@ class CourseRegistrationController extends Controller
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
-        // Check payment status first
+        $currentSession = activeSession()->name;
+        $activeSemester = activeSemester();
+        $currentSemester = $activeSemester->code ?? ($activeSemester->name ?? '1st');
+
+        // Check payment status
         $paymentStatusService = new PaymentStatusService;
+        $rawStatus = $paymentStatusService->getStatus($student, $currentSession);
+        
+        // Key the status by payment type for easier access in view
+        $keyedStatus = collect($rawStatus)->keyBy('payment_type')->toArray();
+        
         $payment_status = [
-            'status' => $paymentStatusService->getStatus($student, activeSession()->name),
-            'allCleared' => $paymentStatusService->hasClearedAll($student, activeSession()->name),
-            'outstanding' => $paymentStatusService->getTotalOutstanding($student, activeSession()->name),
+            'status' => $keyedStatus,
+            'allCleared' => $paymentStatusService->hasClearedAll($student, $currentSession),
+            'outstanding' => $paymentStatusService->getTotalOutstanding($student, $currentSession),
         ];
 
-        // If payment not cleared, don't allow course registration
-        if (!$payment_status['allCleared']) {
-            return view('student.course-registration', [
-                'courses' => collect(),
-                'registeredCourses' => collect(),
-                'payment_status' => $payment_status,
-                'error' => 'You must clear all outstanding payments before registering courses.',
-            ]);
-        }
-
-        $currentSession = activeSession()->name;
-        $currentSemester = activeSemester()->code ?? (activeSemester()->name ?? '1st'); // Handle potential null
-
-        // Filters
+        // Filters and default selections
         $departments = Department::orderBy('department_name')->get();
         $levels = ['100', '200', '300', '400', '500'];
-        
         $selectedDepartmentId = $request->input('department_id', $student->department_id);
         $selectedLevel = $request->input('level', $student->level);
 
-        $courses = Course::where('active_for_register', 1)
-            ->where('level', $selectedLevel)
-            ->where('semester', $currentSemester)
-            ->where(function ($query) use ($selectedDepartmentId) {
-                $query->where('department_id', $selectedDepartmentId)
-                    ->orWhereJsonContains('other_departments', $selectedDepartmentId);
-            })
-            ->get();
-
-        // Get registered courses for current session/semester only
+        // Registered courses for current session/semester
         $registeredCourses = CourseRegistration::with('course')
             ->where('student_id', $user->id)
             ->where('session', $currentSession)
@@ -86,6 +72,53 @@ class CourseRegistrationController extends Controller
             ->unique()
             ->toArray();
 
+        // If payment not cleared, we still need to pass everything to the view
+        // to avoid "undefined variable" errors and show the payment warning/filter
+        if (!$payment_status['allCleared']) {
+            $courses = collect();
+            
+            // Allow showing courses if tuition is >= 60% and it's 1st semester
+            $hasPartialTuitionAccess = isset($keyedStatus['tuition']) && 
+                                      $keyedStatus['tuition']['percentage_paid'] >= 60 && 
+                                      strtolower($currentSemester) === '1st';
+
+            if ($hasPartialTuitionAccess) {
+                $courses = Course::where('active_for_register', 1)
+                    ->where('level', $selectedLevel)
+                    ->where('semester', $currentSemester)
+                    ->where(function ($query) use ($selectedDepartmentId) {
+                        $query->where('department_id', $selectedDepartmentId)
+                            ->orWhereJsonContains('other_departments', $selectedDepartmentId);
+                    })
+                    ->get();
+            }
+
+            return view('student.course-registration', compact(
+                'courses',
+                'registeredCourses',
+                'payment_status',
+                'departments',
+                'levels',
+                'selectedDepartmentId',
+                'selectedLevel',
+                'failedCourseIds',
+                'maxSemesterUnits',
+                'maxSessionUnits',
+                'currentSemesterUnits',
+                'currentSessionUnits',
+                'currentSemester'
+            ))->with('error', $hasPartialTuitionAccess ? null : 'You must clear all outstanding payments before registering courses.');
+        }
+
+        $courses = Course::where('active_for_register', 1)
+            ->where('level', $selectedLevel)
+            ->where('semester', $currentSemester)
+            ->where(function ($query) use ($selectedDepartmentId) {
+                $query->where('department_id', $selectedDepartmentId)
+                    ->orWhereJsonContains('other_departments', $selectedDepartmentId);
+            })
+            ->get();
+
         return view('student.course-registration', compact(
             'courses', 
             'registeredCourses', 
@@ -98,7 +131,8 @@ class CourseRegistrationController extends Controller
             'maxSemesterUnits',
             'maxSessionUnits',
             'currentSemesterUnits',
-            'currentSessionUnits'
+            'currentSessionUnits',
+            'currentSemester'
         ));
     }
 
