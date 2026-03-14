@@ -3,121 +3,109 @@
 use App\Models\AcademicSemester;
 use App\Models\AcademicSession;
 
+if (! function_exists('findBestAcademicMatch')) {
+    /**
+     * Finds the best matching active academic record (Session or Semester) for a user.
+     * Implements "AND" logic with specificity scoring.
+     */
+    function findBestAcademicMatch($modelClass, $user = null)
+    {
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            return $modelClass::where('status', '1')
+                ->where(fn ($q) => $q->whereNull('stream')->orWhereJsonLength('stream', 0))
+                ->where(fn ($q) => $q->whereNull('campus_id')->orWhereJsonLength('campus_id', 0))
+                ->where(fn ($q) => $q->whereNull('programme')->orWhereJsonLength('programme', 0))
+                ->where(fn ($q) => $q->whereNull('students_ids')->orWhereJsonLength('students_ids', 0))
+                ->where(fn ($q) => $q->whereNull('lecturar_ids')->orWhereJsonLength('lecturar_ids', 0))
+                ->first();
+        }
+
+        $activeRecords = $modelClass::where('status', '1')->get();
+
+        if ($activeRecords->isEmpty()) {
+            return null;
+        }
+
+        $student = $user->student;
+        $lecturer = $user->lecturer;
+        $userId = $user->id;
+
+        $matches = $activeRecords->filter(function ($record) use ($student, $lecturer, $userId) {
+            // 1. Specific User Overrides (Must match if set)
+            $hasSpecificIds = !empty($record->students_ids) || !empty($record->lecturar_ids);
+            if ($hasSpecificIds) {
+                $idMatch = false;
+                if (!empty($record->students_ids) && in_array($userId, (array)$record->students_ids)) {
+                    $idMatch = true;
+                }
+                if (!empty($record->lecturar_ids) && in_array($userId, (array)$record->lecturar_ids)) {
+                    $idMatch = true;
+                }
+                if (!$idMatch) return false;
+            }
+
+            // 2. Group Overrides (AND logic)
+            // If any override is set on the record, the student MUST match it.
+
+            // Stream
+            if (!empty($record->stream)) {
+                if (!$student || !$student->stream || !in_array((string)$student->stream, (array)$record->stream)) {
+                    return false;
+                }
+            }
+
+            // Campus
+            if (!empty($record->campus_id)) {
+                if (!$student || !$student->campus_id || !in_array($student->campus_id, (array)$record->campus_id)) {
+                    return false;
+                }
+            }
+
+            // Programme (e.g., REGULAR, TOPUP)
+            if (!empty($record->programme)) {
+                if (!$student || !$student->programme || !in_array($student->programme, (array)$record->programme)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        if ($matches->isEmpty()) {
+            return null;
+        }
+
+        // Score matches by specificity to pick the "best" one
+        return $matches->sortByDesc(function ($record) {
+            $score = 0;
+            // Personal ID overrides are extremely specific
+            if (!empty($record->students_ids) || !empty($record->lecturar_ids)) $score += 1000;
+            
+            // Attribute matches
+            if (!empty($record->stream)) $score += 10;
+            if (!empty($record->campus_id)) $score += 10;
+            if (!empty($record->programme)) $score += 10;
+            
+            return $score;
+        })->first();
+    }
+}
+
 if (! function_exists('activeSession')) {
     function activeSession($user = null)
     {
-        $user = $user ?? auth()->user();
-
-        // If user is authenticated
-        if ($user) {
-            $student = $user->student ? clone $user->student : null;
-            $lecturer = $user->lecturer ? clone $user->lecturer : null;
-
-            $userId = $user->id;
-
-            // Query for specific overrides:
-            $query = AcademicSession::where('status', '1')->where(function ($q) use ($student, $userId) {
-                // 1. By exact ID
-                $q->whereJsonContains('students_ids', $userId)
-                    ->orWhereJsonContains('lecturar_ids', $userId);
-
-                // 2. By Stream
-                if ($student) {
-                    $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->whereNotNull('stream')->whereJsonContains('stream', (string) $student->stream);
-                    });
-
-                    // 3. By Campus
-                    $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->whereNotNull('campus_id')->whereJsonContains('campus_id', $student->campus_id);
-                    });
-
-                    // 4. By Programme (student_type)
-                    if ($student->programme) {
-                        $q->orWhere(function ($subQ) use ($student) {
-                            $subQ->whereNotNull('programme')->whereJsonContains('programme', $student->programme);
-                        });
-                    }
-                }
-            });
-
-            $specificSession = $query->first();
-            if ($specificSession) {
-                return $specificSession;
-            }
-        }
-
-        // Fallback to the globally active session (no overrides)
-        // students_ids / lecturar_ids / stream / programme may be stored as NULL or empty JSON array []
-        return AcademicSession::where('status', '1')
-            ->where(fn ($q) => $q->whereNull('stream')->orWhere('stream', '')->orWhere('stream', '[]'))
-            ->where(fn ($q) => $q->whereNull('campus_id')->orWhere('campus_id', ''))
-            ->where(fn ($q) => $q->whereNull('programme')->orWhereJsonLength('programme', 0))
-            ->where(fn ($q) => $q->whereNull('students_ids')->orWhereJsonLength('students_ids', 0))
-            ->where(fn ($q) => $q->whereNull('lecturar_ids')->orWhereJsonLength('lecturar_ids', 0))
-            ->first();
+        return findBestAcademicMatch(AcademicSession::class, $user);
     }
 }
 
 if (! function_exists('activeSemester')) {
     function activeSemester($user = null)
     {
-        $user = $user ?? auth()->user();
-
-        if ($user) {
-            $student = $user->student ? clone $user->student : null;
-            $lecturer = $user->lecturer ? clone $user->lecturer : null;
-
-            $userId = $user->id;
-
-            $query = AcademicSemester::where('status', '1')->where(function ($q) use ($student, $userId) {
-                // 1. By exact ID
-                $q->whereJsonContains('students_ids', $userId)
-                    ->orWhereJsonContains('lecturar_ids', $userId);
-
-                // 2. By Stream
-                if ($student) {
-                    $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->whereNotNull('stream')->whereJsonContains('stream', (string) $student->stream);
-                    });
-
-                    // 3. By Campus
-                    $q->orWhere(function ($subQ) use ($student) {
-                        $subQ->whereNotNull('campus_id')->whereJsonContains('campus_id', $student->campus_id);
-                    });
-
-                    // 4. By Programme (student_type)
-                    if ($student->programme) {
-                        $q->orWhere(function ($subQ) use ($student) {
-                            $subQ->whereNotNull('programme')->whereJsonContains('programme', $student->programme);
-                        });
-                    }
-                }
-            });
-
-            $specificSemester = $query->first();
-            if ($specificSemester) {
-                return $specificSemester;
-            }
-        }
-
-        // students_ids / lecturar_ids / stream / programme may be stored as NULL or empty JSON array []
-        return AcademicSemester::where('status', '1')
-            ->where(fn ($q) => $q->whereNull('stream')->orWhere('stream', '')->orWhere('stream', '[]'))
-            ->where(fn ($q) => $q->whereNull('campus_id')->orWhere('campus_id', ''))
-            ->where(fn ($q) => $q->whereNull('programme')->orWhereJsonLength('programme', 0))
-            ->where(fn ($q) => $q->whereNull('students_ids')->orWhereJsonLength('students_ids', 0))
-            ->where(fn ($q) => $q->whereNull('lecturar_ids')->orWhereJsonLength('lecturar_ids', 0))
-            ->first();
+        return findBestAcademicMatch(AcademicSemester::class, $user);
     }
 }
 
-/**
- * Check if current route matches any of the given routes
- *
- * @param  string|array  $routes
- * @return bool
- */
 if (! function_exists('isRouteActive')) {
     function isRouteActive($routes)
     {
@@ -129,12 +117,6 @@ if (! function_exists('isRouteActive')) {
     }
 }
 
-/**
- * Check if current URL path matches any of the given paths
- *
- * @param  string|array  $paths
- * @return bool
- */
 if (! function_exists('isPathActive')) {
     function isPathActive($paths)
     {
@@ -152,13 +134,6 @@ if (! function_exists('isPathActive')) {
     }
 }
 
-/**
- * Get active CSS class for sidebar items
- *
- * @param  string|array  $routes  Route names to check
- * @param  string  $activeClass  CSS class to return if active
- * @return string
- */
 if (! function_exists('activeClass')) {
     function activeClass($routes, $activeClass = 'active')
     {
@@ -166,13 +141,6 @@ if (! function_exists('activeClass')) {
     }
 }
 
-/**
- * Get open CSS class for sidebar menu groups
- *
- * @param  string|array  $paths  URL paths to check
- * @param  string  $openClass  CSS class to return if active
- * @return string
- */
 if (! function_exists('openMenuClass')) {
     function openMenuClass($paths, $openClass = 'open')
     {
