@@ -182,7 +182,7 @@
                                                     </span>
                                                     @if ($setting->list_instalment_percentage)
                                                         <div class="text-muted small mt-1">
-                                                            {{ implode('% · ', json_decode($setting->list_instalment_percentage)) }}%
+                                                            {{ implode('% · ', (array) $setting->list_instalment_percentage) }}%
                                                         </div>
                                                     @endif
                                                 @else
