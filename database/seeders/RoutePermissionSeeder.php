@@ -26,7 +26,7 @@ class RoutePermissionSeeder extends Seeder
             'vc.dashboard' => 'access_vc_portal',
             'registrar.dashboard' => 'access_registrar_portal',
             'center-director.dashboard' => 'access_center_director_portal',
-            'center-director.admission.applicants' => 'access_center_director_portal',
+            'center-director.admission.applicants' => 'view_center_admission',
             'programme-director.dashboard' => 'access_programme_director_portal',
             'burser.dashboard' => 'access_bursary_portal',
             'ict.dashboard' => 'access_ict_portal',

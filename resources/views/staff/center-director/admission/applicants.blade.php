@@ -33,7 +33,7 @@
                     </div>
                     <div class="card-body">
                         <form method="GET" class="row g-3">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small">Session</label>
                                 <select name="academic_session" class="form-select form-select-sm">
                                     @foreach($sessions as $s)
@@ -41,7 +41,18 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            @if(!$isCenterDir)
+                            <div class="col-md-2">
+                                <label class="form-label small">Campus</label>
+                                <select name="campus_id" class="form-select form-select-sm">
+                                    <option value="">All Campuses</option>
+                                    @foreach($campuses as $c)
+                                        <option value="{{ $c->id }}" {{ $selectedCampusId == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+                            <div class="col-md-2">
                                 <label class="form-label small">Entry Mode</label>
                                 <select name="entry_mode_id" class="form-select form-select-sm">
                                     <option value="">All Entry Modes</option>
@@ -146,6 +157,7 @@
         $(document).ready(function () {
             $('#applicantsTable').DataTable({
                 dom: 'Bfrtip',
+                pageLength: 50,
                 buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
                 responsive: true
             });

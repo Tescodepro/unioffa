@@ -427,6 +427,7 @@
         $(document).ready(function () {
             $('#usersTable').DataTable({
                 dom: 'Bfrtip',
+                pageLength: 50,
                 buttons: [
                     'copy',
                     'csv',

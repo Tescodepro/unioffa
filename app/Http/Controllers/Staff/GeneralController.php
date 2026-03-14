@@ -30,6 +30,7 @@ class GeneralController extends Controller
             : [];
 
         $sessionsQuery = UserApplications::select('academic_session')->distinct();
+
         if ($isProgDir) {
             $sessionsQuery->whereIn('application_setting_id', $assignedTypeIds);
         }
@@ -59,10 +60,9 @@ class GeneralController extends Controller
         // Applicants per campus (with count)
         $campusApplicants = Campus::withCount([
             'users as applicant_count' => function ($q) use ($isProgDir, $assignedTypeIds, $selectedSession) {
-                $q->whereHas('userType', fn ($q2) => $q2->where('name', 'applicant'))
+                $q->whereHas('userType', fn ($q2) => $q2->whereIn('name', ['applicant', 'student']))
                     ->whereHas('applications', function ($q3) use ($isProgDir, $assignedTypeIds, $selectedSession) {
-                        $q3->whereNotNull('submitted_by')
-                            ->where('academic_session', $selectedSession);
+                        $q3->where('academic_session', $selectedSession);
                         if ($isProgDir) {
                             $q3->whereIn('application_setting_id', $assignedTypeIds);
                         }
@@ -73,8 +73,7 @@ class GeneralController extends Controller
         // Applicants per application type (only showing assigned ones for prog-dirs)
         $applicationApplicantsQuery = ApplicationSetting::withCount([
             'userApplications as applicant_count' => function ($q) use ($selectedSession) {
-                $q->where('academic_session', $selectedSession)
-                    ->whereNotNull('submitted_by');
+                $q->where('academic_session', $selectedSession);
             },
         ]);
         if ($isProgDir) {
@@ -90,15 +89,16 @@ class GeneralController extends Controller
 
         if ($isProgDir) {
             $admittedQuery->whereHas('user.userApplications', fn ($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
-            $notAdmittedQuery->whereHas('user.userApplications', fn ($q) => $q->whereIn('application_setting_id', $assignedTypeIds));
+            $notAdmittedQuery->whereHas('user.userApplications', fn ($q) => $q->whereIn('application_setting_id', $assignedTypeIds)->where('submitted_by', '!=', null));
         }
 
         $admittedCount = $admittedQuery->count();
         $notAdmittedCount = $notAdmittedQuery->count();
 
         // Query students with filters
-        $students = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
+        $students = User::whereHas('userType', fn ($q) => $q->whereIn('name', ['applicant', 'student']))
             ->with([
+                'applications' => fn ($q) => $q->where('academic_session', $selectedSession),
                 'applications.applicationSetting',
                 'transactions',
                 'admissionList',
@@ -106,20 +106,31 @@ class GeneralController extends Controller
                 'courseOfStudy.firstDepartment',
                 'courseOfStudy.secondDepartment',
             ])
-            // SCOPE TO PROG-DIR ASSIGNMENTS OR SELECTED FILTER
-            ->whereHas('applications', function ($qa) use ($isProgDir, $assignedTypeIds, $selectedApplicationId) {
+            // SCOPE TO SESSIONS AND PROG-DIR ASSIGNMENTS OR SELECTED FILTER
+            ->whereHas('applications', function ($qa) use ($isProgDir, $isCenterDir, $assignedTypeIds, $selectedApplicationId, $selectedSession) {
+                $qa->where('academic_session', $selectedSession);
+
                 if ($selectedApplicationId) {
                     $qa->where('application_setting_id', $selectedApplicationId);
-                } elseif ($isProgDir) {
+                } elseif ($isProgDir && ! $isCenterDir) {
                     $qa->whereIn('application_setting_id', $assignedTypeIds);
                 }
             })
             ->when($selectedCampusId, fn ($q) => $q->where('campus_id', $selectedCampusId))
-            ->when($selectedApplicationId, function ($q) use ($selectedApplicationId) {
-                $q->whereHas('applications', fn ($qa) => $qa->where('application_setting_id', $selectedApplicationId));
-            })
             ->get()
             ->map(function ($user) {
+                $payment_status = $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->payment_status ?? 'unpaid';
+                $isAdmitted = $user->admissionList && $user->admissionList->admission_status === 'admitted';
+
+                // Prioritization score:
+                // 1: Paid but not admitted (priority)
+                // 2: Paid and Admitted
+                // 3: Unpaid
+                $priority = 3;
+                if ($payment_status == 1) {
+                    $priority = $isAdmitted ? 2 : 1;
+                }
+
                 return (object) [
                     'id' => $user->id,
                     'registration_no' => $user->registration_no,
@@ -130,14 +141,17 @@ class GeneralController extends Controller
                     'application_modules_enable' => optional($user->applications->first()?->applicationSetting)->modules_enable,
                     'application_id' => $user->applications->first()?->id,
                     'application_status' => $user->applications->first()?->submitted_by ? 'submitted' : 'not submitted',
-                    'payment_status' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->payment_status ?? 'unpaid',
+                    'payment_status' => $payment_status,
                     'payment_ref' => $user->transactions->where('payment_type', 'application')->where('payment_status', 1)->first()->refernce_number ?? null,
                     'admissionList' => $user->admissionList,
                     'admissionListDepartmet' => $user->admissionList?->department,
                     'first_choice' => $user->courseOfStudy?->firstDepartment?->department_name,
                     'second_choice' => $user->courseOfStudy?->secondDepartment?->department_name,
+                    'priority' => $priority,
                 ];
-            });
+            })
+            ->sortBy('priority')
+            ->values();
 
         $faculties = Faculty::all();
         $departments = Department::all();

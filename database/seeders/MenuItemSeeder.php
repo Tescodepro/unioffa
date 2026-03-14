@@ -391,9 +391,8 @@ class MenuItemSeeder extends Seeder
                 'icon' => 'ti ti-users',
                 'route_name' => 'center-director.admission.applicants',
                 'route_pattern' => 'staff/center-director/admission/applicants',
-                'permission_identifier' => 'view_admission',
+                'permission_identifier' => 'view_center_admission',
                 'sort_order' => 10,
-                'user_type_scope' => 'center-director',
             ],
 
             // ── Agents ────────────────────────────────────────────────────────
