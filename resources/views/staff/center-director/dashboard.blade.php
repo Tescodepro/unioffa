@@ -72,12 +72,6 @@
                     </div>
                 </div>
 
-                <div class="text-center mt-4">
-                    <a href="{{ route('admission.applicants') }}" class="btn btn-primary">
-                        <i class="ti ti-list me-1"></i> View All Applicants
-                    </a>
-                </div>
-
             </div>
         </div>
     </div>
