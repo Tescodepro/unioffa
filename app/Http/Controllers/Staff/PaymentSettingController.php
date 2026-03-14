@@ -89,8 +89,8 @@ class PaymentSettingController extends Controller
             'matric_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'installmental_allow_status' => 'required|boolean',
-            'number_of_instalment' => 'nullable|integer|min:1|max:9',
-            'list_instalment_percentage' => 'nullable|array',
+            'number_of_instalment' => 'required_if:installmental_allow_status,1|nullable|integer|min:1|max:9',
+            'list_instalment_percentage' => 'required_if:installmental_allow_status,1|nullable|array',
         ]);
 
         // 2. Prepare 'level' data (Convert strings like ["100"] to integers [100])
@@ -104,9 +104,6 @@ class PaymentSettingController extends Controller
         // (Optional: You can uncomment sum validation here if needed)
         $instalmentData = null;
         if ($validated['installmental_allow_status'] && isset($validated['list_instalment_percentage'])) {
-            // $totalPercent = array_sum($validated['list_instalment_percentage']);
-            // if ($totalPercent != 100) { ... }
-
             $instalmentData = $validated['list_instalment_percentage'];
         }
 
@@ -126,10 +123,8 @@ class PaymentSettingController extends Controller
             'matric_number' => $validated['matric_number'] ?? null,
             'description' => $validated['description'] ?? null,
             'installmental_allow_status' => $validated['installmental_allow_status'],
-            'number_of_instalment' => $validated['number_of_instalment'] ?? null,
-
-            // Fix: Encode array to JSON string
-            'list_instalment_percentage' => $instalmentData ? json_encode($instalmentData) : null,
+            'number_of_instalment' => $validated['number_of_instalment'] ?? 1,
+            'list_instalment_percentage' => $instalmentData,
         ]);
 
         return redirect()
@@ -144,11 +139,6 @@ class PaymentSettingController extends Controller
         $entryModes = \App\Models\EntryMode::orderBy('name')->get();
         $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
         $semesters = AcademicSemester::orderBy('name')->get(['name', 'code']);
-
-        // Decode JSON to array for form use
-        $paymentSetting->list_instalment_percentage = $paymentSetting->list_instalment_percentage
-            ? json_decode($paymentSetting->list_instalment_percentage, true)
-            : [];
 
         return view('staff.bursary.payment_settings.edit', compact('paymentSetting', 'faculties', 'departments', 'entryModes', 'sessions', 'semesters'));
     }
@@ -167,8 +157,8 @@ class PaymentSettingController extends Controller
             'entry_mode' => 'nullable|array',
             'description' => 'nullable|string',
             'installmental_allow_status' => 'required|boolean',
-            'number_of_instalment' => 'nullable|integer|min:1|max:9',
-            'list_instalment_percentage' => 'nullable|array',
+            'number_of_instalment' => 'required_if:installmental_allow_status,1|nullable|integer|min:1|max:9',
+            'list_instalment_percentage' => 'required_if:installmental_allow_status,1|nullable|array',
             'matric_number' => 'nullable|string|max:20',
         ]);
 
@@ -179,24 +169,9 @@ class PaymentSettingController extends Controller
             $validated['level'] = null;
         }
 
-        // ✅ Ensure total percentage = 100 if installment is enabled
-        if (
-            $validated['installmental_allow_status']
-            && isset($validated['list_instalment_percentage'])
-        ) {
-            $total = array_sum($validated['list_instalment_percentage']);
-            // if ($total != 100) {
-            //     return back()
-            //         ->withErrors([
-            //             'list_instalment_percentage' => 'Total instalment percentages must equal 100%.'
-            //         ])
-            //         ->withInput();
-            // }
-        }
-
-        // ✅ Encode installment percentages if enabled
-        $validated['list_instalment_percentage'] = $validated['installmental_allow_status']
-            ? json_encode($validated['list_instalment_percentage'])
+        // Total percentage validation removed as per existing code comment pattern
+        $listInstalmentPercentage = $validated['installmental_allow_status']
+            ? $validated['list_instalment_percentage']
             : null;
 
         // ✅ Save updated data
@@ -213,7 +188,7 @@ class PaymentSettingController extends Controller
             'description' => $validated['description'],
             'installmental_allow_status' => $validated['installmental_allow_status'],
             'number_of_instalment' => $validated['number_of_instalment'] ?? 1,
-            'list_instalment_percentage' => $validated['list_instalment_percentage'] ?? null,
+            'list_instalment_percentage' => $listInstalmentPercentage,
             'matric_number' => $validated['matric_number'] ?? null,
         ]);
 

@@ -19,7 +19,9 @@ return new class extends Migration {
         // Modify the enum column to include new statuses
         Schema::table('results', function (Blueprint $table) {
             // For MySQL, we need to use raw SQL to modify enum
-            DB::statement("ALTER TABLE results MODIFY COLUMN status ENUM('pending', 'recommended', 'approved', 'published') DEFAULT 'pending'");
+            if (DB::getDriverName() === 'mysql') {
+                DB::statement("ALTER TABLE results MODIFY COLUMN status ENUM('pending', 'recommended', 'approved', 'published') DEFAULT 'pending'");
+            }
         });
     }
 

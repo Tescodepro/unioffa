@@ -36,6 +36,7 @@ class PaymentSetting extends Model
         'level' => 'array',
         'entry_mode' => 'array',
         'student_type' => 'array',
+        'list_instalment_percentage' => 'array',
     ];
 
     protected static function boot()
