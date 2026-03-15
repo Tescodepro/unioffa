@@ -110,6 +110,7 @@
                                     <tr>
                                         <th>Date</th>
                                         <th>Session</th>
+                                        <th>Semester</th>
                                         <th>Reference</th>
                                         <th>Description</th>
                                         <th>Method</th>
@@ -126,6 +127,8 @@
                                                 {{ $txn->created_at->format('M d, Y h:i A') }}
                                             </td>
                                             <td><span class="badge bg-light text-dark border">{{ $txn->session ?? 'N/A' }}</span>
+                                            </td>
+                                            <td><span class="badge bg-light text-dark border">{{ $txn->semester ?? 'N/A' }}</span>
                                             </td>
                                             <td class="font-monospace text-primary fw-bold">
                                                 {{ $txn->refernce_number ?? $txn->reference }}</td>
@@ -168,7 +171,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="8" class="text-center py-4 text-muted">
+                                            <td colspan="9" class="text-center py-4 text-muted">
                                                 <i class="ti ti-file-analytics fs-1 d-block mb-2"></i>
                                                 No payment history found for this student.
                                             </td>

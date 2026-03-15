@@ -69,6 +69,7 @@
                                     <th>Status</th>
                                     <th>Method</th>
                                     <th>Session</th>
+                                    <th>Semester</th>
                                     <th>Date</th>
                                     <th>Print Receipt</th>
                                 </tr>
@@ -84,6 +85,7 @@
                                         </td>
                                         <td>{{ $transaction->payment_method }}</td>
                                         <td>{{ $transaction->session }}</td>
+                                        <td>{{ $transaction->semester }}</td>
                                         <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
                                         <td>
                                             <a href="{{ route('view.receipt', $transaction->id) }}" class="btn btn-sm btn-primary" target="_blank">
@@ -93,7 +95,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">No completed transactions found for the current session.</td>
+                                        <td colspan="8" class="text-center">No completed transactions found for the current session.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
