@@ -20,7 +20,7 @@ class AcademicSessionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:academic_sessions',
+            'name' => 'required|string|max:50',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
             'stream' => 'nullable|array',
@@ -73,7 +73,7 @@ class AcademicSessionController extends Controller
         $session = AcademicSession::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:academic_sessions,name,'.$session->id,
+            'name' => 'required|string|max:50',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
             'stream' => 'nullable|array',

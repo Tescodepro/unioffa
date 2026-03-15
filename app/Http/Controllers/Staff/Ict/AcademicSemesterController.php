@@ -20,8 +20,8 @@ class AcademicSemesterController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:academic_semesters',
-            'code' => 'required|string|max:10|unique:academic_semesters',
+            'name' => 'required|string|max:50',
+            'code' => 'required|string|max:10',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
             'stream' => 'nullable|array',
@@ -74,8 +74,8 @@ class AcademicSemesterController extends Controller
         $semester = AcademicSemester::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:academic_semesters,name,'.$semester->id,
-            'code' => 'required|string|max:10|unique:academic_semesters,code,'.$semester->id,
+            'name' => 'required|string|max:50',
+            'code' => 'required|string|max:10',
             'status' => 'required|in:0,1',
             'status_upload_result' => 'required|in:0,1',
             'stream' => 'nullable|array',
