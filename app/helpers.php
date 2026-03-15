@@ -141,6 +141,21 @@ if (! function_exists('activeClass')) {
     }
 }
 
+if (! function_exists('getSemesterName')) {
+    function getSemesterName($code)
+    {
+        $mapping = [
+            '1st' => 'First Semester',
+            '2nd' => 'Second Semester',
+            '3nd' => 'Summer Semester',
+            '3r' => 'Summer Semester',
+            '3rd' => 'Summer Semester',
+        ];
+
+        return $mapping[$code] ?? $code;
+    }
+}
+
 if (! function_exists('openMenuClass')) {
     function openMenuClass($paths, $openClass = 'open')
     {

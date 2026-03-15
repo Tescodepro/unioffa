@@ -85,7 +85,7 @@
                                         </td>
                                         <td>{{ $transaction->payment_method }}</td>
                                         <td>{{ $transaction->session }}</td>
-                                        <td>{{ $transaction->semester }}</td>
+                                        <td>{{ getSemesterName($transaction->semester) }}</td>
                                         <td>{{ $transaction->created_at->format('Y-m-d') }}</td>
                                         <td>
                                             <a href="{{ route('view.receipt', $transaction->id) }}" class="btn btn-sm btn-primary" target="_blank">

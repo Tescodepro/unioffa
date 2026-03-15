@@ -154,7 +154,7 @@
                     <td>{{ $transaction->refernce_number }}</td>
                     <td>{{ ucfirst($transaction->payment_type) }}</td>
                     <td>{{ $transaction->session }}</td>
-                    <td>{{ $transaction->semester }}</td>
+                    <td>{{ getSemesterName($transaction->semester) }}</td>
                     <td>{{ number_format($transaction->amount, 2) }}</td>
                     <td>{{ \Carbon\Carbon::parse($transaction->created_at)->format('F d, Y h:i A') }}</td>
                 </tr>

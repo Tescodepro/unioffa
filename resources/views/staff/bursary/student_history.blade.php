@@ -128,7 +128,7 @@
                                             </td>
                                             <td><span class="badge bg-light text-dark border">{{ $txn->session ?? 'N/A' }}</span>
                                             </td>
-                                            <td><span class="badge bg-light text-dark border">{{ $txn->semester ?? 'N/A' }}</span>
+                                            <td><span class="badge bg-light text-dark border">{{ getSemesterName($txn->semester) ?? 'N/A' }}</span>
                                             </td>
                                             <td class="font-monospace text-primary fw-bold">
                                                 {{ $txn->refernce_number ?? $txn->reference }}</td>
