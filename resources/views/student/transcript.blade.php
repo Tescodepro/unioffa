@@ -114,8 +114,8 @@
                                                 <th>Course Code</th>
                                                 <th>Course Title</th>
                                                 <th class="text-center">Units</th>
-                                                <th class="text-center">CA</th>
-                                                <th class="text-center">Exam</th>
+                                                <!-- <th class="text-center">CA</th> -->
+                                                <!-- <th class="text-center">Exam</th> -->
                                                 <th class="text-center">Total</th>
                                                 <th class="text-center">Grade</th>
                                                 <th class="text-center">Remark</th>
@@ -127,8 +127,8 @@
                                                     <td><strong>{{ $result->course_code }}</strong></td>
                                                     <td>{{ $result->course_title }}</td>
                                                     <td class="text-center">{{ $result->course_unit }}</td>
-                                                    <td class="text-center">{{ $result->ca }}</td>
-                                                    <td class="text-center">{{ $result->exam }}</td>
+                                                    <!-- <td class="text-center">{{ $result->ca }}</td> -->
+                                                    <!-- <td class="text-center">{{ $result->exam }}</td> -->
                                                     <td class="text-center"><strong>{{ $result->total }}</strong></td>
                                                     <td class="text-center">
                                                         <span class="badge 

@@ -259,8 +259,8 @@
                                 <th style="width: 12%;">CODE</th>
                                 <th style="width: 42%;">COURSE TITLE</th>
                                 <th style="width: 8%;">UNIT</th>
-                                <th style="width: 8%;">CA</th>
-                                <th style="width: 8%;">EXAM</th>
+                                <!-- <th style="width: 8%;">CA</th> -->
+                                <!-- <th style="width: 8%;">EXAM</th> -->
                                 <th style="width: 8%;">TOTAL</th>
                                 <th style="width: 8%;">GRADE</th>
                                 <th style="width: 10%;">REMARK</th>
@@ -272,8 +272,8 @@
                                     <td class="center"><strong>{{ $result->course_code }}</strong></td>
                                     <td>{{ strtoupper($result->course_title) }}</td>
                                     <td class="center">{{ $result->course_unit }}</td>
-                                    <td class="center">{{ $result->ca }}</td>
-                                    <td class="center">{{ $result->exam }}</td>
+                                    <!-- <td class="center">{{ $result->ca }}</td> -->
+                                    <!-- <td class="center">{{ $result->exam }}</td> -->
                                     <td class="center"><strong>{{ $result->total }}</strong></td>
                                     <td class="center"><strong>{{ $result->grade }}</strong></td>
                                     <td class="center 

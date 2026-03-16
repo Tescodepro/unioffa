@@ -448,7 +448,7 @@ class IctStudentController extends Controller
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20|unique:users,phone',
+            'phone' => 'required|string|max:20|unique:users,phone',
             'user_type_id' => 'required|exists:user_types,id',
             'campus_id' => 'nullable|exists:campuses,id',
             'application_types' => 'nullable|array',
