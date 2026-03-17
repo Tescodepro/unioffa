@@ -38,6 +38,11 @@ class PaymentStatusService
             $matchesProgramme = empty($semesterProgrammes) || in_array($student->programme, $semesterProgrammes);
 
             $studentIsSemesterAffected = $isSpecificOverride && $matchesStream && $matchesCampus && $matchesProgramme;
+
+            // Semesters should not be applicable for REGULAR and DIPLOMA programmes.
+            if (in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA'])) {
+                $studentIsSemesterAffected = false;
+            }
         }
 
         $paymentSettings = PaymentSetting::query()
