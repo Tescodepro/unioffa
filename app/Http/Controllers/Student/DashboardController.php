@@ -227,7 +227,7 @@ class DashboardController extends Controller
 
             //  Use DB installment settings if enabled
             if ($payment->installmental_allow_status) {
-                $percentages = json_decode($payment->list_instalment_percentage, true) ?? [];
+                $percentages = $payment->list_instalment_percentage ?? [];
 
                 // If percentages are empty, fallback to default logic or disable installment
                 if (empty($percentages)) {
@@ -517,12 +517,13 @@ class DashboardController extends Controller
             $semesters = $sessionResults->groupBy('semester')->map(function ($semesterResults) {
                 return [
                     'results' => $semesterResults,
-                    'gpa' => $this->calculateGPA($semesterResults)['gpa']
+                    'gpa' => $this->calculateGPA($semesterResults)['gpa'],
                 ];
             });
+
             return [
                 'semesters' => $semesters,
-                'gpa' => $sessionGpa
+                'gpa' => $sessionGpa,
             ];
         });
 
@@ -554,18 +555,20 @@ class DashboardController extends Controller
             $semesters = $sessionResults->groupBy('semester')->map(function ($semesterResults) {
                 return [
                     'results' => $semesterResults,
-                    'gpa' => $this->calculateGPA($semesterResults)['gpa']
+                    'gpa' => $this->calculateGPA($semesterResults)['gpa'],
                 ];
             });
+
             return [
                 'semesters' => $semesters,
-                'gpa' => $sessionGpa
+                'gpa' => $sessionGpa,
             ];
         });
 
         $schoolName = \App\Models\SystemSetting::get('school_name', 'University of Offa');
         $pdf = Pdf::loadView('student.transcript-pdf', compact('student', 'resultsBySession', 'cgpa', 'schoolName'))
             ->setPaper('A4', 'portrait');
+
         return $pdf->download('Transcript_'.$student->user->fullname.'.pdf');
     }
 
