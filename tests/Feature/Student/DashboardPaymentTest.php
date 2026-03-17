@@ -84,12 +84,12 @@ beforeEach(function () {
         'status_upload_result' => 0,
         'lecturar_ids' => [],
         'students_ids' => [],
-        'programme' => ['REGULAR'], // This makes it a specific override
+        'programme' => ['REGULAR'], // This usually makes it a specific override
     ]);
 });
 
-it('can load payment page with installment settings without json_decode error', function () {
-    // 6. Setup Payment Setting with installments
+it('loads session-wide fees for REGULAR students even if matching a specific semester override', function () {
+    // 6. Setup Payment Setting FOR THE SESSION (semester is null)
     PaymentSetting::create([
         'faculty_id' => $this->faculty->id,
         'department_id' => $this->department->id,
@@ -97,18 +97,35 @@ it('can load payment page with installment settings without json_decode error', 
         'payment_type' => 'tuition',
         'amount' => 100000,
         'session' => '2025/2026',
+        'semester' => null, // Session-wide fee
+        'student_type' => ['REGULAR'],
+        'entry_mode' => ['UTME'],
+        'installmental_allow_status' => 0,
+    ]);
+
+    // Also create a semester-specific fee which SHOULD BE IGNORED for REGULAR
+    PaymentSetting::create([
+        'faculty_id' => $this->faculty->id,
+        'department_id' => $this->department->id,
+        'level' => [300],
+        'payment_type' => 'exam_fee',
+        'amount' => 5000,
+        'session' => '2025/2026',
         'semester' => '2nd',
         'student_type' => ['REGULAR'],
         'entry_mode' => ['UTME'],
-        'installmental_allow_status' => 1,
-        'number_of_instalment' => 2,
-        'list_instalment_percentage' => [60, 40], // Eloquent will cast this to JSON string in DB
     ]);
 
     // 7. Test the route
-    actingAs($this->user)
-        ->get(route('students.load_payment'))
-        ->assertSuccessful()
+    $response = actingAs($this->user)
+        ->get(route('students.load_payment'));
+
+    $response->assertSuccessful()
         ->assertViewIs('student.payment')
-        ->assertViewHas('paymentSettings');
+        ->assertViewHas('paymentSettings', function ($settings) {
+            // Should contain tuition (session-wide) but NOT exam_fee (semester-specific)
+            $types = $settings->pluck('payment_type')->toArray();
+
+            return in_array('tuition', $types) && ! in_array('exam_fee', $types);
+        });
 });
