@@ -3,68 +3,101 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Admission Letter</title>
+    <title>Admission Letter - {{ strtoupper($student->full_name) }}</title>
     <style>
+        /* A4 Page Definition */
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
         body {
-            font-family: "Times New Roman", serif;
+            font-family: "Times New Roman", Times, serif;
             margin: 0;
             padding: 0;
-            position: relative;
-            font-size: 13pt;
-            line-height: 1.4;
             color: #000;
+            background-color: #fff;
+        }
+
+        /* Letterhead - Positioned at top */
+        .wrapper {
+            width: 100%;
         }
 
         .letterhead {
             width: 100%;
-            display: block;
-        }
-
-        .footer {
             position: fixed;
-            bottom: 0;
+            top: 0;
             left: 0;
-            width: 100%;
-            display: block;
+            z-index: 10;
         }
 
+        /* Footer - Positioned at bottom */
+        .footer {
+            width: 100%;
+            position: fixed;
+            bottom: 0px;
+            left: 0;
+            z-index: 10;
+        }
+
+        /* Watermark - Centered background */
         .watermark {
             position: fixed;
-            top: 30%;
-            left: 15%;
-            width: 70%;
-            opacity: 0.06;
+            top: 40%;
+            left: 10%;
+            width: 80%;
+            opacity: 0.05;
             z-index: -1;
         }
 
+        /* Main Content Container */
         .content {
-            padding: 15px 30px 30px 30px;
+            padding: 170px 25mm 100px 25mm;
+            /* Top space for letterhead, sides for margins */
+            font-size: 11.5pt;
+            line-height: 1.6;
             position: relative;
-            z-index: 1;
+            z-index: 5;
         }
 
         .student-info {
-            margin: 20px 0;
-            line-height: 1.5;
+            margin-bottom: 25px;
         }
 
-        .student-info span {
-            display: block;
-            margin-bottom: 3px;
+        .student-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .student-info td {
+            padding: 2px 0;
+            vertical-align: top;
+        }
+
+        .student-info .label {
+            font-weight: bold;
+            width: 130px;
+        }
+
+        .date-block {
+            text-align: right;
+            margin-bottom: 20px;
         }
 
         h4 {
             text-align: center;
-            text-decoration: underline;
-            margin: 25px 0 20px 0;
+            text-transform: uppercase;
             font-weight: bold;
-            font-size: 15pt;
+            font-size: 13pt;
+            margin: 30px 0 20px 0;
+            text-decoration: underline;
+            line-height: 1.4;
         }
 
         p {
             text-align: justify;
-            margin: 12px 0;
-            line-height: 1.4;
+            margin-bottom: 15px;
         }
 
         ol {
@@ -73,69 +106,62 @@
         }
 
         ol li {
-            margin: 10px 0;
+            margin-bottom: 10px;
             text-align: justify;
-            line-height: 1.4;
         }
 
         ul {
-            margin: 8px 0;
-            padding-left: 18px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            padding-left: 30px;
         }
 
         ul li {
-            margin: 5px 0;
-            line-height: 1.3;
+            margin-bottom: 5px;
+            list-style-type: disc;
         }
 
+        .congratulations {
+            margin-top: 25px;
+            font-weight: bold;
+        }
+
+        /* Signature Section */
         .signature-block {
-            margin-top: 35px;
-            text-align: left;
+            margin-top: 40px;
             page-break-inside: avoid;
         }
 
-        .signature-block img {
-            width: 180px;
-            display: block;
-            margin-left: 0;
-            margin-right: auto;
+        .signature-line {
+            width: 250px;
+            border-top: 1px solid #000;
+            margin-bottom: 5px;
         }
 
         .signature-name {
-            margin-top: 10px;
-            margin-bottom: 5px;
             font-weight: bold;
-            font-size: 14pt;
+            font-size: 12pt;
+            margin-bottom: 2px;
         }
 
         .signature-title {
-            margin-top: 0;
             font-style: italic;
-            font-size: 13pt;
+            font-size: 11pt;
+        }
+
+        .signature-img {
+            height: 50px;
+            margin-bottom: -10px;
+            display: block;
         }
 
         strong {
             font-weight: bold;
         }
 
-        /* Print styles */
-        @media print {
-            body {
-                font-size: 12pt;
-            }
-
-            .content {
-                padding: 10px 50px 100px 50px;
-            }
-
-            .signature-block {
-                margin-top: 10px;
-            }
-        }
-
-        @page {
-            margin: 0;
-            size: A4;
+        .department-highlight {
+            font-weight: bold;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -147,77 +173,96 @@
         $durationInWords = $formatter->format($duration->admission_duration);
     @endphp
 
-    <!-- Letterhead -->
-    <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="letterhead">
+    <div class="wrapper">
+        <!-- Letterhead -->
+        <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="letterhead">
 
-    <!-- Watermark -->
-    <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="watermark">
+        <!-- Watermark -->
+        <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="watermark">
 
-    <div class="content">
-        <div class="student-info">
-            <span><strong>Applicant Name:</strong> {{ strtoupper($student->full_name) }}</span>
-            <span><strong>Gender:</strong> {{ strtoupper(optional($profile)->gender ?? '---') }}</span>
-            <span><strong>Date:</strong> {{ \Carbon\Carbon::parse($date)->format('F d, Y') }}</span>
+        <div class="content">
+            <div class="date-block">
+                <strong>Date:</strong> {{ \Carbon\Carbon::parse($date)->format('F d, Y') }}
+            </div>
+
+            <div class="student-info">
+                <table>
+                    <tr>
+                        <td class="label">Applicant Name:</td>
+                        <td>{{ strtoupper($student->full_name) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Gender:</td>
+                        <td>{{ strtoupper(optional($profile)->gender ?? '---') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Application ID:</td>
+                        <td>{{ $application->application_setting_id }}-{{ $application->id }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h4>OFFER OF PROVISIONAL ADMISSION FOR {{ $application->academic_session }} ACADEMIC SESSION</h4>
+
+            <p>
+                Consequent upon your application, you are hereby offered provisional admission into the
+                University for a <strong>{{ ucfirst($durationInWords) }} ({{ $duration->admission_duration }})</strong>
+                year Programme
+                leading to the award of
+
+                <span class="department-highlight">
+                    @if($department->qualification == 'B.Ed' || $department->qualification == 'BEd')
+                        Bachelor of Education
+                    @else
+                        Bachelor of Science
+                    @endif
+                    ({{ $department->qualification }}) in {{ strtoupper($department->department_name) }}
+                </span>.
+            </p>
+
+            <p>The following conditions are expected to be met in respect to your admission:</p>
+
+            <ol>
+                <li>On arrival, present the following for screening:
+                    <ul>
+                        <li>The Originals of your certificates/O'Level results</li>
+                        <li>Authentic JAMB Result slip</li>
+                        <li>Authentic JAMB Admission Letter</li>
+                        <li>Original Birth Certificate or statutory declaration of age</li>
+                        <li>Four copies of your recent passport-size photographs</li>
+                    </ul>
+                </li>
+                <li>
+                    The University reserves the right to withdraw your admission if it is discovered at any time
+                    that you do not possess the entry requirement upon which the admission was granted.
+                </li>
+                <li>
+                    The University shall also withdraw your admission if it is discovered at any time that
+                    you are involved in any unwholesome behavior, examination malpractice, or gross misconduct.
+                </li>
+                <li>
+                    You are required to present a letter of attestation from a reputable person, confirming that you
+                    will be of
+                    good behavior during your studentship.
+                </li>
+            </ol>
+
+            <p class="congratulations">Please accept my warmest congratulations on your Admission.</p>
+
+            <!-- Signature Block -->
+            <div class="signature-block">
+                {{-- If signature image exists, display it --}}
+                {{-- <img src="{{ public_path('portal_assets/img/users/signature.png') }}" class="signature-img"> --}}
+
+                <div class="signature-line"></div>
+                <p class="signature-name">Mr. Salaudeen OYEWALE</p>
+                <p class="signature-title">Ag. Registrar</p>
+            </div>
         </div>
 
-        <h4>OFFER OF PROVISIONAL ADMISSION FOR {{ $application->academic_session }}</h4>
-
-        <p>
-            Consequent upon your application, you are hereby offered provisional admission into the
-            University for a {{ ucfirst($durationInWords) }} ({{ $duration->admission_duration }}) year Programme
-            leading to the award of
-
-            <strong>
-                @if($department->qualification == 'B.Ed' || $department->qualification == 'BEd')
-                    Bachelor of Education
-                @else
-                    Bachelor of Science
-                @endif
-                ({{ $department->qualification }}) {{ strtoupper($department->department_name) }}
-            </strong>.
-
-        </p>
-
-        <p>The following conditions are expected to be met in respect to your admission:</p>
-
-        <ol>
-            <li>On arrival, present the following:
-                <ul>
-                    <li>The Originals of your certificates</li>
-                    <li>Authentic JAMB Result slip</li>
-                    <li>Authentic JAMB Admission Letter</li>
-                    <li>Original Birth Certificate or statutory declaration of age</li>
-                    <li>Four copies of your recent passport-size photographs</li>
-                </ul>
-            </li>
-            <li>
-                The University has the right to withdraw your admission if it is discovered at any time
-                that you do not possess the entry requirement upon which the admission was granted.
-            </li>
-            <li>
-                The University shall also withdraw your admission if it is discovered at any time that
-                you are involved in any unwholesome behavior or gross misconduct.
-            </li>
-            <li>
-                You are to present a letter of attestation from a reputable person that you will be of
-                good behavior during your studentship.
-            </li>
-        </ol>
-
-        <p style="margin-top: 10px;">Accept my warmest congratulations on your Admission.</p>
-
-        <!-- Signature Block -->
-        <div class="signature-block">
-            {{-- <img src="{{ public_path('portal_assets/img/users/signature.png') }}" alt="Registrar's Signature"
-                style="height: 20px;"> --}}
-            <p>_____________________________</p>
-            <p class="signature-name">Mr. Salaudeen OYEWALE</p>
-            <p class="signature-title">Ag. Registrar</p>
-        </div>
+        <!-- Footer -->
+        <img src="{{ public_path('portal_assets/img/users/letter_head_footer.png') }}" class="footer">
     </div>
-
-    <!-- Footer -->
-    <img src="{{ public_path('portal_assets/img/users/letter_head_footer.png') }}" class="footer">
 
 </body>
 
