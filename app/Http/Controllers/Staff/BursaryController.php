@@ -599,6 +599,7 @@ class BursaryController extends Controller
 
         $levels = PaymentSetting::select('level')->distinct()->pluck('level');
         $groupedData = [];
+        $processedLevels = [];
 
         foreach ($levels as $levelData) {
             // Handle both array (from model casting) and JSON string
