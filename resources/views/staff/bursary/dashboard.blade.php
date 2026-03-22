@@ -214,7 +214,7 @@
                                                         <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
                                                         <td class="text-end fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
                                                         <td class="text-end pe-4">
-                                                            <a href="{{ route('bursary.transactions', ['campus_id' => $types['campus_id'], 'payment_type' => $pt, 'session' => $selectedSession]) }}"
+                                                            <a href="{{ route('bursary.transactions', ['campus_id' => $types['campus_id'], 'programme' => $types['programme'], 'payment_type' => $pt, 'session' => $selectedSession]) }}"
                                                                 class="btn btn-sm btn-outline-{{ $accent }}">
                                                                 <i class="ti ti-eye"></i> View
                                                             </a>

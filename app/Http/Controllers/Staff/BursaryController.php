@@ -57,16 +57,18 @@ class BursaryController extends Controller
             ->groupBy('payment_type')
             ->get();
 
-        // Per-campus breakdown: each campus → each payment type → total amount + count
+        // Per-campus and Per-programme breakdown: each campus + each programme → each payment type → total amount + count
         $campusBreakdownRaw = Transaction::select(
             'campuses.id as campus_id',
             'campuses.name as campus_name',
+            'students.programme',
             'transactions.payment_type',
             DB::raw('COUNT(*) as total'),
             DB::raw('SUM(transactions.amount) as total_amount')
         )
             ->join('users', 'transactions.user_id', '=', 'users.id')
             ->join('campuses', 'users.campus_id', '=', 'campuses.id')
+            ->leftJoin('students', 'users.id', '=', 'students.user_id')
             ->where('transactions.payment_status', 1)
             ->where('transactions.session', $selectedSession)
             ->where(function ($q) {
@@ -77,24 +79,29 @@ class BursaryController extends Controller
                             ->whereRaw("transactions.created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
                     });
             })
-            ->groupBy('campuses.id', 'campuses.name', 'transactions.payment_type')
+            ->groupBy('campuses.id', 'campuses.name', 'students.programme', 'transactions.payment_type')
             ->orderBy('campuses.name')
+            ->orderBy('students.programme')
             ->orderBy('transactions.payment_type')
             ->get();
 
-        // Pivot: [ campus_name => [ payment_type => ['total' => x, 'amount' => y], ...], ... ]
-        // Also collect all payment types seen across all campuses
+        // Pivot: [ "programme student campus_name" => [ payment_type => ['total' => x, 'amount' => y], ...], ... ]
         $campusBreakdown = [];
         $allPaymentTypes = [];
 
         foreach ($campusBreakdownRaw as $row) {
-            if (! isset($campusBreakdown[$row->campus_name])) {
-                $campusBreakdown[$row->campus_name] = [
+            $programme = $row->programme ?: 'GENERAL';
+            $label = strtoupper($programme)." student {$row->campus_name}";
+
+            if (! isset($campusBreakdown[$label])) {
+                $campusBreakdown[$label] = [
                     'campus_id' => $row->campus_id,
+                    'campus_name' => $row->campus_name,
+                    'programme' => $programme,
                     'types' => [],
                 ];
             }
-            $campusBreakdown[$row->campus_name]['types'][$row->payment_type] = [
+            $campusBreakdown[$label]['types'][$row->payment_type] = [
                 'total' => $row->total,
                 'amount' => $row->total_amount,
             ];
@@ -274,6 +281,12 @@ class BursaryController extends Controller
         if ($request->filled('campus_id')) {
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('campus_id', $request->campus_id);
+            });
+        }
+
+        if ($request->filled('programme')) {
+            $query->whereHas('user.studentProfile', function ($q) use ($request) {
+                $q->where('programme', $request->programme);
             });
         }
 
@@ -458,7 +471,8 @@ class BursaryController extends Controller
             foreach ($faculty->departments as $department) {
                 foreach ($department->students as $student) {
                     // Determine the center
-                    $center = $student->user?->campus?->name ?? 'Main Campus';
+                    $programme = $student->programme ?? 'REGULAR';
+                    $center = "{$programme} student ".($student->user?->campus?->name ?? 'Main Campus');
 
                     // Initialize the array structure for this center and faculty if not exists
                     if (! isset($groupedData[$center])) {
@@ -537,7 +551,8 @@ class BursaryController extends Controller
 
             foreach ($dept->students as $student) {
                 // Determine the center
-                $center = $student->user?->campus?->name ?? 'Main Campus';
+                $programme = $student->programme ?? 'REGULAR';
+                $center = "{$programme} student ".($student->user?->campus?->name ?? 'Main Campus');
 
                 // Initialize the array structure for this center and department if not exists
                 if (! isset($groupedData[$center])) {
@@ -634,7 +649,8 @@ class BursaryController extends Controller
 
                 foreach ($studentsInLevel as $student) {
                     // Determine the center
-                    $center = $student->user?->campus?->name ?? 'Main Campus';
+                    $programme = $student->programme ?? 'REGULAR';
+                    $center = "{$programme} student ".($student->user?->campus?->name ?? 'Main Campus');
 
                     if (! isset($groupedData[$center])) {
                         $groupedData[$center] = [];
@@ -717,7 +733,7 @@ class BursaryController extends Controller
                 'matric_number' => $student->matric_number ?? $student->matric_no ?? 'N/A',
                 'level' => $student->level ?? 'N/A',
                 'entry_mode' => $student->entry_mode ?? 'N/A',
-                'center' => $student->user?->campus?->name ?? 'Main Campus',
+                'center' => ($student->programme ?? 'REGULAR').' student '.($student->user?->campus?->name ?? 'Main Campus'),
                 'faculty' => $student->department?->faculty?->faculty_code ?? 'N/A',
                 'department' => $student->department?->department_code ?? 'N/A',
                 'expected' => $expected,
