@@ -37,36 +37,59 @@
                     </div>
                 </div>
 
-                @foreach($data as $campus => $levels)
-                    <div class="card p-3 shadow-sm mb-4">
-                        <h5 class="mb-3 text-primary border-bottom pb-2">{{ $campus }}</h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped report-table">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Level</th>
-                                        <th>Total Students</th>
-                                        <th>Expected (₦)</th>
-                                        <th>Received (₦)</th>
-                                        <th>Outstanding (₦)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($levels as $key => $row)
-                                        <tr>
-                                            <td>{{ $key + 1 }}</td>
-                                            <td>{{ $row['level'] }}</td>
-                                            <td>{{ $row['total_students'] }}</td>
-                                            <td>{{ number_format($row['expected'], 2) }}</td>
-                                            <td>{{ number_format($row['received'], 2) }}</td>
-                                            <td class="{{ $row['outstanding'] > 0 ? 'text-danger fw-bold' : 'text-success' }}">
-                                                {{ number_format($row['outstanding'], 2) }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                @foreach($data as $campusName => $centers)
+                    <div class="card shadow-sm mb-4 border-0">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                            <h5 class="mb-0 fw-bold text-dark">
+                                <i class="ti ti-building-community me-2 text-primary"></i>
+                                {{ $campusName }} Section
+                            </h5>
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" 
+                                data-bs-target="#collapseLevel-{{ Str::slug($campusName) }}">
+                                <i class="ti ti-arrows-up-down"></i> Toggle Section
+                            </button>
+                        </div>
+                        <div id="collapseLevel-{{ Str::slug($campusName) }}" class="collapse show">
+                            <div class="card-body p-4">
+                                @foreach($centers as $centerLabel => $levels)
+                                    <div class="mb-5 last-child-mb-0">
+                                        <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                            <span class="avatar avatar-xs rounded-circle bg-primary text-white">
+                                                <i class="ti ti-map-pin fs-12"></i>
+                                            </span>
+                                            <h6 class="mb-0 fw-bold text-primary">{{ $centerLabel }}</h6>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped report-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Level</th>
+                                                        <th>Total Students</th>
+                                                        <th>Expected (₦)</th>
+                                                        <th>Received (₦)</th>
+                                                        <th>Outstanding (₦)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($levels as $key => $row)
+                                                        <tr>
+                                                            <td>{{ $key + 1 }}</td>
+                                                            <td>{{ $row['level'] }}</td>
+                                                            <td>{{ $row['total_students'] }}</td>
+                                                            <td>{{ number_format($row['expected'], 2) }}</td>
+                                                            <td>{{ number_format($row['received'], 2) }}</td>
+                                                            <td class="{{ $row['outstanding'] > 0 ? 'text-danger fw-bold' : 'text-success' }}">
+                                                                {{ number_format($row['outstanding'], 2) }}
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 @endforeach

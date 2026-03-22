@@ -162,71 +162,92 @@
                     </div>
 
                     <div class="row g-4 mb-4">
-                        @foreach($campusBreakdown as $campusName => $types)
+                    <div class="accordion accordion-flush" id="campusAccordion">
+                        @foreach($campusBreakdown as $campusName => $centers)
                             @php
-                                $accent = $centerAccents[$centerIdx % count($centerAccents)];
-                                $centerIdx++;
-                                $campusTotal = collect($types['types'])->sum('amount');
-                                $campusTxns = collect($types['types'])->sum('total');
+                                $campusSlug = Str::slug($campusName);
                             @endphp
-                            <div class="col-xl-6 col-lg-6">
-                                <div class="card h-100 border-0 shadow-sm overflow-hidden">
-                                    {{-- Colored top bar --}}
-                                    <div class="bg-{{ $accent }} px-4 py-4 d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <span class="avatar avatar-md rounded-circle bg-white bg-opacity-25 text-white">
-                                                <i class="ti ti-map-pin fs-18"></i>
-                                            </span>
-                                            <h5 class="mb-0 text-white fw-bold">{{ $campusName }}</h5>
-                                        </div>
-                                        <span class="badge bg-white bg-opacity-25 text-white fs-12 px-3 py-2">
-                                            {{ $campusTxns }} transaction{{ $campusTxns != 1 ? 's' : '' }}
-                                        </span>
-                                    </div>
-
-                                    {{-- Grand total strip --}}
-                                    <div
-                                        class="px-4 py-3 bg-{{ $accent }} bg-opacity-10 d-flex align-items-center justify-content-between border-bottom">
-                                        <span class="text-muted fw-semibold">Total Collected</span>
-                                        <span class="fs-4 fw-bold text-{{ $accent }}">₦{{ number_format($campusTotal, 2) }}</span>
-                                    </div>
-
-                                    {{-- Per-type breakdown --}}
-                                    <div class="card-body p-0">
-                                        <table class="table align-middle mb-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th class="ps-4 py-3">Payment Type</th>
-                                                    <th class="text-center py-3">Transactions</th>
-                                                    <th class="text-end py-3">Amount (₦)</th>
-                                                    <th class="text-end pe-4 py-3">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($types['types'] as $pt => $cell)
-                                                    <tr>
-                                                        <td class="ps-4 py-3">
-                                                            <span
-                                                                class="badge bg-{{ $accent }}-subtle text-{{ $accent }} border border-{{ $accent }}-subtle fs-12 px-3 py-2">
-                                                                {{ ucfirst($pt) }}
+                            <div class="accordion-item border-0 mb-3 shadow-sm rounded overflow-hidden">
+                                <h2 class="accordion-header" id="heading-{{ $campusSlug }}">
+                                    <button class="accordion-button bg-light fw-bold text-dark py-3" type="button" 
+                                        data-bs-toggle="collapse" data-bs-target="#collapse-{{ $campusSlug }}" 
+                                        aria-expanded="true" aria-controls="collapse-{{ $campusSlug }}">
+                                        <i class="ti ti-building-community me-2 text-primary"></i>
+                                        {{ $campusName }} Section
+                                    </button>
+                                </h2>
+                                <div id="collapse-{{ $campusSlug }}" class="accordion-collapse collapse show" 
+                                    aria-labelledby="heading-{{ $campusSlug }}" data-bs-parent="#campusAccordion">
+                                    <div class="accordion-body bg-white p-4">
+                                        <div class="row g-4">
+                                            @foreach($centers as $centerLabel => $types)
+                                                @php
+                                                    $accent = $centerAccents[$centerIdx % count($centerAccents)];
+                                                    $centerIdx++;
+                                                    $campusTotal = collect($types['types'])->sum('amount');
+                                                    $campusTxns = collect($types['types'])->sum('total');
+                                                @endphp
+                                                <div class="col-xl-6 col-lg-6">
+                                                    <div class="card h-100 border-0 shadow-sm overflow-hidden border-start border-4 border-{{ $accent }}">
+                                                        {{-- Header --}}
+                                                        <div class="bg-{{ $accent }} bg-opacity-10 px-4 py-3 d-flex align-items-center justify-content-between border-bottom">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <span class="avatar avatar-xs rounded-circle bg-{{ $accent }} text-white">
+                                                                    <i class="ti ti-map-pin fs-12"></i>
+                                                                </span>
+                                                                <h6 class="mb-0 fw-bold">{{ $centerLabel }}</h6>
+                                                            </div>
+                                                            <span class="badge bg-{{ $accent }} text-white fs-11 px-2 py-1">
+                                                                {{ $campusTxns }} txn{{ $campusTxns != 1 ? 's' : '' }}
                                                             </span>
-                                                        </td>
-                                                        <td class="text-center fw-semibold">{{ $cell['total'] }}</td>
-                                                        <td class="text-end fw-bold">₦{{ number_format($cell['amount'], 2) }}</td>
-                                                        <td class="text-end pe-4">
-                                                            <a href="{{ route('bursary.transactions', ['campus_id' => $types['campus_id'], 'programme' => $types['programme'], 'payment_type' => $pt, 'session' => $selectedSession]) }}"
-                                                                class="btn btn-sm btn-outline-{{ $accent }}">
-                                                                <i class="ti ti-eye"></i> View
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                                        </div>
+
+                                                        {{-- Total --}}
+                                                        <div class="px-4 py-2 d-flex align-items-center justify-content-between">
+                                                            <span class="text-muted small fw-medium">Total Collected</span>
+                                                            <span class="fw-bold text-{{ $accent }}">₦{{ number_format($campusTotal, 2) }}</span>
+                                                        </div>
+
+                                                        {{-- Table --}}
+                                                        <div class="card-body p-0">
+                                                            <table class="table table-sm align-middle mb-0">
+                                                                <thead class="table-light">
+                                                                    <tr class="small">
+                                                                        <th class="ps-4">Type</th>
+                                                                        <th class="text-center">Count</th>
+                                                                        <th class="text-end pe-4">Amount (₦)</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach($types['types'] as $pt => $cell)
+                                                                        <tr class="small">
+                                                                            <td class="ps-4 py-2 text-muted">{{ ucfirst($pt) }}</td>
+                                                                            <td class="text-center">{{ $cell['total'] }}</td>
+                                                                            <td class="text-end pe-4 fw-semibold">₦{{ number_format($cell['amount'], 2) }}</td>
+                                                                        </tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                                <tfoot class="border-top">
+                                                                    <tr>
+                                                                        <td colspan="3" class="text-center py-2">
+                                                                            <a href="{{ route('bursary.transactions', ['campus_id' => $types['campus_id'], 'programme' => $types['programme'], 'session' => $selectedSession]) }}"
+                                                                                class="btn btn-sm btn-link text-{{ $accent }} p-0 text-decoration-none small">
+                                                                                <i class="ti ti-eye"></i> View All Transactions
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tfoot>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         @endforeach
+                    </div>
 
                         {{-- Unassigned / No Center card --}}
                         @if(count($unassignedBreakdown) > 0)

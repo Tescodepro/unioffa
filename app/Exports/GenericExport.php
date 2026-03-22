@@ -2,9 +2,8 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromCollection;
 use App\Http\Controllers\Staff\BursaryController;
-use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\FromCollection;
 
 class GenericExport implements FromCollection
 {
@@ -29,17 +28,19 @@ class GenericExport implements FromCollection
                 // Add header row
                 $rows[] = ['Center', 'Faculty', 'Total Students', 'Total Transactions', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
 
-                foreach ($data as $campus => $items) {
-                    foreach ($items as $item) {
-                        $rows[] = [
-                            $campus,
-                            $item['faculty'],
-                            $item['total_students'],
-                            $item['total_transactions'],
-                            $item['expected'],
-                            $item['received'],
-                            $item['outstanding'],
-                        ];
+                foreach ($data as $campusName => $centers) {
+                    foreach ($centers as $centerLabel => $items) {
+                        foreach ($items as $item) {
+                            $rows[] = [
+                                $centerLabel,
+                                $item['faculty'],
+                                $item['total_students'],
+                                $item['total_transactions'],
+                                $item['expected'],
+                                $item['received'],
+                                $item['outstanding'],
+                            ];
+                        }
                     }
                 }
                 break;
@@ -50,18 +51,20 @@ class GenericExport implements FromCollection
 
                 $rows[] = ['Center', 'Faculty', 'Department', 'Total Students', 'Total Transactions', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
 
-                foreach ($data as $campus => $items) {
-                    foreach ($items as $item) {
-                        $rows[] = [
-                            $campus,
-                            $item['faculty'],
-                            $item['department'],
-                            $item['total_students'],
-                            $item['total_transactions'],
-                            $item['expected'],
-                            $item['received'],
-                            $item['outstanding'],
-                        ];
+                foreach ($data as $campusName => $centers) {
+                    foreach ($centers as $centerLabel => $items) {
+                        foreach ($items as $item) {
+                            $rows[] = [
+                                $centerLabel,
+                                $item['faculty'],
+                                $item['department'],
+                                $item['total_students'],
+                                $item['total_transactions'],
+                                $item['expected'],
+                                $item['received'],
+                                $item['outstanding'],
+                            ];
+                        }
                     }
                 }
                 break;
@@ -72,16 +75,18 @@ class GenericExport implements FromCollection
 
                 $rows[] = ['Center', 'Level', 'Total Students', 'Expected Amount (₦)', 'Received Amount (₦)', 'Outstanding (₦)'];
 
-                foreach ($data as $campus => $items) {
-                    foreach ($items as $item) {
-                        $rows[] = [
-                            $campus,
-                            $item['level'],
-                            $item['total_students'],
-                            $item['expected'],
-                            $item['received'],
-                            $item['outstanding'],
-                        ];
+                foreach ($data as $campusName => $centers) {
+                    foreach ($centers as $centerLabel => $items) {
+                        foreach ($items as $item) {
+                            $rows[] = [
+                                $centerLabel,
+                                $item['level'],
+                                $item['total_students'],
+                                $item['expected'],
+                                $item['received'],
+                                $item['outstanding'],
+                            ];
+                        }
                     }
                 }
                 break;
@@ -112,4 +117,3 @@ class GenericExport implements FromCollection
         return collect($rows);
     }
 }
-

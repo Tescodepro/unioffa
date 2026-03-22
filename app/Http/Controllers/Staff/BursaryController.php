@@ -92,16 +92,21 @@ class BursaryController extends Controller
         foreach ($campusBreakdownRaw as $row) {
             $programme = $row->programme ?: 'GENERAL';
             $label = strtoupper($programme)." student {$row->campus_name}";
+            $campusName = $row->campus_name;
 
-            if (! isset($campusBreakdown[$label])) {
-                $campusBreakdown[$label] = [
+            if (! isset($campusBreakdown[$campusName])) {
+                $campusBreakdown[$campusName] = [];
+            }
+
+            if (! isset($campusBreakdown[$campusName][$label])) {
+                $campusBreakdown[$campusName][$label] = [
                     'campus_id' => $row->campus_id,
                     'campus_name' => $row->campus_name,
                     'programme' => $programme,
                     'types' => [],
                 ];
             }
-            $campusBreakdown[$label]['types'][$row->payment_type] = [
+            $campusBreakdown[$campusName][$label]['types'][$row->payment_type] = [
                 'total' => $row->total,
                 'amount' => $row->total_amount,
             ];
@@ -109,6 +114,7 @@ class BursaryController extends Controller
                 $allPaymentTypes[] = $row->payment_type;
             }
         }
+        ksort($campusBreakdown);
         sort($allPaymentTypes);
 
         // Transactions with no campus assigned (user.campus_id IS NULL)
@@ -471,15 +477,19 @@ class BursaryController extends Controller
             foreach ($faculty->departments as $department) {
                 foreach ($department->students as $student) {
                     // Determine the center
+                    $campusName = $student->user?->campus?->name ?? 'Main Campus';
                     $programme = $student->programme ?? 'REGULAR';
-                    $center = "{$programme} student ".($student->user?->campus?->name ?? 'Main Campus');
+                    $center = "{$programme} student {$campusName}";
 
-                    // Initialize the array structure for this center and faculty if not exists
-                    if (! isset($groupedData[$center])) {
-                        $groupedData[$center] = [];
+                    // Initialize the array structure for this campus and center
+                    if (! isset($groupedData[$campusName])) {
+                        $groupedData[$campusName] = [];
                     }
-                    if (! isset($groupedData[$center][$facultyName])) {
-                        $groupedData[$center][$facultyName] = [
+                    if (! isset($groupedData[$campusName][$center])) {
+                        $groupedData[$campusName][$center] = [];
+                    }
+                    if (! isset($groupedData[$campusName][$center][$facultyName])) {
+                        $groupedData[$campusName][$center][$facultyName] = [
                             'faculty' => $facultyName,
                             'total_students' => 0,
                             'total_transactions' => 0,
@@ -490,30 +500,32 @@ class BursaryController extends Controller
                     }
 
                     // Count the student
-                    $groupedData[$center][$facultyName]['total_students']++;
+                    $groupedData[$campusName][$center][$facultyName]['total_students']++;
 
                     // Expected
                     $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)
                         ->whereNotIn('payment_type', $excludedTypes)
                         ->sum('amount');
-                    $groupedData[$center][$facultyName]['expected'] += $expectedForStudent;
+                    $groupedData[$campusName][$center][$facultyName]['expected'] += $expectedForStudent;
 
                     // Received & Transactions
                     if ($student->user && $student->user->transactions) {
                         $studentTransactions = $student->user->transactions;
-                        $groupedData[$center][$facultyName]['total_transactions'] += $studentTransactions->count();
-                        $groupedData[$center][$facultyName]['received'] += $studentTransactions->where('payment_status', 1)->sum('amount');
+                        $groupedData[$campusName][$center][$facultyName]['total_transactions'] += $studentTransactions->count();
+                        $groupedData[$campusName][$center][$facultyName]['received'] += $studentTransactions->where('payment_status', 1)->sum('amount');
                     }
                 }
             }
         }
 
         // Calculate outstanding and ensure proper array formatting
-        foreach ($groupedData as $center => &$facultyList) {
-            foreach ($facultyList as &$stats) {
-                $stats['outstanding'] = $stats['expected'] - $stats['received'];
+        foreach ($groupedData as $campusName => &$centerList) {
+            foreach ($centerList as $center => &$facultyList) {
+                foreach ($facultyList as &$stats) {
+                    $stats['outstanding'] = $stats['expected'] - $stats['received'];
+                }
+                $facultyList = array_values($facultyList);
             }
-            $facultyList = array_values($facultyList); // convert associative array to indexed arrays for blade loops
         }
 
         // Sort centers alphabetically so Main Campus isn't random
@@ -551,15 +563,19 @@ class BursaryController extends Controller
 
             foreach ($dept->students as $student) {
                 // Determine the center
+                $campusName = $student->user?->campus?->name ?? 'Main Campus';
                 $programme = $student->programme ?? 'REGULAR';
-                $center = "{$programme} student ".($student->user?->campus?->name ?? 'Main Campus');
+                $center = "{$programme} student {$campusName}";
 
-                // Initialize the array structure for this center and department if not exists
-                if (! isset($groupedData[$center])) {
-                    $groupedData[$center] = [];
+                // Initialize the array structure for this campus and center
+                if (! isset($groupedData[$campusName])) {
+                    $groupedData[$campusName] = [];
                 }
-                if (! isset($groupedData[$center][$departmentName])) {
-                    $groupedData[$center][$departmentName] = [
+                if (! isset($groupedData[$campusName][$center])) {
+                    $groupedData[$campusName][$center] = [];
+                }
+                if (! isset($groupedData[$campusName][$center][$departmentName])) {
+                    $groupedData[$campusName][$center][$departmentName] = [
                         'faculty' => $facultyName,
                         'department' => $departmentName,
                         'total_students' => 0,
@@ -571,29 +587,31 @@ class BursaryController extends Controller
                 }
 
                 // Count the student
-                $groupedData[$center][$departmentName]['total_students']++;
+                $groupedData[$campusName][$center][$departmentName]['total_students']++;
 
                 // Expected
                 $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)
                     ->whereNotIn('payment_type', $excludedTypes)
                     ->sum('amount');
-                $groupedData[$center][$departmentName]['expected'] += $expectedForStudent;
+                $groupedData[$campusName][$center][$departmentName]['expected'] += $expectedForStudent;
 
                 // Received & Transactions
                 if ($student->user && $student->user->transactions) {
                     $studentTransactions = $student->user->transactions;
-                    $groupedData[$center][$departmentName]['total_transactions'] += $studentTransactions->count();
-                    $groupedData[$center][$departmentName]['received'] += $studentTransactions->where('payment_status', 1)->sum('amount');
+                    $groupedData[$campusName][$center][$departmentName]['total_transactions'] += $studentTransactions->count();
+                    $groupedData[$campusName][$center][$departmentName]['received'] += $studentTransactions->where('payment_status', 1)->sum('amount');
                 }
             }
         }
 
         // Calculate outstanding and ensure proper array formatting
-        foreach ($groupedData as $center => &$departmentList) {
-            foreach ($departmentList as &$stats) {
-                $stats['outstanding'] = $stats['expected'] - $stats['received'];
+        foreach ($groupedData as $campusName => &$centerList) {
+            foreach ($centerList as $center => &$departmentList) {
+                foreach ($departmentList as &$stats) {
+                    $stats['outstanding'] = $stats['expected'] - $stats['received'];
+                }
+                $departmentList = array_values($departmentList);
             }
-            $departmentList = array_values($departmentList); // convert associative array to indexed arrays for blade loops
         }
 
         // Sort centers alphabetically so Main Campus isn't random
@@ -649,15 +667,20 @@ class BursaryController extends Controller
 
                 foreach ($studentsInLevel as $student) {
                     // Determine the center
+                    $campusName = $student->user?->campus?->name ?? 'Main Campus';
                     $programme = $student->programme ?? 'REGULAR';
-                    $center = "{$programme} student ".($student->user?->campus?->name ?? 'Main Campus');
+                    $center = "{$programme} student {$campusName}";
 
-                    if (! isset($groupedData[$center])) {
-                        $groupedData[$center] = [];
+                    if (! isset($groupedData[$campusName])) {
+                        $groupedData[$campusName] = [];
                     }
 
-                    if (! isset($groupedData[$center][$level])) {
-                        $groupedData[$center][$level] = [
+                    if (! isset($groupedData[$campusName][$center])) {
+                        $groupedData[$campusName][$center] = [];
+                    }
+
+                    if (! isset($groupedData[$campusName][$center][$level])) {
+                        $groupedData[$campusName][$center][$level] = [
                             'level' => $level,
                             'total_students' => 0,
                             'expected' => 0,
@@ -667,30 +690,31 @@ class BursaryController extends Controller
                     }
 
                     // Count the student
-                    $groupedData[$center][$level]['total_students']++;
+                    $groupedData[$campusName][$center][$level]['total_students']++;
 
                     // Expected
                     $expectedForStudent = PaymentSetting::getFeesForStudent($student, $selectedSession)
                         ->whereNotIn('payment_type', $excludedTypes)
                         ->sum('amount');
-                    $groupedData[$center][$level]['expected'] += $expectedForStudent;
+                    $groupedData[$campusName][$center][$level]['expected'] += $expectedForStudent;
 
                     // Received
                     if ($student->user && $student->user->transactions) {
-                        $groupedData[$center][$level]['received'] += $student->user->transactions->where('payment_status', 1)->sum('amount');
+                        $groupedData[$campusName][$center][$level]['received'] += $student->user->transactions->where('payment_status', 1)->sum('amount');
                     }
                 }
             }
         }
 
         // Calculate outstanding and flatten array for blades
-        foreach ($groupedData as $center => &$levelList) {
-            foreach ($levelList as &$stats) {
-                $stats['outstanding'] = $stats['expected'] - $stats['received'];
+        foreach ($groupedData as $campusName => &$centerList) {
+            foreach ($centerList as $center => &$levelList) {
+                foreach ($levelList as &$stats) {
+                    $stats['outstanding'] = $stats['expected'] - $stats['received'];
+                }
+                ksort($levelList);
+                $levelList = array_values($levelList);
             }
-            // Optional: Sort levels numerically/alphabetically within the center
-            ksort($levelList);
-            $levelList = array_values($levelList);
         }
 
         // Sort centers
