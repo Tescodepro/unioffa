@@ -108,8 +108,8 @@
 
                             <div class="col-md-6">
                                 <label class="form-label">Date of Birth (dd/mm/yyyy)</label>
-                                <input type="date" name="dob" class="form-control"
-                                    value="{{ old('dob', $student->user->date_of_birth) }}" required>
+                                <input type="date" name="date_of_birth" class="form-control"
+                                    value="{{ old('date_of_birth', $student->user->date_of_birth) }}" required>
                             </div>
 
                             <div class="col-md-6">
