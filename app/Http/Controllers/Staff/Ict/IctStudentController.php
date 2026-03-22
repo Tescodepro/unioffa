@@ -354,6 +354,7 @@ class IctStudentController extends Controller
             'sex' => $request->sex,
             'entry_mode' => $request->entry_mode,
             'campus_id' => $request->campus_id ?: null,
+            'stream' => $request->stream,
         ]);
 
         return redirect()->route('ict.students.index')
