@@ -131,7 +131,7 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
+                                                @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'registrar']))
                                                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
                                                     data-bs-target="#editModal{{ $txn->id }}">
                                                     <i class="ti ti-edit"></i>
