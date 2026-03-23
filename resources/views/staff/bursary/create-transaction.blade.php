@@ -248,13 +248,6 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- Server-side pagination omitted as DataTables handles client-side pagination -->
-                    <!-- 
-                    <div class="card-footer">
-                        {{ $manualTransactions->links('pagination::bootstrap-5') }}
-                    </div>
-                    -->
                 </div>
             @else
                 <p class="text-muted mt-4">No manual transactions found yet.</p>
@@ -281,11 +274,11 @@
                 $('#manualTransactionsTable').DataTable({
                     dom: '<"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
                     buttons: [
-                        { extend: 'copy', className: 'btn btn-sm btn-outline-secondary' },
-                        { extend: 'csv', className: 'btn btn-sm btn-outline-secondary' },
+                        { extend: 'copy', className: 'btn btn-sm btn-outline-secondary' }, title: 'Manual Transactions'
+                        { extend: 'csv', className: 'btn btn-sm btn-outline-secondary' }, title: 'Manual Transactions'
                         { extend: 'excel', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
                         { extend: 'pdf', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
-                        { extend: 'print', className: 'btn btn-sm btn-outline-secondary' }
+                        { extend: 'print', className: 'btn btn-sm btn-outline-secondary' } title: 'Manual Transactions'
                     ],
                     paging: true,
                     searching: true,
