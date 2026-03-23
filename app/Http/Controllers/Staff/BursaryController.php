@@ -828,7 +828,8 @@ class BursaryController extends Controller
         // Fetch all manual transactions
         $manualTransactions = Transaction::with('user')
             ->where('payment_method', 'manual')
-            ->latest();
+            ->latest()
+            ->get();
 
         return view('staff.bursary.create-transaction', compact('paymentTypes', 'sessions', 'manualTransactions'));
     }

@@ -114,7 +114,7 @@
                                 <tbody>
                                     @foreach ($manualTransactions as $index => $txn)
                                         <tr>
-                                            <td>{{ $manualTransactions->firstItem() + $index }}</td>
+                                            <td>{{ $index + 1 }}</td>
                                             <td><strong>{{ $txn->refernce_number }}</strong></td>
                                             <td>{{ optional($txn->user)->first_name }}
                                                 {{ optional($txn->user)->last_name }}</td>
