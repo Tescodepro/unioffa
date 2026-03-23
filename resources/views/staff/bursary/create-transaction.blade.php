@@ -274,11 +274,11 @@
                 $('#manualTransactionsTable').DataTable({
                     dom: '<"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
                     buttons: [
-                        { extend: 'copy', className: 'btn btn-sm btn-outline-secondary text-white', title: 'Manual Transactions' },
-                        { extend: 'csv', className: 'btn btn-sm btn-outline-secondary text-white', title: 'Manual Transactions' },
-                        { extend: 'excel', className: 'btn btn-sm btn-outline-secondary text-white', title: 'Manual Transactions' },
-                        { extend: 'pdf', className: 'btn btn-sm btn-outline-secondary text-white', title: 'Manual Transactions' },
-                        { extend: 'print', className: 'btn btn-sm btn-outline-secondary text-white', title: 'Manual Transactions' }
+                        { extend: 'copy', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
+                        { extend: 'csv', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
+                        { extend: 'excel', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
+                        { extend: 'pdf', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
+                        { extend: 'print', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' }
                     ],
                     paging: true,
                     searching: true,
