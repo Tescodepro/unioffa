@@ -90,7 +90,7 @@ class BursaryController extends Controller
         $allPaymentTypes = [];
 
         foreach ($campusBreakdownRaw as $row) {
-            $programme = $row->programme ?: 'GENERAL';
+            $programme = $row->programme ?: 'UNASSIGNED'; // payment without programme meaning they are not students or programme not assigned
             $label = strtoupper($programme)." student {$row->campus_name}";
             $campusName = $row->campus_name;
 
@@ -291,9 +291,13 @@ class BursaryController extends Controller
         }
 
         if ($request->filled('programme')) {
-            $query->whereHas('user.studentProfile', function ($q) use ($request) {
-                $q->where('programme', $request->programme);
-            });
+            if ($request->programme === 'UNASSIGNED') {
+                $query->whereDoesntHave('user.studentProfile');
+            } else {
+                $query->whereHas('user.studentProfile', function ($q) use ($request) {
+                    $q->where('programme', $request->programme);
+                });
+            }
         }
 
         $transactions = $query->latest()->paginate(100);
