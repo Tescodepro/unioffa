@@ -36,10 +36,12 @@
                                 <select name="payment_type" class="form-select" required>
                                     <option value="">-- Select Payment Type --</option>
                                     @foreach ($paymentTypes as $type)
-                                        <option value="{{ $type }}"
-                                            {{ old('payment_type') == $type ? 'selected' : '' }}>
-                                            {{ ucfirst($type) }}
-                                        </option>
+                                        @if($type !== 'technical')
+                                            <option value="{{ $type }}"
+                                                {{ old('payment_type') == $type ? 'selected' : '' }}>
+                                                {{ ucfirst($type) }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -161,10 +163,12 @@
                                                                 <label class="form-label">Payment Type</label>
                                                                 <select name="payment_type" class="form-select" required>
                                                                     @foreach ($paymentTypes as $type)
-                                                                        <option value="{{ $type }}"
-                                                                            {{ $txn->payment_type == $type ? 'selected' : '' }}>
-                                                                            {{ ucfirst($type) }}
-                                                                        </option>
+                                                                        @if($type !== 'technical')
+                                                                            <option value="{{ $type }}"
+                                                                                {{ $txn->payment_type == $type ? 'selected' : '' }}>
+                                                                                {{ ucfirst($type) }}
+                                                                            </option>
+                                                                        @endif
                                                                     @endforeach
                                                                 </select>
                                                             </div>
