@@ -97,8 +97,8 @@
                         <h5 class="card-title mb-0">Manual Transactions</h5>
                     </div>
                     <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
+                        <div class="table-responsive p-3">
+                            <table class="table table-hover align-middle border" id="manualTransactionsTable">
                                 <thead class="table-light">
                                     <tr>
                                         <th>#</th>
@@ -249,9 +249,12 @@
                         </div>
                     </div>
 
+                    <!-- Server-side pagination omitted as DataTables handles client-side pagination -->
+                    <!-- 
                     <div class="card-footer">
                         {{ $manualTransactions->links('pagination::bootstrap-5') }}
                     </div>
+                    -->
                 </div>
             @else
                 <p class="text-muted mt-4">No manual transactions found yet.</p>
@@ -260,4 +263,36 @@
 
         </div>
     </div>
+
+    @push('scripts')
+        <!-- DataTables & Buttons -->
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $('#manualTransactionsTable').DataTable({
+                    dom: '<"row"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+                    buttons: [
+                        { extend: 'copy', className: 'btn btn-sm btn-outline-secondary' },
+                        { extend: 'csv', className: 'btn btn-sm btn-outline-secondary' },
+                        { extend: 'excel', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
+                        { extend: 'pdf', className: 'btn btn-sm btn-outline-secondary', title: 'Manual Transactions' },
+                        { extend: 'print', className: 'btn btn-sm btn-outline-secondary' }
+                    ],
+                    paging: true,
+                    searching: true,
+                    info: true,
+                    ordering: true,
+                });
+            });
+        </script>
+    @endpush
 @endsection
