@@ -70,7 +70,7 @@
                                 <select name="payment_status" class="form-select" required>
                                     
                                     <option value="0">Pending</option>
-                                    @if (in_array(auth()->user()->userType->name, ['vice-chancellor']))
+                                    @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'registrar']))
                                     <option value="2">Failed</option>
                                     <option value="1">Successful</option>
                                     @endif
