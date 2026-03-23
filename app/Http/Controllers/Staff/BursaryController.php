@@ -829,7 +829,7 @@ class BursaryController extends Controller
         $manualTransactions = Transaction::with('user')
             ->where('payment_method', 'manual')
             ->latest()
-            ->paginate(10);
+            ->paginate(50);
 
         return view('staff.bursary.create-transaction', compact('paymentTypes', 'sessions', 'manualTransactions'));
     }
