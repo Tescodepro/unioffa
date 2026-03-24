@@ -361,6 +361,8 @@ Route::prefix('staff')->group(function () {
                 Route::get('/system-settings', 'index')->name('system_settings.index');
                 Route::post('/system-settings', 'update')->name('system_settings.update');
             });
+            
+            Route::resource('course-registration-settings', \App\Http\Controllers\Staff\Ict\CourseRegistrationSettingController::class);
         });
     });
 });

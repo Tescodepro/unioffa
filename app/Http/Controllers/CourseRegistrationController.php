@@ -74,6 +74,18 @@ class CourseRegistrationController extends Controller
 
         // If payment not cleared, we still need to pass everything to the view
         // to avoid "undefined variable" errors and show the payment warning/filter
+        $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($student, $currentSession, $currentSemester);
+        $hasPaidLateFee = false;
+        
+        if ($courseRegistrationSetting && now()->gt($courseRegistrationSetting->closing_date)) {
+            $hasPaidLateFee = \App\Models\Transaction::where('user_id', $user->id)
+                ->where('payment_type', 'late_course_registration')
+                ->where('payment_status', 1)
+                ->where('session', $currentSession)
+                ->where('semester', $currentSemester)
+                ->exists();
+        }
+
         if (!$payment_status['allCleared']) {
             $courses = collect();
             
@@ -106,7 +118,9 @@ class CourseRegistrationController extends Controller
                 'maxSessionUnits',
                 'currentSemesterUnits',
                 'currentSessionUnits',
-                'currentSemester'
+                'currentSemester',
+                'courseRegistrationSetting',
+                'hasPaidLateFee'
             ))->with('error', $hasPartialTuitionAccess ? null : 'You must clear all outstanding payments before registering courses.');
         }
 
@@ -132,7 +146,9 @@ class CourseRegistrationController extends Controller
             'maxSessionUnits',
             'currentSemesterUnits',
             'currentSessionUnits',
-            'currentSemester'
+            'currentSemester',
+            'courseRegistrationSetting',
+            'hasPaidLateFee'
         ));
     }
 

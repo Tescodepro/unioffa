@@ -4,72 +4,103 @@
         <h4 class="mb-3">Available Courses</h4>
     </div>
     <div class="card-body p-0 py-3">
-        <form method="POST" action="{{ route('students.course.registration') }}" id="courseForm">
-            @csrf
-            <div class="custom-datatable-filter table-responsive">
-                <!-- Search Box Removed -->
+        @if(isset($courseRegistrationSetting) && now()->gt($courseRegistrationSetting->closing_date) && !$hasPaidLateFee)
+            <div class="p-4 text-center">
+                <div class="mb-3">
+                    <i class="ti ti-alert-circle text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <h5 class="text-danger">Registration Period Closed</h5>
+                <p class="text-muted mb-4">The deadline for course registration has passed. You are required to pay a late registration fee of <strong>₦{{ number_format($courseRegistrationSetting->late_registration_fee, 2) }}</strong> to unlock course registration.</p>
+                
+                <form method="POST" action="{{ route('application.payment.process') }}">
+                    @csrf
+                    <input type="hidden" name="fee_type" value="late_course_registration">
+                    <input type="hidden" name="amount" value="{{ $courseRegistrationSetting->late_registration_fee }}">
+                    
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="form-check form-check-inline me-4">
+                            <input class="form-check-input" type="radio" name="payment_method" id="paystack" value="paystack" checked>
+                            <label class="form-check-label fw-bold" for="paystack">Pay with Paystack</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="payment_method" id="monnify" value="monnify">
+                            <label class="form-check-label fw-bold" for="monnify">Pay with Monnify</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary px-4 py-2">
+                        <i class="ti ti-credit-card me-2"></i> Pay Late Registration Fee
+                    </button>
+                </form>
+            </div>
+        @else
+            <form method="POST" action="{{ route('students.course.registration') }}" id="courseForm">
+                @csrf
+                <div class="custom-datatable-filter table-responsive">
+                    <!-- Search Box Removed -->
 
-                <table class="table align-middle" id="availableCoursesTable">
-                    <thead class="thead-light">
-                        <tr>
-                            <th class="no-sort">
-                                <div class="form-check form-check-md">
-                                    <input class="form-check-input" type="checkbox" id="select-all">
-                                </div>
-                            </th>
-                            <th>Course Code</th>
-                            <th>Title</th>
-                            <th>Unit</th>
-                            <th>Status</th>
-                            <th>Semester</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($courses as $course)
-                            @php
-                                $isCarryOver = in_array($course->id, $failedCourseIds ?? []);
-                            @endphp
+                    <table class="table align-middle" id="availableCoursesTable">
+                        <thead class="thead-light">
                             <tr>
-                                <td>
+                                <th class="no-sort">
                                     <div class="form-check form-check-md">
-                                        <input class="form-check-input course-checkbox" type="checkbox" name="courses[]"
-                                            value="{{ $course->id }}" {{ $isCarryOver ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox" id="select-all">
                                     </div>
-                                </td>
-                                <td class="searchable-cell">
-                                    {{ $course->course_code }}
-                                    @if($isCarryOver)
-                                        <span class="badge bg-danger ms-1">Carry Over</span>
-                                    @endif
-                                </td>
-                                <td class="searchable-cell">{{ $course->course_title }}</td>
-                                <td>{{ $course->course_unit }}</td>
-                                <td>{{ $course->course_status ?? 'N/A' }}</td>
-                                <td>
-                                    @if ($course->semester == '1st')
-                                        <span class="badge bg-primary">First Semester</span>
-                                    @else
-                                        <span class="badge bg-info">Second Semester</span>
-                                    @endif
-                                </td>
+                                </th>
+                                <th>Course Code</th>
+                                <th>Title</th>
+                                <th>Unit</th>
+                                <th>Status</th>
+                                <th>Semester</th>
                             </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($courses as $course)
+                                @php
+                                    $isCarryOver = in_array($course->id, $failedCourseIds ?? []);
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="form-check form-check-md">
+                                            <input class="form-check-input course-checkbox" type="checkbox" name="courses[]"
+                                                value="{{ $course->id }}" {{ $isCarryOver ? 'checked' : '' }}>
+                                        </div>
+                                    </td>
+                                    <td class="searchable-cell">
+                                        {{ $course->course_code }}
+                                        @if($isCarryOver)
+                                            <span class="badge bg-danger ms-1">Carry Over</span>
+                                        @endif
+                                    </td>
+                                    <td class="searchable-cell">{{ $course->course_title }}</td>
+                                    <td>{{ $course->course_unit }}</td>
+                                    <td>{{ $course->course_status ?? 'N/A' }}</td>
+                                    <td>
+                                        @if ($course->semester == '1st')
+                                            <span class="badge bg-primary">First Semester</span>
+                                        @else
+                                            <span class="badge bg-info">Second Semester</span>
+                                        @endif
+                                    </td>
+                                </tr>
 
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted">
-                                    No courses available for your department and level.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-3 text-end">
-                <button type="submit" class="btn btn-success">
-                    <i class="ti ti-check me-1"></i> Register Selected Courses
-                </button>
-            </div>
-        </form>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        No courses available for your department and level.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3 text-end px-3">
+                    <button type="submit" class="btn btn-success">
+                        <i class="ti ti-check me-1"></i> Register Selected Courses
+                    </button>
+                </div>
+            </form>
+        @endif
     </div>
 </div>
 <!-- /Available Courses -->

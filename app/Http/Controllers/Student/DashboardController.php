@@ -92,7 +92,15 @@ class DashboardController extends Controller
         //  FINAL RELOAD - Ensure dashboard has latest data
         $user->load('student.department.faculty');
 
-        return view('student.dashboard', compact('user'));
+        $currentSession = activeSession()->name ?? null;
+        $activeSemester = activeSemester();
+        $currentSemester = $activeSemester->code ?? ($activeSemester->name ?? null);
+        $courseRegistrationSetting = null;
+        if ($user->student) {
+            $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($user->student, $currentSession, $currentSemester);
+        }
+
+        return view('student.dashboard', compact('user', 'courseRegistrationSetting'));
     }
 
     public function loadPayment()
