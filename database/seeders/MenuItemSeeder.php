@@ -271,6 +271,15 @@ class MenuItemSeeder extends Seeder
                 'permission_identifier' => 'manage_settings',
                 'sort_order' => 40,
             ],
+            [
+                'section' => 'Academic Setup',
+                'label' => 'Course Reg Settings',
+                'icon' => 'ti ti-adjustments-alt',
+                'route_name' => 'ict.course-registration-settings.index',
+                'route_pattern' => 'staff/ict/course-registration-settings*',
+                'permission_identifier' => 'manage_settings',
+                'sort_order' => 50,
+            ],
 
             // ── User Search ───────────────────────────────────────────────────
             [
