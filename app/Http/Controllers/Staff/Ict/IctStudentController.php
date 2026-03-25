@@ -40,7 +40,6 @@ class IctStudentController extends Controller
             ->get()
             ->map(function ($faculty) {
                 $faculty->total_students = $faculty->departments->map(fn ($dept) => $dept->students->count())->sum();
-
                 return $faculty;
             });
 
@@ -334,6 +333,8 @@ class IctStudentController extends Controller
             'sex' => 'required|string',
             'entry_mode' => 'required|string|exists:entry_modes,code',
             'campus_id' => 'nullable|uuid|exists:campuses,id',
+            'date_of_birth' => 'required|date|before:today',
+            'phone' => 'required|string|unique:users,phone',
         ]);
 
         // Update user
