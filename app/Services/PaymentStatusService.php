@@ -113,13 +113,15 @@ class PaymentStatusService
             $amountPaid = $txns->sum('amount');
             $balance = max($payment->amount - $amountPaid, 0);
 
-            // Skip tuition if paid up to or beyond 56%
-            if (
-                $payment->payment_type === 'tuition' &&
-                $payment->amount > 0 &&
-                (($amountPaid / $payment->amount) * 100) >= 56
-            ) {
-                continue;
+            $percentage = $payment->amount > 0 ? ($amountPaid / $payment->amount) * 100 : 0;
+            $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
+
+            // Skip tuition if paid up to or beyond threshold
+            if ($payment->payment_type === 'tuition' && $payment->amount > 0) {
+                $threshold = $isRegularOrDiploma ? 100 : 56;
+                if ($percentage >= $threshold) {
+                    continue;
+                }
             }
 
             $data = [

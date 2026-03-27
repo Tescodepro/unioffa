@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
+use App\Models\CourseRegistration;
 use App\Models\Department;
 use App\Models\Result;
-use App\Models\CourseRegistration;
 use App\Models\Student;
-use App\Models\Course;
 use App\Services\PaymentStatusService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ class CourseRegistrationController extends Controller
         $user = Auth::user()->load('student.department.faculty');
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -30,14 +30,20 @@ class CourseRegistrationController extends Controller
         // Check payment status
         $paymentStatusService = new PaymentStatusService;
         $rawStatus = $paymentStatusService->getStatus($student, $currentSession);
-        
+
         // Key the status by payment type for easier access in view
         $keyedStatus = collect($rawStatus)->keyBy('payment_type')->toArray();
-        
+
+        $tuitionPercentage = 100; // Default if tuition not in outstanding list (cleared)
+        if (isset($keyedStatus['tuition'])) {
+            $tuitionPercentage = $keyedStatus['tuition']['percentage_paid'];
+        }
+
         $payment_status = [
             'status' => $keyedStatus,
             'allCleared' => $paymentStatusService->hasClearedAll($student, $currentSession),
             'outstanding' => $paymentStatusService->getTotalOutstanding($student, $currentSession),
+            'tuitionPercentage' => $tuitionPercentage,
         ];
 
         // Filters and default selections
@@ -63,9 +69,9 @@ class CourseRegistrationController extends Controller
 
         // Failed courses for Carry Over
         $failedCourseIds = Result::where('student_id', $user->id)
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->where('grade', 'F')
-                  ->orWhere('remark', 'Fail');
+                    ->orWhere('remark', 'Fail');
             })
             ->where('semester', $currentSemester)
             ->pluck('course_id')
@@ -76,7 +82,7 @@ class CourseRegistrationController extends Controller
         // to avoid "undefined variable" errors and show the payment warning/filter
         $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($student, $currentSession, $currentSemester);
         $hasPaidLateFee = false;
-        
+
         if ($courseRegistrationSetting && now()->gt($courseRegistrationSetting->closing_date)) {
             $hasPaidLateFee = \App\Models\Transaction::where('user_id', $user->id)
                 ->where('payment_type', 'late_course_registration')
@@ -86,18 +92,26 @@ class CourseRegistrationController extends Controller
                 ->exists();
         }
 
-        if (!$payment_status['allCleared']) {
+        if (! $payment_status['allCleared']) {
             $courses = collect();
-            
+
             // Allow showing courses if tuition is >= 60% and it's 1st semester
-            $hasPartialTuitionAccess = isset($keyedStatus['tuition']) && 
-                                      $keyedStatus['tuition']['percentage_paid'] >= 60 && 
-                                      strtolower($currentSemester) === '1st';
+            $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
+
+            $hasPartialTuitionAccess = $isRegularOrDiploma
+                ? ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st')
+                : (isset($keyedStatus['tuition']) && $keyedStatus['tuition']['percentage_paid'] >= 60 && strtolower($currentSemester) === '1st');
 
             if ($hasPartialTuitionAccess) {
                 $courses = Course::where('active_for_register', 1)
                     ->where('level', $selectedLevel)
-                    ->where('semester', $currentSemester)
+                    ->where(function ($q) use ($currentSemester, $isRegularOrDiploma, $tuitionPercentage) {
+                        if ($isRegularOrDiploma && $tuitionPercentage >= 100) {
+                            // Don't filter by semester (allow both)
+                        } else {
+                            $q->where('semester', $currentSemester);
+                        }
+                    })
                     ->where(function ($query) use ($selectedDepartmentId) {
                         $query->where('department_id', $selectedDepartmentId)
                             ->orWhereJsonContains('other_departments', $selectedDepartmentId);
@@ -124,9 +138,16 @@ class CourseRegistrationController extends Controller
             ))->with('error', $hasPartialTuitionAccess ? null : 'You must clear all outstanding payments before registering courses.');
         }
 
+        $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
         $courses = Course::where('active_for_register', 1)
             ->where('level', $selectedLevel)
-            ->where('semester', $currentSemester)
+            ->where(function ($q) use ($currentSemester, $isRegularOrDiploma, $tuitionPercentage) {
+                if ($isRegularOrDiploma && $tuitionPercentage >= 100) {
+                    // Don't filter by semester (allow both)
+                } else {
+                    $q->where('semester', $currentSemester);
+                }
+            })
             ->where(function ($query) use ($selectedDepartmentId) {
                 $query->where('department_id', $selectedDepartmentId)
                     ->orWhereJsonContains('other_departments', $selectedDepartmentId);
@@ -134,12 +155,12 @@ class CourseRegistrationController extends Controller
             ->get();
 
         return view('student.course-registration', compact(
-            'courses', 
-            'registeredCourses', 
-            'payment_status', 
-            'departments', 
-            'levels', 
-            'selectedDepartmentId', 
+            'courses',
+            'registeredCourses',
+            'payment_status',
+            'departments',
+            'levels',
+            'selectedDepartmentId',
             'selectedLevel',
             'failedCourseIds',
             'maxSemesterUnits',
@@ -162,14 +183,31 @@ class CourseRegistrationController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
         // Check payment status before allowing registration
         $paymentStatusService = new PaymentStatusService;
-        if (!$paymentStatusService->hasClearedAll($student, activeSession()->name)) {
-            return redirect()->back()->with('error', 'You must clear all outstanding payments before registering courses.');
+        $currentSession = activeSession()->name;
+        $rawStatus = $paymentStatusService->getStatus($student, $currentSession);
+        $keyedStatus = collect($rawStatus)->keyBy('payment_type')->toArray();
+        $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
+
+        $tuitionPercentage = 100;
+        if (isset($keyedStatus['tuition'])) {
+            $tuitionPercentage = $keyedStatus['tuition']['percentage_paid'];
+        }
+
+        if (! $paymentStatusService->hasClearedAll($student, $currentSession)) {
+            $canRegisterPartial = $isRegularOrDiploma && $tuitionPercentage >= 60;
+
+            // Ensure no other fees except tuition are pending for partial access
+            $otherPending = collect($keyedStatus)->except('tuition')->count();
+
+            if (! $canRegisterPartial || $otherPending > 0) {
+                return redirect()->back()->with('error', 'You must clear all outstanding payments before registering courses.');
+            }
         }
 
         $currentSession = activeSession()->name;
@@ -183,18 +221,25 @@ class CourseRegistrationController extends Controller
         // Calculate units for new courses only
         $newRequestedCourseIds = [];
         $newUnits = 0;
-        
+
         foreach ($request->courses as $courseId) {
             $course = Course::find($courseId);
-            if (!$course || !$course->active_for_register) continue;
+            if (! $course || ! $course->active_for_register) {
+                continue;
+            }
+
+            // Enforce semester restriction for REGULAR/DIPLOMA with < 100% tuition
+            if ($isRegularOrDiploma && $tuitionPercentage < 100 && strtolower($course->semester) === '2nd') {
+                return redirect()->back()->with('error', "You must pay 100% of your tuition to register for 2nd semester courses like {$course->course_code}.");
+            }
 
             $exists = CourseRegistration::where('student_id', $user->id)
                 ->where('course_id', $courseId)
                 ->where('session', $currentSession)
-                ->where('semester', $currentSemester)
+                ->where('semester', $course->semester)
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 $newRequestedCourseIds[] = $courseId;
                 $newUnits += $course->course_unit;
             }
@@ -204,14 +249,16 @@ class CourseRegistrationController extends Controller
             return redirect()->back()->with('info', 'No new courses were selected for registration.');
         }
 
-        // Check current semester total
+        // Check semester total (using course semester)
+        // Note: For partial registration, they can only do 1st semester anyway
+        $semesterForLimit = $currentSemester; // Default to active
         $currentSemesterTotal = CourseRegistration::where('student_id', $user->id)
             ->where('session', $currentSession)
-            ->where('semester', $currentSemester)
+            ->where('semester', $semesterForLimit)
             ->sum('course_unit');
 
         if (($currentSemesterTotal + $newUnits) > $maxSemesterUnits) {
-            return redirect()->back()->with('error', "Limit Exceeded: Adding these courses would bring your total to " . ($currentSemesterTotal + $newUnits) . " units, which exceeds the semester limit of {$maxSemesterUnits}.");
+            return redirect()->back()->with('error', 'Limit Exceeded: Adding these courses would bring your total to '.($currentSemesterTotal + $newUnits)." units, which exceeds the semester limit of {$maxSemesterUnits}.");
         }
 
         // Check current session total
@@ -220,7 +267,7 @@ class CourseRegistrationController extends Controller
             ->sum('course_unit');
 
         if (($currentSessionTotal + $newUnits) > $maxSessionUnits) {
-            return redirect()->back()->with('error', "Limit Exceeded: Adding these courses would bring your total to " . ($currentSessionTotal + $newUnits) . " units, which exceeds the session limit of {$maxSessionUnits}.");
+            return redirect()->back()->with('error', 'Limit Exceeded: Adding these courses would bring your total to '.($currentSessionTotal + $newUnits)." units, which exceeds the session limit of {$maxSessionUnits}.");
         }
 
         foreach ($newRequestedCourseIds as $courseId) {
@@ -234,7 +281,7 @@ class CourseRegistrationController extends Controller
                 'course_title' => $course->course_title,
                 'course_unit' => $course->course_unit,
                 'session' => $currentSession,
-                'semester' => $currentSemester,
+                'semester' => $course->semester,
                 'status' => 'pending',
             ]);
             $successCount++;
@@ -268,7 +315,7 @@ class CourseRegistrationController extends Controller
         $user = Auth::user();
         $student = $user->student;
 
-        if (!$student) {
+        if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
         }
 
@@ -286,7 +333,7 @@ class CourseRegistrationController extends Controller
             'schoolName' => \App\Models\SystemSetting::get('school_name', 'University of Offa'),
         ]);
 
-        return $pdf->download('course_form_' . $student->user->full_name . '.pdf');
+        return $pdf->download('course_form_'.$student->user->full_name.'.pdf');
     }
 
     public function removeCourse($id)
