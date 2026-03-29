@@ -39,7 +39,7 @@
         }
 
         .content {
-            padding: 10px 40px 30px 40px;
+            padding: 0px 40px 30px 40px;
             position: relative;
             z-index: 1;
         }
@@ -126,11 +126,11 @@
             }
 
             .content {
-                padding: 10px 50px 100px 50px;
+                padding: 0px 50px 100px 50px;
             }
 
             .signature-block {
-                margin-top: 10px;
+                margin-top: 5px;
             }
         }
 
