@@ -109,18 +109,20 @@ class PaymentSetting extends Model
             ->when($student->programme, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
                     $sub->whereNull('student_type')
+                        ->orWhere('student_type', '[]')
                         ->orWhereJsonContains('student_type', $student->programme);
                 });
             }, function ($q) {
-                $q->whereNull('student_type');
+                $q->whereNull('student_type')->orWhere('student_type', '[]');
             })
             ->when($effectiveLevel, function ($q) use ($effectiveLevel) {
                 $q->where(function ($sub) use ($effectiveLevel) {
                     $sub->whereNull('level')
+                        ->orWhere('level', '[]')
                         ->orWhereJsonContains('level', $effectiveLevel);
                 });
             }, function ($q) {
-                $q->whereNull('level');
+                $q->whereNull('level')->orWhere('level', '[]');
             })
             ->when($student->department?->faculty_id, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
@@ -144,6 +146,7 @@ class PaymentSetting extends Model
             })
             ->where(function ($q) use ($student) {
                 $q->whereNull('entry_mode')
+                    ->orWhere('entry_mode', '[]')
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
             ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {

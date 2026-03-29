@@ -48,12 +48,17 @@ class PaymentStatusService
         $paymentSettings = PaymentSetting::query()
             ->where(function ($q) use ($student) {
                 $q->whereNull('student_type')
+                    ->orWhere('student_type', '[]')
                     ->orWhereJsonContains('student_type', $student->programme);
             })
             ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
                 $query->where('payment_type', '!=', 'matriculation');
             })
-            ->whereJsonContains('level', (int) $level_payment)
+            ->where(function ($q) use ($level_payment) {
+                $q->whereNull('level')
+                    ->orWhere('level', '[]')
+                    ->orWhereJsonContains('level', (int) $level_payment);
+            })
             ->where('session', $session)
             ->when($student->department?->faculty_id, function ($q) use ($student) {
                 $q->where(function ($sub) use ($student) {
@@ -77,6 +82,7 @@ class PaymentStatusService
             })
             ->where(function ($q) use ($student) {
                 $q->whereNull('entry_mode')
+                    ->orWhere('entry_mode', '[]')
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
             ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
