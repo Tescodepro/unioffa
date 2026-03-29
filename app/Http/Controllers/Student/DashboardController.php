@@ -11,6 +11,7 @@ use App\Models\Student;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\HostelAssignmentService;
+use App\Services\LatePaymentService;
 use App\Services\MatricNumberGenerationService;
 use App\Services\PaymentService;
 use App\Services\StudentMigrationService;
@@ -222,7 +223,7 @@ class DashboardController extends Controller
             ->groupBy('payment_type');
 
         //  3. Dynamic computation using DB installment fields
-        $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions) {
+        $paymentSettings = $paymentSettings->map(function ($payment) use ($transactions, $student, $currentSession, $currentSemester) {
             // If the fee is semester-specific, only count transactions matching that semester.
             // If it's session-wide (no semester), count ALL transactions for that payment_type.
             $allForType = $transactions->get($payment->payment_type, collect());
@@ -285,9 +286,47 @@ class DashboardController extends Controller
 
                 $payment->installment_scheme = $options->toArray();
             }
+            
+            // LATE PAYMENT PENALTY CHECK
+            $latePaymentService = app(LatePaymentService::class);
+            $penaltyCheck = $latePaymentService->checkPenalty($student, $payment->payment_type, $currentSession, $currentSemester);
+            $payment->has_late_penalty = false;
+            
+            if ($penaltyCheck['has_penalty'] && !$penaltyCheck['is_cleared'] && $payment->balance > 0) {
+                // If a penalty applies and isn't cleared, the standard payment is blocked
+                $payment->has_late_penalty = true;
+                $payment->late_penalty_amount = $penaltyCheck['penalty_amount'];
+            }
 
             return $payment;
         });
+
+        // INJECT SYNTHETIC PAYMENT SETTINGS FOR ACTIVE PENALTIES
+        $syntheticPenalties = collect();
+        foreach ($paymentSettings as $payment) {
+            if ($payment->has_late_penalty) {
+                $penaltyType = $payment->payment_type . '_late_payment';
+                // Create a synthetic PaymentSetting for the penalty
+                $penaltySetting = new \App\Models\PaymentSetting([
+                    'payment_type' => $penaltyType,
+                    'amount' => $payment->late_penalty_amount,
+                    'description' => 'Late Penalty for ' . ucfirst(str_replace('_', ' ', $payment->payment_type)),
+                ]);
+                
+                // Assign properties manually since they won't automatically be computed
+                $penaltySetting->id = 'penalty-' . $payment->id;
+                $penaltySetting->amount_paid = 0;
+                $penaltySetting->balance = $payment->late_penalty_amount;
+                $penaltySetting->installment_count = 0;
+                $penaltySetting->installment_scheme = [];
+                $penaltySetting->max_installments = 1;
+                $penaltySetting->installmental_allow_status = 0;
+
+                $syntheticPenalties->push($penaltySetting);
+            }
+        }
+        
+        $paymentSettings = $paymentSettings->merge($syntheticPenalties);
 
         return view('student.payment', compact('paymentSettings', 'currentSession'));
     }

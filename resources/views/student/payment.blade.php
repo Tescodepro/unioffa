@@ -150,10 +150,19 @@
                                             <td>{{ number_format($payment->balance, 2) }}</td>
                                             <td>
                                                 @if ($payment->balance > 0)
-                                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                                        data-bs-target="#paymentModal{{ $payment->id }}">
-                                                        Pay Now
-                                                    </button>
+                                                    @if (isset($payment->has_late_penalty) && $payment->has_late_penalty)
+                                                        <button type="button" class="btn btn-sm btn-secondary disabled" title="Pay your penalty fee to unlock this payment">
+                                                            <i class="fas fa-lock me-1"></i> Locked
+                                                        </button>
+                                                        <div class="small fw-bold text-danger mt-1" style="font-size: 0.75rem;">
+                                                            <i class="fas fa-exclamation-triangle"></i> Penalty Unpaid
+                                                        </div>
+                                                    @else
+                                                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                                            data-bs-target="#paymentModal{{ $payment->id }}">
+                                                            Pay Now
+                                                        </button>
+                                                    @endif
 
                                                     <!-- Payment Confirmation Modal -->
                                                     <div class="modal fade" id="paymentModal{{ $payment->id }}" tabindex="-1"

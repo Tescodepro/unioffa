@@ -88,6 +88,22 @@ class PaymentController extends Controller
             if (!$student) {
                 return back()->with('error', 'Student record not found for this user.');
             }
+            
+            // Block payment if a late penalty is owed for this specific fee type
+            if (!str_ends_with($request->fee_type, '_late_payment')) {
+                $latePaymentService = app(\App\Services\LatePaymentService::class);
+                $penaltyCheck = $latePaymentService->checkPenalty(
+                    $student, 
+                    $request->fee_type, 
+                    activeSession()->name ?? '', 
+                    activeSemester()->code ?? ''
+                );
+                
+                if ($penaltyCheck['has_penalty'] && !$penaltyCheck['is_cleared']) {
+                    return back()->with('error', 'This payment is blocked due to an outstanding late payment penalty. Please pay the penalty first.');
+                }
+            }
+            
             $split_code = $this->splitGet($request->fee_type, $student->programme, $campusDetail->slug);
         }
         // Prepare gateway data

@@ -22,6 +22,7 @@ use App\Http\Controllers\Staff\Ict\UserTypeController;
 use App\Http\Controllers\Staff\Lecturer\CourseController;
 use App\Http\Controllers\Staff\Lecturer\LecturerGeneralController;
 use App\Http\Controllers\Staff\Lecturer\ResultController;
+use App\Http\Controllers\Staff\LatePaymentSettingController;
 use App\Http\Controllers\Staff\PaymentSettingController;
 use App\Http\Controllers\Staff\Registrar\RegistrarController;
 use App\Http\Controllers\Staff\SystemSettingController;
@@ -242,6 +243,14 @@ Route::prefix('staff')->group(function () {
                 Route::get('/payment-settings/{paymentSetting}/edit', 'edit')->name('bursary.payment-settings.edit');
                 Route::put('/payment-settings/{paymentSetting}', 'update')->name('bursary.payment-settings.update');
                 Route::delete('/payment-settings/{paymentSetting}', 'destroy')->name('bursary.payment-settings.destroy');
+            });
+            Route::controller(LatePaymentSettingController::class)->group(function () {
+                Route::get('/late-payment-settings', 'index')->name('bursary.late-payment-settings.index');
+                Route::post('/late-payment-settings', 'store')->name('bursary.late-payment-settings.store');
+                Route::get('/late-payment-settings/create', 'create')->name('bursary.late-payment-settings.create');
+                Route::get('/late-payment-settings/{latePaymentSetting}/edit', 'edit')->name('bursary.late-payment-settings.edit');
+                Route::put('/late-payment-settings/{latePaymentSetting}', 'update')->name('bursary.late-payment-settings.update');
+                Route::delete('/late-payment-settings/{latePaymentSetting}', 'destroy')->name('bursary.late-payment-settings.destroy');
             });
         });
 
