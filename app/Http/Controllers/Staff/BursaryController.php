@@ -841,6 +841,7 @@ class BursaryController extends Controller
             'payment_type' => 'required|string',
             'amount' => 'required|numeric|min:0',
             'session' => 'required|string',
+            'semester' => 'nullable|string|in:1st,2nd',
         ]);
 
         // Try to locate the user by username, email, or matric_no
@@ -860,6 +861,7 @@ class BursaryController extends Controller
         $transaction->payment_status = 0;
         $transaction->payment_method = 'manual';
         $transaction->session = $validated['session'];
+        $transaction->semester = $validated['semester'] ?? (activeSemester()->code ?? null);
         $transaction->description = 'manual upload by bursary'; // optional column if you want to track
         $transaction->save();
 
@@ -878,6 +880,7 @@ class BursaryController extends Controller
             'payment_type' => 'required|string',
             'amount' => 'required|numeric|min:0',
             'session' => 'required|string',
+            'semester' => 'nullable|string|in:1st,2nd',
             'payment_status' => 'required|in:0,1,2',
         ]);
 

@@ -66,6 +66,15 @@
                             </div>
 
                             <div class="col-md-6">
+                                <label class="form-label">Semester</label>
+                                <select name="semester" class="form-select">
+                                    <option value="">-- Select Semester (Optional) --</option>
+                                    <option value="1st" {{ old('semester') == '1st' ? 'selected' : '' }}>First Semester (1st)</option>
+                                    <option value="2nd" {{ old('semester') == '2nd' ? 'selected' : '' }}>Second Semester (2nd)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
                                 <label class="form-label">Payment Status</label>
                                 <select name="payment_status" class="form-select" required>
                                     
@@ -107,6 +116,7 @@
                                         <th>Payment Type</th>
                                         <th>Amount</th>
                                         <th>Session</th>
+                                        <th>Semester</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -121,6 +131,7 @@
                                             <td>{{ ucfirst($txn->payment_type) }}</td>
                                             <td>{{ number_format($txn->amount, 2) }}</td>
                                             <td>{{ $txn->session }}</td>
+                                            <td>{{ $txn->semester ?? 'N/A' }}</td>
                                             <td>
                                                 @if ($txn->payment_status == 1)
                                                     <span class="badge bg-success">Successful</span>
@@ -186,6 +197,14 @@
                                                                             {{ $session }}
                                                                         </option>
                                                                     @endforeach
+                                                                </select>
+                                                            </div>
+                                            <div class="col-md-6">
+                                                                <label class="form-label">Semester</label>
+                                                                <select name="semester" class="form-select">
+                                                                    <option value="">-- N/A --</option>
+                                                                    <option value="1st" {{ $txn->semester == '1st' ? 'selected' : '' }}>First Semester (1st)</option>
+                                                                    <option value="2nd" {{ $txn->semester == '2nd' ? 'selected' : '' }}>Second Semester (2nd)</option>
                                                                 </select>
                                                             </div>
                                                             <div class="col-md-6">

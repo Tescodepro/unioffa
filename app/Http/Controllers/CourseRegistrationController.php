@@ -105,8 +105,8 @@ class CourseRegistrationController extends Controller
             if ($hasPartialTuitionAccess) {
                 $courses = Course::where('active_for_register', 1)
                     ->where('level', $selectedLevel)
-                    ->where(function ($q) use ($currentSemester, $isRegularOrDiploma, $tuitionPercentage) {
-                        if ($isRegularOrDiploma && $tuitionPercentage >= 100) {
+                    ->where(function ($q) use ($currentSemester, $tuitionPercentage) {
+                        if ($tuitionPercentage >= 100) {
                             // Don't filter by semester (allow both)
                         } else {
                             $q->where('semester', $currentSemester);
@@ -141,8 +141,8 @@ class CourseRegistrationController extends Controller
         $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
         $courses = Course::where('active_for_register', 1)
             ->where('level', $selectedLevel)
-            ->where(function ($q) use ($currentSemester, $isRegularOrDiploma, $tuitionPercentage) {
-                if ($isRegularOrDiploma && $tuitionPercentage >= 100) {
+            ->where(function ($q) use ($currentSemester, $tuitionPercentage) {
+                if ($tuitionPercentage >= 100) {
                     // Don't filter by semester (allow both)
                 } else {
                     $q->where('semester', $currentSemester);

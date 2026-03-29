@@ -100,7 +100,7 @@ class PaymentStatusService
             ->where('user_id', $student->user_id)
             ->where('session', $session)
             ->when($studentIsSemesterAffected, function ($q) use ($activeSemester) {
-                $q->where('semester', $activeSemester->name);
+                $q->where('semester', $activeSemester->code);
             })
             ->where('payment_status', 1)
             ->get()
@@ -118,7 +118,7 @@ class PaymentStatusService
 
             // Skip tuition if paid up to or beyond threshold
             if ($payment->payment_type === 'tuition' && $payment->amount > 0) {
-                $threshold = $isRegularOrDiploma ? 100 : 56;
+                $threshold = 100; // Requirement is 100% for all
                 if ($percentage >= $threshold) {
                     continue;
                 }

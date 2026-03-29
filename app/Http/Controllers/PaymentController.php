@@ -48,7 +48,7 @@ class PaymentController extends Controller
             'payment_type' => $request->fee_type ?? 'tuition',
             'payment_method' => $gateway,
             'session' => activeSession()->name ?? '---',
-            'semester' => activeSemester()->name ?? null,
+            'semester' => activeSemester()->code ?? null,
             'meta_data' => json_encode([
                 'user_agent' => $request->userAgent(),
                 'ip_address' => $request->ip(),
@@ -109,7 +109,7 @@ class PaymentController extends Controller
                 'referee_code' => $user->referee_code,
                 'date_paid' => Carbon::now()->format('Y-m-d H:i:s'),
                 'session' => activeSession()->name ?? '---',
-                'semester' => activeSemester()->name ?? null,
+                'semester' => activeSemester()->code ?? null,
             ],
         ];
 
