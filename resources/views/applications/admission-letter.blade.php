@@ -27,7 +27,7 @@
         .letterhead {
             width: 100%;
             position: fixed;
-            top: 40px;
+            top: 100px;
             left: 0;
             z-index: 10;
         }
@@ -53,7 +53,7 @@
 
         /* Main Content Container */
         .content {
-            padding: 150px 25mm 100px 25mm;
+            padding: 50px 25mm 100px 25mm;
             /* Top space for letterhead, sides for margins */
             font-size: 11.5pt;
             line-height: 1.6;
