@@ -18,6 +18,7 @@
         .letterhead {
             width: 100%;
             display: block;
+            margin-top: 30px;
         }
 
         .footer {
@@ -38,7 +39,7 @@
         }
 
         .content {
-            padding: 15px 30px 30px 30px;
+            padding: 45px 30px 30px 30px;
             position: relative;
             z-index: 1;
         }
