@@ -11,7 +11,7 @@
             padding: 0;
             position: relative;
             font-size: 13pt;
-            line-height: 1.4;
+            line-height: 0.7;
             color: #000;
         }
 
