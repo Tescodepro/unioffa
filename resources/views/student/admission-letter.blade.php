@@ -39,7 +39,7 @@
         }
 
         .content {
-            padding: 50px 40px 30px 40px;
+            padding: 10px 40px 30px 40px;
             position: relative;
             z-index: 1;
         }
