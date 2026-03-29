@@ -27,7 +27,7 @@
         .letterhead {
             width: 100%;
             position: fixed;
-            top: 100px;
+            top: 70px;
             left: 0;
             z-index: 10;
         }
