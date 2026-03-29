@@ -86,7 +86,7 @@
 
         ul li {
             margin: 5px 0;
-            line-height: 1.3;
+            line-height: 1.3; 
         }
 
         .signature-block {
