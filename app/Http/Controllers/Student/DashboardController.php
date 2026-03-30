@@ -97,11 +97,20 @@ class DashboardController extends Controller
         $activeSemester = activeSemester();
         $currentSemester = $activeSemester->code ?? ($activeSemester->name ?? null);
         $courseRegistrationSetting = null;
+        $hasLatePenalty = false;
         if ($user->student) {
             $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($user->student, $currentSession, $currentSemester);
+            try {
+                $paymentSettings = $this->getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester);
+                if ($paymentSettings) {
+                    $hasLatePenalty = $paymentSettings->contains('has_late_penalty', true);
+                }
+            } catch (\Exception $e) {
+                Log::error("Failed to fetch payment settings for dashboard check: ".$e->getMessage());
+            }
         }
 
-        return view('student.dashboard', compact('user', 'courseRegistrationSetting'));
+        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty'));
     }
 
     public function loadPayment()
@@ -118,6 +127,17 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'No active session found.');
         }
 
+        $paymentSettings = $this->getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester);
+
+        if (!$paymentSettings || $paymentSettings->isEmpty()) {
+            return redirect()->back()->with('error', 'No payment settings found for your profile.');
+        }
+
+        return view('student.payment', compact('paymentSettings', 'currentSession'));
+    }
+
+    public function getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester)
+    {
         $student = $user->student;
         $effectiveLevel = (int) $student->level;
         if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
@@ -208,7 +228,7 @@ class DashboardController extends Controller
             ->get();
 
         if ($paymentSettings->isEmpty()) {
-            return redirect()->back()->with('error', 'No payment settings found for your profile.');
+            return collect();
         }
 
         //  2. Fetch student transactions (filtered by semester when applicable)
@@ -216,7 +236,7 @@ class DashboardController extends Controller
             ->where('user_id', $user->id)
             ->where('session', $currentSession)
             ->when($studentIsSemesterAffected, function ($q) use ($activeSemester) {
-                $q->where('semester', $activeSemester->name);
+                $q->where('semester', $activeSemester->name ?? null);
             })
             ->where('payment_status', 1)
             ->get()
@@ -326,9 +346,7 @@ class DashboardController extends Controller
             }
         }
         
-        $paymentSettings = $paymentSettings->merge($syntheticPenalties);
-
-        return view('student.payment', compact('paymentSettings', 'currentSession'));
+        return $paymentSettings->merge($syntheticPenalties);
     }
 
     public function paymentHistory()

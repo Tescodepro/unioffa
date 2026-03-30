@@ -94,18 +94,22 @@
                                     @endpush
                                 @endif
                             @endif
-                            @if(isset($latePaymentSetting) && $latePaymentSetting->is_active)
+                            @if(isset($hasLatePenalty) && $hasLatePenalty)
                                 <div class="col-xl-12 d-flex mb-4">
                                     <div class="card bg-danger-subtle border-0 flex-fill">
                                         <div class="card-body">
                                             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                                                <div>
-                                                    <h5 class="text-danger mb-1">Late Payment Penalty</h5>
-                                                    <p class="mb-0">Please pay your late payment penalty to avoid further
-                                                        penalties.</p>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="avatar avatar-md bg-danger text-white rounded">
+                                                        <i class="ti ti-alert-triangle fs-16"></i>
+                                                    </span>
+                                                    <div>
+                                                        <h5 class="text-danger mb-1">Late Payment Penalty</h5>
+                                                        <p class="mb-0">Please pay your late payment penalty to restore standard payment features.</p>
+                                                    </div>
                                                 </div>
                                                 <div class="text-end">
-                                                    <a href="{{ route('students.payment') }}" class="btn btn-danger">Pay Now</a>
+                                                    <a href="{{ route('students.load_payment') }}" class="btn btn-danger">Pay Now</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -263,6 +267,41 @@
 
     </div>
     <!-- /Main Wrapper -->
+
+    @if(isset($hasLatePenalty) && $hasLatePenalty)
+        <!-- Late Penalty Modal -->
+        <div class="modal fade" id="latePenaltyModal" tabindex="-1" aria-labelledby="latePenaltyModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-danger text-white border-0">
+                        <h5 class="modal-title" id="latePenaltyModalLabel"><i class="ti ti-alert-circle me-2"></i> Action Required: Late Payment Penalty</h5>
+                    </div>
+                    <div class="modal-body text-center p-4">
+                        <div class="mb-3">
+                            <span class="avatar avatar-xl bg-danger-transparent rounded-circle">
+                                <i class="ti ti-alert-triangle text-danger fs-24"></i>
+                            </span>
+                        </div>
+                        <h5 class="mb-2">Outstanding Penalty Detected</h5>
+                        <p class="mb-0 text-muted">You have an active late payment penalty that requires immediate attention. You must clear this penalty to restore full access to your account and continue with standard transactions.</p>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center pb-4 pt-0">
+                        <a href="{{ route('students.load_payment') }}" class="btn btn-danger w-100">Pay Penalty Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var latePenaltyModal = new bootstrap.Modal(document.getElementById('latePenaltyModal'));
+                    latePenaltyModal.show();
+                });
+            </script>
+        @endpush
+    @endif
+
 @endsection
 
 @push('scripts')
