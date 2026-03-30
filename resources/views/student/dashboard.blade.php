@@ -44,55 +44,74 @@
                             <!-- /Profile Card -->
 
                             @if(isset($courseRegistrationSetting))
-                            <div class="col-xl-12 d-flex mb-4">
-                                <div class="card bg-primary-subtle border-0 flex-fill">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                                            <div>
-                                                <h5 class="text-primary mb-1">Course Registration Deadline</h5>
-                                                <p class="mb-0">Please register before the deadline to avoid a late fee of ₦{{ number_format($courseRegistrationSetting->late_registration_fee, 2) }}.</p>
-                                            </div>
-                                            <div class="text-end">
-                                                @if(now()->gt($courseRegistrationSetting->closing_date))
-                                                    <h4 class="text-danger mb-0">Closed</h4>
-                                                    <small class="text-danger">Late registration fee applicable</small>
-                                                @else
-                                                    <h4 class="text-primary mb-0" id="course-countdown">
-                                                        Loading...
-                                                    </h4>
-                                                @endif
+                                <div class="col-xl-12 d-flex mb-4">
+                                    <div class="card bg-primary-subtle border-0 flex-fill">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                <div>
+                                                    <h5 class="text-primary mb-1">Course Registration Deadline</h5>
+                                                    <p class="mb-0">Please register before the deadline to avoid a late fee of
+                                                        ₦{{ number_format($courseRegistrationSetting->late_registration_fee, 2) }}.
+                                                    </p>
+                                                </div>
+                                                <div class="text-end">
+                                                    @if(now()->gt($courseRegistrationSetting->closing_date))
+                                                        <h4 class="text-danger mb-0">Closed</h4>
+                                                        <small class="text-danger">Late registration fee applicable</small>
+                                                    @else
+                                                        <h4 class="text-primary mb-0" id="course-countdown">
+                                                            Loading...
+                                                        </h4>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            @if(!now()->gt($courseRegistrationSetting->closing_date))
-                            @push('scripts')
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        const deadline = new Date("{{ \Carbon\Carbon::parse($courseRegistrationSetting->closing_date)->toIso8601String() }}").getTime();
-                                        const countdownEl = document.getElementById('course-countdown');
-                                        setInterval(() => {
-                                            const now = new Date().getTime();
-                                            const distance = deadline - now;
-                                            if (distance < 0) {
-                                                countdownEl.innerHTML = "Closed";
-                                                countdownEl.classList.remove('text-primary');
-                                                countdownEl.classList.add('text-danger');
-                                                return;
-                                            }
-                                            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                                            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                                            countdownEl.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
-                                        }, 1000);
-                                    });
-                                </script>
-                            @endpush
+                                @if(!now()->gt($courseRegistrationSetting->closing_date))
+                                    @push('scripts')
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function () {
+                                                const deadline = new Date("{{ \Carbon\Carbon::parse($courseRegistrationSetting->closing_date)->toIso8601String() }}").getTime();
+                                                const countdownEl = document.getElementById('course-countdown');
+                                                setInterval(() => {
+                                                    const now = new Date().getTime();
+                                                    const distance = deadline - now;
+                                                    if (distance < 0) {
+                                                        countdownEl.innerHTML = "Closed";
+                                                        countdownEl.classList.remove('text-primary');
+                                                        countdownEl.classList.add('text-danger');
+                                                        return;
+                                                    }
+                                                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                                    countdownEl.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+                                                }, 1000);
+                                            });
+                                        </script>
+                                    @endpush
+                                @endif
                             @endif
+                            @if(isset($latePaymentSetting) && $latePaymentSetting->is_active)
+                                <div class="col-xl-12 d-flex mb-4">
+                                    <div class="card bg-danger-subtle border-0 flex-fill">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                <div>
+                                                    <h5 class="text-danger mb-1">Late Payment Penalty</h5>
+                                                    <p class="mb-0">Please pay your late payment penalty to avoid further
+                                                        penalties.</p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <a href="{{ route('students.payment') }}" class="btn btn-danger">Pay Now</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             @endif
-
                             <!-- Quick Actions -->
 
                             <div class="col-xl-12 d-flex">
