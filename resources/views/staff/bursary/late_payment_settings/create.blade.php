@@ -128,8 +128,8 @@
                                     <label class="form-label fw-medium text-dark">Target Entry Modes <span class="text-muted small fw-normal">(Optional)</span></label>
                                     <select name="entry_mode[]" class="form-select select2 @error('entry_mode') is-invalid @enderror" multiple="multiple">
                                         @foreach ($entryModes as $mode)
-                                            <option value="{{ $mode->name }}" {{ in_array($mode->name, old('entry_mode', [])) ? 'selected' : '' }}>
-                                                {{ $mode->name }}
+                                            <option value="{{ $mode->code }}" {{ in_array($mode->code, old('entry_mode', [])) ? 'selected' : '' }}>
+                                                {{ $mode->name }} ({{ $mode->code }})
                                             </option>
                                         @endforeach
                                     </select>
