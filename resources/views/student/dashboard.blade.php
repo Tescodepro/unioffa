@@ -109,6 +109,10 @@
                                                     </div>
                                                 </div>
                                                 <div class="text-end">
+                                                    @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                                                        <h6 class="text-danger mb-1">Fee increases to ₦{{ number_format($closestIncrementAmount, 2) }} in:</h6>
+                                                        <h5 class="text-danger fw-bold mb-2" id="penalty-increment-countdown">Loading...</h5>
+                                                    @endif
                                                     <a href="{{ route('students.load_payment') }}" class="btn btn-danger">Pay Now</a>
                                                 </div>
                                             </div>
@@ -284,6 +288,13 @@
                         </div>
                         <h5 class="mb-2">Outstanding Penalty Detected</h5>
                         <p class="mb-0 text-muted">You have an active late payment penalty that requires immediate attention. You must clear this penalty to restore full access to your account and continue with standard transactions.</p>
+                        @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                            <div class="mt-3 p-3 bg-white rounded border border-danger-transparent text-start shadow-sm">
+                                <h6 class="text-danger mb-1"><i class="ti ti-clock-stop me-1"></i> Time Before Fee Increase</h6>
+                                <p class="small mb-1 text-muted">The penalty will increase to <strong>₦{{ number_format($closestIncrementAmount, 2) }}</strong>.</p>
+                                <h4 class="text-danger fw-bold mb-0" id="modal-penalty-increment-countdown">Loading timer...</h4>
+                            </div>
+                        @endif
                     </div>
                     <div class="modal-footer border-0 justify-content-center pb-4 pt-0">
                         <a href="{{ route('students.load_payment') }}" class="btn btn-danger w-100">Pay Penalty Now</a>
@@ -297,9 +308,38 @@
                 document.addEventListener('DOMContentLoaded', function () {
                     var latePenaltyModal = new bootstrap.Modal(document.getElementById('latePenaltyModal'));
                     latePenaltyModal.show();
-                });
-            </script>
-        @endpush
+                        @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                            const incDeadline = new Date("{{ \Carbon\Carbon::parse($closestIncrementDate)->toIso8601String() }}").getTime();
+                            const incEls = [
+                                document.getElementById('penalty-increment-countdown'),
+                                document.getElementById('modal-penalty-increment-countdown')
+                            ];
+                            
+                            setInterval(() => {
+                                const now = new Date().getTime();
+                                const distance = incDeadline - now;
+                                
+                                if (distance < 0) {
+                                    incEls.forEach(el => {
+                                        if (el) el.innerHTML = "Fee Increased";
+                                    });
+                                    return;
+                                }
+                                
+                                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                const timeStr = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+                                
+                                incEls.forEach(el => {
+                                    if (el) el.innerHTML = timeStr;
+                                });
+                            }, 1000);
+                        @endif
+                    });
+                </script>
+            @endpush
     @endif
 
 @endsection

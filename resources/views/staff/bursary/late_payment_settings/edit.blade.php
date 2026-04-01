@@ -75,6 +75,31 @@
                                     @enderror
                                     <small class="text-muted mt-1 d-block">After this exact time, the original fee cannot be paid until the penalty above is paid.</small>
                                 </div>
+
+                                <div class="col-12"><hr class="text-muted"></div>
+
+                                {{-- Increment Penalty Amount --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium text-dark">Tier 2 Penalty Amount (₦) <span class="text-muted small fw-normal">(Optional)</span></label>
+                                    <input type="number" step="0.01" name="increment_amount" id="increment_amount"
+                                        class="form-control @error('increment_amount') is-invalid @enderror"
+                                        value="{{ old('increment_amount', $latePaymentSetting->increment_amount) }}">
+                                    @error('increment_amount')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="text-muted mt-1 d-block"><i class="ti ti-info-circle"></i> If not paid by the date below, the penalty increases to this total amount.</small>
+                                </div>
+
+                                {{-- Increment Date --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium text-dark">Tier 2 Escalation Date & Time <span class="text-muted small fw-normal">(Optional)</span></label>
+                                    <input type="datetime-local" name="increment_date" class="form-control @error('increment_date') is-invalid @enderror" value="{{ old('increment_date', $latePaymentSetting->increment_date ? \Carbon\Carbon::parse($latePaymentSetting->increment_date)->format('Y-m-d\TH:i') : '') }}">
+                                    @error('increment_date')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="col-12"><hr class="text-muted"></div>
                                 
                                 {{-- Campus --}}
                                 <div class="col-md-6">

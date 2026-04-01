@@ -98,19 +98,28 @@ class DashboardController extends Controller
         $currentSemester = $activeSemester->code ?? ($activeSemester->name ?? null);
         $courseRegistrationSetting = null;
         $hasLatePenalty = false;
+        $closestIncrementDate = null;
+        $closestIncrementAmount = null;
+
         if ($user->student) {
             $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($user->student, $currentSession, $currentSemester);
             try {
                 $paymentSettings = $this->getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester);
                 if ($paymentSettings) {
                     $hasLatePenalty = $paymentSettings->contains('has_late_penalty', true);
+
+                    if ($hasLatePenalty) {
+                        $penalty = $paymentSettings->firstWhere('has_late_penalty', true);
+                        $closestIncrementDate = $penalty->increment_date ?? null;
+                        $closestIncrementAmount = $penalty->increment_amount ?? null;
+                    }
                 }
             } catch (\Exception $e) {
-                Log::error("Failed to fetch payment settings for dashboard check: ".$e->getMessage());
+                Log::error('Failed to fetch payment settings for dashboard check: '.$e->getMessage());
             }
         }
 
-        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty'));
+        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty', 'closestIncrementDate', 'closestIncrementAmount'));
     }
 
     public function loadPayment()
@@ -129,7 +138,7 @@ class DashboardController extends Controller
 
         $paymentSettings = $this->getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester);
 
-        if (!$paymentSettings || $paymentSettings->isEmpty()) {
+        if (! $paymentSettings || $paymentSettings->isEmpty()) {
             return redirect()->back()->with('error', 'No payment settings found for your profile.');
         }
 
@@ -306,16 +315,18 @@ class DashboardController extends Controller
 
                 $payment->installment_scheme = $options->toArray();
             }
-            
+
             // LATE PAYMENT PENALTY CHECK
             $latePaymentService = app(LatePaymentService::class);
             $penaltyCheck = $latePaymentService->checkPenalty($student, $payment->payment_type, $currentSession, $currentSemester);
             $payment->has_late_penalty = false;
-            
-            if ($penaltyCheck['has_penalty'] && !$penaltyCheck['is_cleared'] && $payment->balance > 0) {
+
+            if ($penaltyCheck['has_penalty'] && ! $penaltyCheck['is_cleared'] && $payment->balance > 0) {
                 // If a penalty applies and isn't cleared, the standard payment is blocked
                 $payment->has_late_penalty = true;
                 $payment->late_penalty_amount = $penaltyCheck['penalty_amount'];
+                $payment->increment_amount = $penaltyCheck['increment_amount'];
+                $payment->increment_date = $penaltyCheck['increment_date'];
             }
 
             return $payment;
@@ -325,16 +336,16 @@ class DashboardController extends Controller
         $syntheticPenalties = collect();
         foreach ($paymentSettings as $payment) {
             if ($payment->has_late_penalty) {
-                $penaltyType = $payment->payment_type . '_late_payment';
+                $penaltyType = $payment->payment_type.'_late_payment';
                 // Create a synthetic PaymentSetting for the penalty
                 $penaltySetting = new \App\Models\PaymentSetting([
                     'payment_type' => $penaltyType,
                     'amount' => $payment->late_penalty_amount,
-                    'description' => 'Late Penalty for ' . ucfirst(str_replace('_', ' ', $payment->payment_type)),
+                    'description' => 'Late Penalty for '.ucfirst(str_replace('_', ' ', $payment->payment_type)),
                 ]);
-                
+
                 // Assign properties manually since they won't automatically be computed
-                $penaltySetting->id = 'penalty-' . $payment->id;
+                $penaltySetting->id = 'penalty-'.$payment->id;
                 $penaltySetting->amount_paid = 0;
                 $penaltySetting->balance = $payment->late_penalty_amount;
                 $penaltySetting->installment_count = 0;
@@ -345,7 +356,7 @@ class DashboardController extends Controller
                 $syntheticPenalties->push($penaltySetting);
             }
         }
-        
+
         return $paymentSettings->merge($syntheticPenalties);
     }
 

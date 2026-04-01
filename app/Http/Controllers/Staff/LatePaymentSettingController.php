@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use App\Models\LatePaymentSetting;
-use App\Models\Campus;
 use App\Models\AcademicSemester;
 use App\Models\AcademicSession;
+use App\Models\Campus;
 use App\Models\EntryMode;
+use App\Models\LatePaymentSetting;
 use App\Models\PaymentSetting;
 use Illuminate\Http\Request;
 
@@ -21,10 +21,10 @@ class LatePaymentSettingController extends Controller
             $query->where('payment_type', $request->payment_type);
         }
         if ($request->filled('session')) {
-            $query->where('session', $request->session);
+            $query->where('session', $request->input('session'));
         }
         if ($request->filled('semester')) {
-            $query->where('semester', $request->semester);
+            $query->where('semester', $request->input('semester'));
         }
         if ($request->filled('campus_id')) {
             $query->where('campus_id', $request->campus_id);
@@ -60,6 +60,8 @@ class LatePaymentSettingController extends Controller
             'session' => 'nullable|string',
             'closing_date' => 'required|date',
             'late_fee_amount' => 'required|numeric|min:0',
+            'increment_amount' => 'nullable|numeric|min:0',
+            'increment_date' => 'nullable|date|after:closing_date',
         ]);
 
         LatePaymentSetting::create([
@@ -70,6 +72,8 @@ class LatePaymentSettingController extends Controller
             'session' => $validated['session'] ?? null,
             'closing_date' => $validated['closing_date'],
             'late_fee_amount' => $validated['late_fee_amount'],
+            'increment_amount' => $validated['increment_amount'] ?? null,
+            'increment_date' => $validated['increment_date'] ?? null,
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')
@@ -97,6 +101,8 @@ class LatePaymentSettingController extends Controller
             'session' => 'nullable|string',
             'closing_date' => 'required|date',
             'late_fee_amount' => 'required|numeric|min:0',
+            'increment_amount' => 'nullable|numeric|min:0',
+            'increment_date' => 'nullable|date|after:closing_date',
         ]);
 
         $latePaymentSetting->update([
@@ -107,6 +113,8 @@ class LatePaymentSettingController extends Controller
             'session' => $validated['session'] ?? null,
             'closing_date' => $validated['closing_date'],
             'late_fee_amount' => $validated['late_fee_amount'],
+            'increment_amount' => $validated['increment_amount'] ?? null,
+            'increment_date' => $validated['increment_date'] ?? null,
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')
@@ -116,6 +124,7 @@ class LatePaymentSettingController extends Controller
     public function destroy(LatePaymentSetting $latePaymentSetting)
     {
         $latePaymentSetting->delete();
+
         return back()->with('success', 'Late payment setting deleted successfully.');
     }
 }
