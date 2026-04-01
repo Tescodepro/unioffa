@@ -31,11 +31,25 @@ class BursaryController extends Controller
         $selectedSession = $request->query('session') ?: (activeSession()->name ?? null);
 
         // Basic payment stats
+        $statsQuery = Transaction::where('session', $selectedSession)
+            ->where(function ($q) {
+                $q->where('payment_type', '!=', 'technical')
+                    ->orWhereIn('id', function ($sub) {
+                        $sub->selectRaw('MIN(id)')
+                            ->from('transactions')
+                            ->where('payment_status', 1)
+                            ->where('payment_type', 'technical')
+                            ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                            ->groupBy('user_id', 'session');
+                    });
+            });
+
         $stats = [
-            'total_collected' => Transaction::where('payment_status', 1)->where('session', $selectedSession)->sum('amount'),
+            'total_collected' => (clone $statsQuery)->where('payment_status', 1)->sum('amount'),
             'pending_payments' => Transaction::where('payment_status', 0)->where('session', $selectedSession)->count(),
             'failed_payments' => Transaction::where('payment_status', 2)->where('session', $selectedSession)->count(),
-            'total_transactions' => Transaction::where('payment_status', 1)->where('session', $selectedSession)->count(),
+            'total_transactions' => (clone $statsQuery)->where('payment_status', 1)->count(),
         ];
 
         // Group transactions by payment_type
@@ -48,10 +62,14 @@ class BursaryController extends Controller
             ->where('session', $selectedSession)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
-                    ->orWhere(function ($tq) {
-                        $tq->where('payment_type', 'technical')
+                    ->orWhereIn('id', function ($sub) {
+                        $sub->selectRaw('MIN(id)')
+                            ->from('transactions')
+                            ->where('payment_status', 1)
+                            ->where('payment_type', 'technical')
                             ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
-                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                            ->groupBy('user_id', 'session');
                     });
             })
             ->groupBy('payment_type')
@@ -73,10 +91,14 @@ class BursaryController extends Controller
             ->where('transactions.session', $selectedSession)
             ->where(function ($q) {
                 $q->where('transactions.payment_type', '!=', 'technical')
-                    ->orWhere(function ($tq) {
-                        $tq->where('transactions.payment_type', 'technical')
-                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
-                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                    ->orWhereIn('transactions.id', function ($sub) {
+                        $sub->selectRaw('MIN(id)')
+                            ->from('transactions')
+                            ->where('payment_status', 1)
+                            ->where('payment_type', 'technical')
+                            ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                            ->groupBy('user_id', 'session');
                     });
             })
             ->groupBy('campuses.id', 'campuses.name', 'students.programme', 'transactions.payment_type')
@@ -129,10 +151,14 @@ class BursaryController extends Controller
             ->where('transactions.session', $selectedSession)
             ->where(function ($q) {
                 $q->where('transactions.payment_type', '!=', 'technical')
-                    ->orWhere(function ($tq) {
-                        $tq->where('transactions.payment_type', 'technical')
-                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
-                            ->whereRaw("transactions.created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                    ->orWhereIn('transactions.id', function ($sub) {
+                        $sub->selectRaw('MIN(id)')
+                            ->from('transactions')
+                            ->where('payment_status', 1)
+                            ->where('payment_type', 'technical')
+                            ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                            ->groupBy('user_id', 'session');
                     });
             })
             ->groupBy('transactions.payment_type')
@@ -171,10 +197,14 @@ class BursaryController extends Controller
             ->where('session', $selectedSession)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
-                    ->orWhere(function ($tq) {
-                        $tq->where('payment_type', 'technical')
+                    ->orWhereIn('id', function ($sub) {
+                        $sub->selectRaw('MIN(id)')
+                            ->from('transactions')
+                            ->where('payment_status', 1)
+                            ->where('payment_type', 'technical')
                             ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
-                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                            ->groupBy('user_id', 'session');
                     });
             })
             ->orderBy('created_at', 'desc')
@@ -252,10 +282,14 @@ class BursaryController extends Controller
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
-                    ->orWhere(function ($tq) {
-                        $tq->where('payment_type', 'technical')
+                    ->orWhereIn('id', function ($sub) {
+                        $sub->selectRaw('MIN(id)')
+                            ->from('transactions')
+                            ->where('payment_status', 1)
+                            ->where('payment_type', 'technical')
                             ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
-                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                            ->groupBy('user_id', 'session');
                     });
             });
 
@@ -315,10 +349,14 @@ class BursaryController extends Controller
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
-                    ->orWhere(function ($tq) {
-                        $tq->where('payment_type', 'technical')
+                    ->orWhereIn('id', function ($sub) {
+                        $sub->selectRaw('MIN(id)')
+                            ->from('transactions')
+                            ->where('payment_status', 1)
+                            ->where('payment_type', 'technical')
                             ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
-                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'");
+                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                            ->groupBy('user_id', 'session');
                     });
             });
 
@@ -469,7 +507,19 @@ class BursaryController extends Controller
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
                 }
-                $query->whereNotIn('payment_type', $excludedTypes);
+                $query->whereNotIn('payment_type', $excludedTypes)
+                    ->where(function ($q) {
+                        $q->where('payment_type', '!=', 'technical')
+                            ->orWhereIn('id', function ($sub) {
+                                $sub->selectRaw('MIN(id)')
+                                    ->from('transactions')
+                                    ->where('payment_status', 1)
+                                    ->where('payment_type', 'technical')
+                                    ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                                    ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                                    ->groupBy('user_id', 'session');
+                            });
+                    });
             },
         ])->get();
 
@@ -555,7 +605,19 @@ class BursaryController extends Controller
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
                 }
-                $query->whereNotIn('payment_type', $excludedTypes);
+                $query->whereNotIn('payment_type', $excludedTypes)
+                    ->where(function ($q) {
+                        $q->where('payment_type', '!=', 'technical')
+                            ->orWhereIn('id', function ($sub) {
+                                $sub->selectRaw('MIN(id)')
+                                    ->from('transactions')
+                                    ->where('payment_status', 1)
+                                    ->where('payment_type', 'technical')
+                                    ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                                    ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                                    ->groupBy('user_id', 'session');
+                            });
+                    });
             },
         ])->get();
 
@@ -665,7 +727,19 @@ class BursaryController extends Controller
                         if ($selectedSession) {
                             $query->where('session', $selectedSession);
                         }
-                        $query->whereNotIn('payment_type', $excludedTypes);
+                        $query->whereNotIn('payment_type', $excludedTypes)
+                            ->where(function ($q) {
+                                $q->where('payment_type', '!=', 'technical')
+                                    ->orWhereIn('id', function ($sub) {
+                                        $sub->selectRaw('MIN(id)')
+                                            ->from('transactions')
+                                            ->where('payment_status', 1)
+                                            ->where('payment_type', 'technical')
+                                            ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                                            ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                                            ->groupBy('user_id', 'session');
+                                    });
+                            });
                     },
                 ])->where('level', $level)->get();
 
@@ -740,7 +814,19 @@ class BursaryController extends Controller
                 if ($selectedSession) {
                     $query->where('session', $selectedSession);
                 }
-                $query->whereNotIn('payment_type', $excludedTypes);
+                $query->whereNotIn('payment_type', $excludedTypes)
+                    ->where(function ($q) {
+                        $q->where('payment_type', '!=', 'technical')
+                            ->orWhereIn('id', function ($sub) {
+                                $sub->selectRaw('MIN(id)')
+                                    ->from('transactions')
+                                    ->where('payment_status', 1)
+                                    ->where('payment_type', 'technical')
+                                    ->whereRaw("created_at NOT BETWEEN '2026-01-15' AND '2026-01-17'")
+                                    ->whereRaw("created_at NOT BETWEEN '2026-02-06' AND '2026-02-09'")
+                                    ->groupBy('user_id', 'session');
+                            });
+                    });
             },
             'user.campus',
             'department.faculty',
