@@ -335,7 +335,11 @@ class IctStudentController extends Controller
             'entry_mode' => 'required|string|exists:entry_modes,code',
             'campus_id' => 'nullable|uuid|exists:campuses,id',
             'date_of_birth' => 'required|date|before:today',
-            'phone' => 'required|string|unique:users,phone',
+            'phone' => [
+                'required',
+                'string',
+                Rule::unique('users', 'phone')->ignore($student->user_id),
+            ],
         ]);
 
         // Update user
