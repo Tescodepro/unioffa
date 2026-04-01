@@ -41,7 +41,7 @@ class AuthController extends Controller
             return back()->with('error', 'The provided credentials do not match our records.');
         }
 
-        // Retrieve authenticated user 
+        // Retrieve authenticated user
         $user = Auth::user();
 
         // Ensure student relationship exists
@@ -119,9 +119,9 @@ class AuthController extends Controller
         $otp = random_int(100000, 999999);
 
         // Save OTP securely
-         $user->otp = $otp;
-            $user->otp_expires_at = now()->addMinutes(10); // OTP valid for 10 mins
-            $user->save();
+        $user->otp = $otp;
+        $user->otp_expires_at = now()->addMinutes(10); // OTP valid for 10 mins
+        $user->save();
 
         // Prepare email
         $subject = 'Password Reset OTP';
@@ -141,9 +141,9 @@ class AuthController extends Controller
 
         // Always generic response to prevent user enumeration
         return redirect()->route('students.auth.change-password')->with(
-                'success',
-                "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp ."
-            );
+            'success',
+            "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp ."
+        );
     }
 
     public function verifyOtpIndex()

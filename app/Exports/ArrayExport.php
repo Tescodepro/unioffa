@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 class ArrayExport implements FromArray, WithHeadings
 {
     protected $data;
+
     protected $headings;
 
     public function __construct(array $data, array $headings = [])

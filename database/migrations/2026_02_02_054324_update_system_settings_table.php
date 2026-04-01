@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,7 +14,7 @@ return new class extends Migration {
         // Check if table exists, if so, we modify it. If not, we create it.
         // Assuming it might exist but be empty as per Model check.
 
-        if (!Schema::hasTable('system_settings')) {
+        if (! Schema::hasTable('system_settings')) {
             Schema::create('system_settings', function (Blueprint $table) {
                 $table->id();
                 $table->string('key')->unique();
@@ -26,19 +27,19 @@ return new class extends Migration {
         } else {
             Schema::table('system_settings', function (Blueprint $table) {
                 // Add columns if they don't exist
-                if (!Schema::hasColumn('system_settings', 'key')) {
+                if (! Schema::hasColumn('system_settings', 'key')) {
                     $table->string('key')->unique();
                 }
-                if (!Schema::hasColumn('system_settings', 'value')) {
+                if (! Schema::hasColumn('system_settings', 'value')) {
                     $table->text('value')->nullable();
                 }
-                if (!Schema::hasColumn('system_settings', 'group')) {
+                if (! Schema::hasColumn('system_settings', 'group')) {
                     $table->string('group')->default('general');
                 }
-                if (!Schema::hasColumn('system_settings', 'type')) {
+                if (! Schema::hasColumn('system_settings', 'type')) {
                     $table->string('type')->default('string');
                 }
-                if (!Schema::hasColumn('system_settings', 'description')) {
+                if (! Schema::hasColumn('system_settings', 'description')) {
                     $table->string('description')->nullable();
                 }
             });

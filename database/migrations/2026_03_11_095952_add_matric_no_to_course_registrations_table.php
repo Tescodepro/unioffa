@@ -18,11 +18,11 @@ return new class extends Migration
 
         // Backfill existing records with matric_no from students table
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("
+            DB::statement('
                 UPDATE course_registrations cr
                 JOIN students s ON cr.student_id = s.user_id
                 SET cr.matric_no = s.matric_no
-            ");
+            ');
         }
     }
 

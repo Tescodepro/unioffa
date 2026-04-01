@@ -100,6 +100,8 @@ class DashboardController extends Controller
         $hasLatePenalty = false;
         $closestIncrementDate = null;
         $closestIncrementAmount = null;
+        $closestClosingDate = null;
+        $closestClosingAmount = null;
 
         if ($user->student) {
             $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($user->student, $currentSession, $currentSemester);
@@ -113,13 +115,23 @@ class DashboardController extends Controller
                         $closestIncrementDate = $penalty->increment_date ?? null;
                         $closestIncrementAmount = $penalty->increment_amount ?? null;
                     }
+
+                    // Check for active upcoming standard deadlines (where it hasn't expired yet)
+                    $upcomingPenalty = $paymentSettings->filter(function ($payment) {
+                        return ! empty($payment->upcoming_closing_date) && now()->lt(\Carbon\Carbon::parse($payment->upcoming_closing_date));
+                    })->sortBy('upcoming_closing_date')->first();
+
+                    if ($upcomingPenalty) {
+                        $closestClosingDate = $upcomingPenalty->upcoming_closing_date;
+                        $closestClosingAmount = $upcomingPenalty->upcoming_penalty_amount;
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error('Failed to fetch payment settings for dashboard check: '.$e->getMessage());
             }
         }
 
-        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty', 'closestIncrementDate', 'closestIncrementAmount'));
+        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount'));
     }
 
     public function loadPayment()
@@ -142,7 +154,29 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'No payment settings found for your profile.');
         }
 
-        return view('student.payment', compact('paymentSettings', 'currentSession'));
+        $closestIncrementDate = null;
+        $closestIncrementAmount = null;
+        $closestClosingDate = null;
+        $closestClosingAmount = null;
+
+        $hasLatePenalty = $paymentSettings->contains('has_late_penalty', true);
+        if ($hasLatePenalty) {
+            $penalty = $paymentSettings->firstWhere('has_late_penalty', true);
+            $closestIncrementDate = $penalty->increment_date ?? null;
+            $closestIncrementAmount = $penalty->increment_amount ?? null;
+        }
+
+        // Check for active upcoming standard deadlines (where it hasn't expired yet)
+        $upcomingPenalty = $paymentSettings->filter(function ($payment) {
+            return ! empty($payment->upcoming_closing_date) && now()->lt(\Carbon\Carbon::parse($payment->upcoming_closing_date));
+        })->sortBy('upcoming_closing_date')->first();
+
+        if ($upcomingPenalty) {
+            $closestClosingDate = $upcomingPenalty->upcoming_closing_date;
+            $closestClosingAmount = $upcomingPenalty->upcoming_penalty_amount;
+        }
+
+        return view('student.payment', compact('paymentSettings', 'currentSession', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount'));
     }
 
     public function getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester)
@@ -320,6 +354,8 @@ class DashboardController extends Controller
             $latePaymentService = app(LatePaymentService::class);
             $penaltyCheck = $latePaymentService->checkPenalty($student, $payment->payment_type, $currentSession, $currentSemester);
             $payment->has_late_penalty = false;
+            $payment->upcoming_closing_date = $penaltyCheck['upcoming_closing_date'] ?? null;
+            $payment->upcoming_penalty_amount = $penaltyCheck['upcoming_penalty_amount'] ?? null;
 
             if ($penaltyCheck['has_penalty'] && ! $penaltyCheck['is_cleared'] && $payment->balance > 0) {
                 // If a penalty applies and isn't cleared, the standard payment is blocked

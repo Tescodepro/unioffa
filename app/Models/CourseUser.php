@@ -11,9 +11,11 @@ class CourseUser extends Model
     use HasFactory;
 
     protected $table = 'course_user';
+
     protected $fillable = ['course_id', 'user_id'];
 
     public $incrementing = false; // since it's UUID
+
     protected $keyType = 'string';
 
     protected static function boot()

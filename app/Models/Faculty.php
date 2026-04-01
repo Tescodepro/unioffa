@@ -46,5 +46,4 @@ class Faculty extends Model
     {
         return $this->hasManyThrough(Student::class, Department::class);
     }
-
 }

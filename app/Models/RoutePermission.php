@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class RoutePermission extends Model
 {
     protected $primaryKey = 'route_name';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

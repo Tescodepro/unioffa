@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Campus;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Models\Campus;
 
 class PaymentSlitSeeder extends Seeder
 {
@@ -15,7 +14,7 @@ class PaymentSlitSeeder extends Seeder
      */
     public function run(): void
     {
-        
+
         $payment_splits = [
             [
                 'name' => 'Application and Acceptance Regular  - Main Campus - Percentage',
@@ -107,14 +106,14 @@ class PaymentSlitSeeder extends Seeder
                 $campus = Campus::first();
             }
             $data['center'] = $campus->slug;
-            
+
             DB::table('payment_splits')->updateOrInsert(
-            ['name' => $data['name']], // unique check
-            array_merge($data, [
-                'id' => Str::uuid(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ])
+                ['name' => $data['name']], // unique check
+                array_merge($data, [
+                    'id' => Str::uuid(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ])
             );
         }
     }

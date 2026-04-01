@@ -2,38 +2,37 @@
 
 namespace App\Services;
 
-use App\Models\Student;
-use App\Models\UserApplications;
-use App\Models\ApplicationSetting;
 use App\Models\AdmissionList;
-use App\Models\UserType;
+use App\Models\ApplicationSetting;
+use App\Models\Student;
 use App\Models\User;
-use Illuminate\Support\Str;
+use App\Models\UserApplications;
+use App\Models\UserType;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class StudentMigrationService
 {
     /**
      * Migrate user to student
-     *
-     * @param string|null $userId
-     * @return Student|null
      */
-    public function migrate(string|null $userId = null): ?Student
+    public function migrate(?string $userId = null): ?Student
     {
         try {
             $user = $userId ? User::findOrFail($userId) : Auth::user();
 
-            if (!$user) {
-                Log::error('User not found for migration: ' . $userId);
+            if (! $user) {
+                Log::error('User not found for migration: '.$userId);
+
                 return null;
             }
 
             // ✅ PREVENT DUPLICATES - CHECK IF ALREADY STUDENT
             if ($user->student) {
                 Log::info("User {$user->id} is already a student: {$user->student->id}");
+
                 return $user->student; // RETURN EXISTING STUDENT
             }
 
@@ -43,10 +42,11 @@ class StudentMigrationService
             });
 
         } catch (\Exception $e) {
-            Log::error('Student migration failed: ' . $e->getMessage(), [
+            Log::error('Student migration failed: '.$e->getMessage(), [
                 'user_id' => $userId,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return null;
         }
     }
@@ -147,6 +147,7 @@ class StudentMigrationService
 
         // Fallback for missing settings
         Log::warning("No matching EntryMode found for application code: {$applicationCode}");
+
         return [
             'programme' => 'REGULAR',
             'entry_mode' => 'UTME',
@@ -176,10 +177,10 @@ class StudentMigrationService
             'sex' => $user->sex ?? $studentData['sex'] ?? null,
         ]);
 
-        Log::info("Student migrated successfully", [
+        Log::info('Student migrated successfully', [
             'student_id' => $student->id,
             'user_id' => $user->id,
-            'matric_no' => $student->matric_no
+            'matric_no' => $student->matric_no,
         ]);
 
         return $student;

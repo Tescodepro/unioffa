@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class SystemSetting extends Model
 {
-
     protected $fillable = ['key', 'value', 'group', 'type', 'description'];
 
     /**
@@ -15,7 +14,7 @@ class SystemSetting extends Model
     public static function get(string $key, $default = null)
     {
         $setting = self::where('key', $key)->first();
+
         return $setting ? $setting->value : $default;
     }
-
 }

@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 class MenuItem extends Model
 {
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserTypeMiddleware
 {
@@ -16,7 +16,7 @@ class UserTypeMiddleware
     public function handle(Request $request, Closure $next, string $category)
     {
         // 1️⃣ Not logged in → send to correct login page
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $redirectRoute = match ($category) {
                 'applicant' => route('application.login'),
                 'student' => route('student.login'),
@@ -30,8 +30,9 @@ class UserTypeMiddleware
         $user = Auth::user();
         $userType = $user->userType->name ?? null;
 
-        if (!$userType) {
+        if (! $userType) {
             Auth::logout();
+
             return redirect()->route('staff.login')
                 ->with('error', 'Your account has no user type assigned.');
         }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Student\DashboardController;
 use App\Models\Course;
 use App\Models\CourseRegistration;
 use App\Models\Department;
@@ -83,6 +84,35 @@ class CourseRegistrationController extends Controller
         $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($student, $currentSession, $currentSemester);
         $hasPaidLateFee = false;
 
+        $closestIncrementDate = null;
+        $closestIncrementAmount = null;
+        $closestClosingDate = null;
+        $closestClosingAmount = null;
+
+        try {
+            $paymentSettings = app(DashboardController::class)->getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester);
+            if ($paymentSettings) {
+                $hasLatePenalty = $paymentSettings->contains('has_late_penalty', true);
+
+                if ($hasLatePenalty) {
+                    $penalty = $paymentSettings->firstWhere('has_late_penalty', true);
+                    $closestIncrementDate = $penalty->increment_date ?? null;
+                    $closestIncrementAmount = $penalty->increment_amount ?? null;
+                }
+
+                $upcomingPenalty = $paymentSettings->filter(function ($payment) {
+                    return ! empty($payment->upcoming_closing_date) && now()->lt(\Carbon\Carbon::parse($payment->upcoming_closing_date));
+                })->sortBy('upcoming_closing_date')->first();
+
+                if ($upcomingPenalty) {
+                    $closestClosingDate = $upcomingPenalty->upcoming_closing_date;
+                    $closestClosingAmount = $upcomingPenalty->upcoming_penalty_amount;
+                }
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to fetch payment settings for course reg check: '.$e->getMessage());
+        }
+
         if ($courseRegistrationSetting && now()->gt($courseRegistrationSetting->closing_date)) {
             $hasPaidLateFee = \App\Models\Transaction::where('user_id', $user->id)
                 ->where('payment_type', 'late_course_registration')
@@ -134,7 +164,11 @@ class CourseRegistrationController extends Controller
                 'currentSessionUnits',
                 'currentSemester',
                 'courseRegistrationSetting',
-                'hasPaidLateFee'
+                'hasPaidLateFee',
+                'closestIncrementDate',
+                'closestIncrementAmount',
+                'closestClosingDate',
+                'closestClosingAmount'
             ))->with('error', $hasPartialTuitionAccess ? null : 'You must clear all outstanding payments before registering courses.');
         }
 
@@ -169,7 +203,11 @@ class CourseRegistrationController extends Controller
             'currentSessionUnits',
             'currentSemester',
             'courseRegistrationSetting',
-            'hasPaidLateFee'
+            'hasPaidLateFee',
+            'closestIncrementDate',
+            'closestIncrementAmount',
+            'closestClosingDate',
+            'closestClosingAmount'
         ));
     }
 

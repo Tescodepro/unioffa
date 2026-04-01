@@ -28,7 +28,7 @@ class SystemSettingController extends Controller
             if ($setting) {
                 if ($request->hasFile($key) && $request->file($key)->isValid()) {
                     $file = $request->file($key);
-                    $filename = $key . '.' . $file->getClientOriginalExtension();
+                    $filename = $key.'.'.$file->getClientOriginalExtension();
 
                     // Delete old file if it was a previously uploaded one (starts with storage/)
                     if ($setting->value && str_starts_with($setting->value, 'storage/')) {
@@ -43,7 +43,7 @@ class SystemSettingController extends Controller
 
                     // Store value as 'storage/uploads/settings/filename.ext'
                     // This works directly with asset('storage/uploads/settings/filename.ext')
-                    $setting->value = 'storage/' . $path;
+                    $setting->value = 'storage/'.$path;
                 } else {
                     $setting->value = $value;
                 }
@@ -64,7 +64,7 @@ class SystemSettingController extends Controller
         foreach ($grades as $id => $data) {
             if ($id === 'new') {
                 foreach ($data as $newGrade) {
-                    if (!empty($newGrade['grade'])) {
+                    if (! empty($newGrade['grade'])) {
                         GradingSystem::create($newGrade);
                     }
                 }

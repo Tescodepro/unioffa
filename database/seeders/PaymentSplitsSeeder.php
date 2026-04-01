@@ -11,7 +11,7 @@ class PaymentSplitsSeeder extends Seeder
     public function run()
     {
         // Default student types based on your sample
-        $defaultStudentTypes = ["TOPUP", "IDELDE", "IDELUTME", "REGULAR"];
+        $defaultStudentTypes = ['TOPUP', 'IDELDE', 'IDELUTME', 'REGULAR'];
 
         $splits = [
             [
@@ -87,7 +87,7 @@ class PaymentSplitsSeeder extends Seeder
                 ->where('split_code', $split['split_code'])
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 DB::table('payment_splits')->insert([
                     'id' => (string) Str::uuid(), // Generate UUID
                     'name' => $split['name'].' igbeti-campus',

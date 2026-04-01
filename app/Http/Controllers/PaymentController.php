@@ -5,22 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\AdmissionList;
 use App\Models\AgentApplication;
 use App\Models\ApplicationSetting;
+use App\Models\Campus;
 use App\Models\Student;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserApplications;
 use App\Models\UserType;
-use App\Models\Campus;
-use Carbon\Carbon;
+use App\Services\HostelAssignmentService;
+use App\Services\MatricNumberGenerationService;
 use App\Services\PaymentService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Services\{HostelAssignmentService, MatricNumberGenerationService};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
@@ -56,11 +56,11 @@ class PaymentController extends Controller
         ]);
 
         $center_id_generated = $user->student->campus_id ?? $user->campus_id ?? null;
-        if (!$center_id_generated) {
+        if (! $center_id_generated) {
             return back()->with('error', 'Campus ID missing for this user. Please contact support.');
         }
         $campusDetail = Campus::getCampusDetail($center_id_generated);
-        if (!$campusDetail) {
+        if (! $campusDetail) {
             return back()->with('error', 'There an error in your information kindly contact support to update your campus details.');
         }
 
@@ -69,7 +69,7 @@ class PaymentController extends Controller
                 ->join('application_settings', 'user_applications.application_setting_id', '=', 'application_settings.id')
                 ->select('application_settings.application_code AS programme')
                 ->first();
-            if (!$getuserstype) {
+            if (! $getuserstype) {
                 return back()->with('error', 'Application record not found for this user.');
             }
 
@@ -85,25 +85,25 @@ class PaymentController extends Controller
 
         } else {
             $student = Student::where('user_id', $user->id)->first();
-            if (!$student) {
+            if (! $student) {
                 return back()->with('error', 'Student record not found for this user.');
             }
-            
+
             // Block payment if a late penalty is owed for this specific fee type
-            if (!str_ends_with($request->fee_type, '_late_payment')) {
+            if (! str_ends_with($request->fee_type, '_late_payment')) {
                 $latePaymentService = app(\App\Services\LatePaymentService::class);
                 $penaltyCheck = $latePaymentService->checkPenalty(
-                    $student, 
-                    $request->fee_type, 
-                    activeSession()->name ?? '', 
+                    $student,
+                    $request->fee_type,
+                    activeSession()->name ?? '',
                     activeSemester()->code ?? ''
                 );
-                
-                if ($penaltyCheck['has_penalty'] && !$penaltyCheck['is_cleared']) {
+
+                if ($penaltyCheck['has_penalty'] && ! $penaltyCheck['is_cleared']) {
                     return back()->with('error', 'This payment is blocked due to an outstanding late payment penalty. Please pay the penalty first.');
                 }
             }
-            
+
             $split_code = $this->splitGet($request->fee_type, $student->programme, $campusDetail->slug);
         }
         // Prepare gateway data
@@ -135,11 +135,13 @@ class PaymentController extends Controller
 
         // Generate payment link
         $response = $paymentService->generatePaymentLink($data);
-        if ($response['status'] && !empty($response['checkout_url'])) {
+        if ($response['status'] && ! empty($response['checkout_url'])) {
             return redirect()->away($response['checkout_url']);
         }
+
         return back()->with('error', $response['message'] ?? 'Unable to start payment');
     }
+
     /**
      * Handle gateway callback
      */
@@ -187,7 +189,7 @@ class PaymentController extends Controller
                 $user = $transaction->user;
                 $student = $user->student;
                 if ($student) {
-                    $matricService = new MatricNumberGenerationService();
+                    $matricService = new MatricNumberGenerationService;
                     $generated = $matricService->generateIfNeeded($student);
                     if ($generated) {
                         Log::info("Matric number generated for student {$student->id} after tuition payment");
@@ -215,7 +217,7 @@ class PaymentController extends Controller
 
     private function generateReference($payment_type): string
     {
-        $reference = $payment_type . '-' . uniqid() . substr(md5(rand()), 0, 8);
+        $reference = $payment_type.'-'.uniqid().substr(md5(rand()), 0, 8);
 
         return $reference;
     }
@@ -241,7 +243,7 @@ class PaymentController extends Controller
 
         $entryMode = \App\Models\EntryMode::where('code', $applicationSetting->application_code)->first();
 
-        if (!$entryMode) {
+        if (! $entryMode) {
             return back()->with('error', 'Invalid application code for migration.');
         }
 
@@ -272,6 +274,7 @@ class PaymentController extends Controller
 
         return $migrate_student;
     }
+
     // payment receipt
     public function downloadReceipt($transaction_id)
     {
@@ -282,7 +285,7 @@ class PaymentController extends Controller
             ->where('payment_status', 1) // only successful payments
             ->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return redirect()->back()->with('error', 'Transaction not found or not successful.');
         }
 
@@ -295,7 +298,7 @@ class PaymentController extends Controller
         $pdf = Pdf::loadView('general-payment-receipt', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Payment_Receipt_' . $transaction->refernce_number . '.pdf');
+        return $pdf->download('Payment_Receipt_'.$transaction->refernce_number.'.pdf');
     }
 
     public function verifyReceipt($ref)
@@ -305,7 +308,7 @@ class PaymentController extends Controller
             ->with('user.student.department')
             ->first();
 
-        if (!$transaction) {
+        if (! $transaction) {
             return view('verify-receipt', [
                 'transaction' => null,
                 'ref' => $ref,
@@ -322,11 +325,11 @@ class PaymentController extends Controller
     {
         $student = Auth::user()->student;
 
-        if (!$student) {
+        if (! $student) {
             return back()->with('error', 'Student profile not found.');
         }
 
-        $hostelService = new HostelAssignmentService();
+        $hostelService = new HostelAssignmentService;
 
         $result = $hostelService->autoAssign($student);
 

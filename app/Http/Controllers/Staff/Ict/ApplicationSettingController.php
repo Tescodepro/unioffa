@@ -14,6 +14,7 @@ class ApplicationSettingController extends Controller
     public function index()
     {
         $settings = ApplicationSetting::orderBy('name')->get();
+
         return view('staff.ict.application-settings.index', compact('settings'));
     }
 
@@ -51,7 +52,7 @@ class ApplicationSettingController extends Controller
             'alevel' => $request->has('modules_enable.alevel'),
             'jamb_detail' => $request->has('modules_enable.jamb_detail'),
             'course_of_study' => $request->has('modules_enable.course_of_study'),
-            'documents' => $request->input('modules_enable.documents', [])
+            'documents' => $request->input('modules_enable.documents', []),
         ];
 
         ApplicationSetting::create([
@@ -64,7 +65,7 @@ class ApplicationSettingController extends Controller
             'description' => $validated['description'],
             'status' => $validated['status'],
             'enabled' => $validated['enabled'],
-            'modules_enable' => $modules
+            'modules_enable' => $modules,
         ]);
 
         return redirect()->route('ict.application_settings.index')
@@ -94,7 +95,7 @@ class ApplicationSettingController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'application_code' => 'required|string|max:50|unique:application_settings,application_code,' . $id,
+            'application_code' => 'required|string|max:50|unique:application_settings,application_code,'.$id,
             'academic_session' => 'required|string',
             'application_fee' => 'required|numeric|min:0',
             'acceptance_fee' => 'required|numeric|min:0',
@@ -113,7 +114,7 @@ class ApplicationSettingController extends Controller
             'alevel' => $request->has('modules_enable.alevel'),
             'jamb_detail' => $request->has('modules_enable.jamb_detail'),
             'course_of_study' => $request->has('modules_enable.course_of_study'),
-            'documents' => $request->input('modules_enable.documents', [])
+            'documents' => $request->input('modules_enable.documents', []),
         ];
 
         $setting->update([
@@ -126,7 +127,7 @@ class ApplicationSettingController extends Controller
             'description' => $validated['description'],
             'status' => $validated['status'],
             'enabled' => $validated['enabled'],
-            'modules_enable' => $modules
+            'modules_enable' => $modules,
         ]);
 
         return redirect()->route('ict.application_settings.index')

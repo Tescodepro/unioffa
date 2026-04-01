@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Department;
-use App\Models\AcademicSession;
 use App\Models\AcademicSemester;
+use App\Models\AcademicSession;
+use App\Models\Department;
 use App\Services\BroadsheetService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class BroadsheetController extends Controller
@@ -83,8 +83,9 @@ class BroadsheetController extends Controller
 
             // Security: HOD cannot request another department
             if ($user->hasUserType('hod')) {
-                if (!$user->staff || $user->staff->department_id !== $request->department_id) {
+                if (! $user->staff || $user->staff->department_id !== $request->department_id) {
                     session()->flash('error', 'Unauthorized access to this department.');
+
                     return view('staff.broadsheet.index', compact('departments', 'sessions', 'semesters', 'type'));
                 }
             }
@@ -92,8 +93,9 @@ class BroadsheetController extends Controller
             // Security: Dean cannot request a department outside their faculty
             if ($user->hasUserType('dean')) {
                 $dept = Department::find($request->department_id);
-                if (!$dept || !$user->staff || $dept->faculty_id !== $user->staff->faculty_id) {
+                if (! $dept || ! $user->staff || $dept->faculty_id !== $user->staff->faculty_id) {
                     session()->flash('error', 'Unauthorized access to this department.');
+
                     return view('staff.broadsheet.index', compact('departments', 'sessions', 'semesters', 'type'));
                 }
             }

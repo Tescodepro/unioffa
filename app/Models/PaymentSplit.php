@@ -8,12 +8,12 @@ use Illuminate\Support\Str;
 
 class PaymentSplit extends Model
 {
-
     use HasFactory;
 
     public $incrementing = false; // UUID
 
     protected $keyType = 'string';
+
     protected $fillable = [
         'name',
         'split_code',
@@ -31,5 +31,4 @@ class PaymentSplit extends Model
             }
         });
     }
-
 }

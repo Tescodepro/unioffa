@@ -17,7 +17,7 @@ class TransactionsExport implements FromView
     public function view(): View
     {
         return view('staff.bursary.reports.transactions-excel', [
-            'transactions' => $this->transactions
+            'transactions' => $this->transactions,
         ]);
     }
 }

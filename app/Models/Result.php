@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Result extends Model
 {
@@ -80,6 +80,7 @@ class Result extends Model
         if ($value === null && $this->ca !== null && $this->exam !== null) {
             return (float) $this->ca + (float) $this->exam;
         }
+
         return $value;
     }
 

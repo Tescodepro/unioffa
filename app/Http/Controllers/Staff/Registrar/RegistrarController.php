@@ -8,7 +8,6 @@ use App\Models\ApplicationSetting;
 use App\Models\Campus;
 use App\Models\User;
 use App\Models\UserApplications;
-use Illuminate\Http\Request;
 
 class RegistrarController extends Controller
 {
@@ -19,8 +18,8 @@ class RegistrarController extends Controller
         $sessions = UserApplications::select('academic_session')->distinct()->pluck('academic_session');
         $latestSession = $sessions->first();
 
-        $totalApplicants = User::whereHas('userType', fn($q) => $q->where('name', 'applicant'))
-            ->whereHas('applications', fn($q) => $q->where('academic_session', $latestSession)
+        $totalApplicants = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
+            ->whereHas('applications', fn ($q) => $q->where('academic_session', $latestSession)
                 ->whereNotNull('submitted_by'))->count();
 
         $totalAdmitted = AdmissionList::where('admission_status', 'admitted')

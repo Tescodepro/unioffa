@@ -162,6 +162,7 @@ class User extends Authenticatable
     public function hasPermission($permission)
     {
         $this->loadMissing('userType.permissions');
+
         return $this->userType?->permissions->contains('identifier', $permission) ?? false;
     }
 

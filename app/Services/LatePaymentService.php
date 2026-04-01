@@ -35,6 +35,8 @@ class LatePaymentService
                 'late_fee_type' => null,
                 'increment_date' => null,
                 'increment_amount' => null,
+                'upcoming_closing_date' => $setting ? $setting->closing_date->toIso8601String() : null,
+                'upcoming_penalty_amount' => $setting ? $setting->late_fee_amount : null,
             ];
         }
 
@@ -65,6 +67,8 @@ class LatePaymentService
             'late_fee_type' => $lateFeeType,
             'increment_date' => $setting->increment_date ? $setting->increment_date->toIso8601String() : null,
             'increment_amount' => $setting->increment_amount,
+            'upcoming_closing_date' => null,
+            'upcoming_penalty_amount' => null,
         ];
     }
 }

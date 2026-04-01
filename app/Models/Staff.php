@@ -11,6 +11,7 @@ class Staff extends Model
     use HasFactory;
 
     public $incrementing = false;   // ✅ Disable auto-increment
+
     protected $keyType = 'string';  // ✅ UUID is a string
 
     protected $fillable = [

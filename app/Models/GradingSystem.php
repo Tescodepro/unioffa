@@ -17,7 +17,7 @@ class GradingSystem extends Model
     public static function getPoint(float $score)
     {
         // We order by min_score DESC and take the first one where min_score <= score
-        // This handles cases where score might be between ranges (e.g. 69.5) 
+        // This handles cases where score might be between ranges (e.g. 69.5)
         // by falling through to the next lowest valid range.
         $grading = self::where('min_score', '<=', $score)
             ->orderBy('min_score', 'desc')

@@ -38,7 +38,6 @@ class Transaction extends Model
         return "{$prefix}-{$date}-{$random}";
     }
 
-
     protected static function boot()
     {
         parent::boot();

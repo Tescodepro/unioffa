@@ -23,20 +23,19 @@ class ClearSessions extends Command
     /**
      * Execute the console command.
      */
-   public function handle()
-{
-    $path = storage_path('framework/sessions');
+    public function handle()
+    {
+        $path = storage_path('framework/sessions');
 
-    if (is_dir($path)) {
-        foreach (glob("$path/*") as $file) {
-            if (is_file($file)) {
-                unlink($file);
+        if (is_dir($path)) {
+            foreach (glob("$path/*") as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
             }
+            $this->info('All session files cleared successfully.');
+        } else {
+            $this->error('Session directory not found.');
         }
-        $this->info('All session files cleared successfully.');
-    } else {
-        $this->error('Session directory not found.');
     }
-}
-
 }

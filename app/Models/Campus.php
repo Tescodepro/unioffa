@@ -41,8 +41,6 @@ class Campus extends Model
         return $campus; // return the model itself (can be null)
     }
 
-
-
     public function users()
     {
         return $this->hasMany(User::class, 'campus_id', 'id');

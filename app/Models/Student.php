@@ -2,16 +2,11 @@
 
 namespace App\Models;
 
-use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use InvalidArgumentException;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
-
+use Illuminate\Support\Str;
 
 class Student extends Model
 {
@@ -79,15 +74,15 @@ class Student extends Model
     {
         return DB::transaction(function () use ($departmentCode, $admissionYear, $entryModeCode) {
             $entryMode = EntryMode::where('code', $entryModeCode)->first();
-            if (!$entryMode) {
-                Log::error('Invalid entry mode specified: ' . $entryModeCode);
+            if (! $entryMode) {
+                Log::error('Invalid entry mode specified: '.$entryModeCode);
                 $prefix = '';
             } else {
                 $prefix = $entryMode->matric_prefix;
             }
 
             // Modify department code based on prefix
-            $modifiedCode = $prefix . $departmentCode;
+            $modifiedCode = $prefix.$departmentCode;
 
             // Get department and faculty
             $department = Department::where('department_code', $departmentCode)->firstOrFail();
@@ -103,7 +98,7 @@ class Student extends Model
             $count = $allMatricNumbers->count() + 1;
 
             // Format year (last 2 digits only)
-            [$startYear,] = explode('/', $admissionYear);
+            [$startYear] = explode('/', $admissionYear);
             $yearShort = substr(trim($startYear), -2); // e.g., 2023 -> "23"
 
             // Format sequence (3 digits: 001, 002, etc.)
@@ -119,7 +114,7 @@ class Student extends Model
                 $existsInUsers = User::where('username', $matricNo)->exists();
                 $existsInStudents = self::where('matric_no', $matricNo)->exists();
 
-                if (!$existsInUsers && !$existsInStudents) {
+                if (! $existsInUsers && ! $existsInStudents) {
                     return $matricNo; // Matric number is unique
                 }
 

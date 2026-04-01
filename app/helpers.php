@@ -11,7 +11,7 @@ if (! function_exists('findBestAcademicMatch')) {
     function findBestAcademicMatch($modelClass, $user = null)
     {
         $user = $user ?? auth()->user();
-        if (!$user) {
+        if (! $user) {
             return $modelClass::where('status', '1')
                 ->where(fn ($q) => $q->whereNull('stream')->orWhereJsonLength('stream', 0))
                 ->where(fn ($q) => $q->whereNull('campus_id')->orWhereJsonLength('campus_id', 0))
@@ -31,40 +31,42 @@ if (! function_exists('findBestAcademicMatch')) {
         $lecturer = $user->lecturer;
         $userId = $user->id;
 
-        $matches = $activeRecords->filter(function ($record) use ($student, $lecturer, $userId) {
+        $matches = $activeRecords->filter(function ($record) use ($student, $userId) {
             // 1. Specific User Overrides (Must match if set)
-            $hasSpecificIds = !empty($record->students_ids) || !empty($record->lecturar_ids);
+            $hasSpecificIds = ! empty($record->students_ids) || ! empty($record->lecturar_ids);
             if ($hasSpecificIds) {
                 $idMatch = false;
-                if (!empty($record->students_ids) && in_array($userId, (array)$record->students_ids)) {
+                if (! empty($record->students_ids) && in_array($userId, (array) $record->students_ids)) {
                     $idMatch = true;
                 }
-                if (!empty($record->lecturar_ids) && in_array($userId, (array)$record->lecturar_ids)) {
+                if (! empty($record->lecturar_ids) && in_array($userId, (array) $record->lecturar_ids)) {
                     $idMatch = true;
                 }
-                if (!$idMatch) return false;
+                if (! $idMatch) {
+                    return false;
+                }
             }
 
             // 2. Group Overrides (AND logic)
             // If any override is set on the record, the student MUST match it.
 
             // Stream
-            if (!empty($record->stream)) {
-                if (!$student || !$student->stream || !in_array((string)$student->stream, (array)$record->stream)) {
+            if (! empty($record->stream)) {
+                if (! $student || ! $student->stream || ! in_array((string) $student->stream, (array) $record->stream)) {
                     return false;
                 }
             }
 
             // Campus
-            if (!empty($record->campus_id)) {
-                if (!$student || !$student->campus_id || !in_array($student->campus_id, (array)$record->campus_id)) {
+            if (! empty($record->campus_id)) {
+                if (! $student || ! $student->campus_id || ! in_array($student->campus_id, (array) $record->campus_id)) {
                     return false;
                 }
             }
 
             // Programme (e.g., REGULAR, TOPUP)
-            if (!empty($record->programme)) {
-                if (!$student || !$student->programme || !in_array($student->programme, (array)$record->programme)) {
+            if (! empty($record->programme)) {
+                if (! $student || ! $student->programme || ! in_array($student->programme, (array) $record->programme)) {
                     return false;
                 }
             }
@@ -80,13 +82,21 @@ if (! function_exists('findBestAcademicMatch')) {
         return $matches->sortByDesc(function ($record) {
             $score = 0;
             // Personal ID overrides are extremely specific
-            if (!empty($record->students_ids) || !empty($record->lecturar_ids)) $score += 1000;
-            
+            if (! empty($record->students_ids) || ! empty($record->lecturar_ids)) {
+                $score += 1000;
+            }
+
             // Attribute matches
-            if (!empty($record->stream)) $score += 10;
-            if (!empty($record->campus_id)) $score += 10;
-            if (!empty($record->programme)) $score += 10;
-            
+            if (! empty($record->stream)) {
+                $score += 10;
+            }
+            if (! empty($record->campus_id)) {
+                $score += 10;
+            }
+            if (! empty($record->programme)) {
+                $score += 10;
+            }
+
             return $score;
         })->first();
     }

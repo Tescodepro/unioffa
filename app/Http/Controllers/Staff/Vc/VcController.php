@@ -10,7 +10,6 @@ use App\Models\Staff;
 use App\Models\Student;
 use App\Models\Transaction;
 use App\Models\UserApplications;
-use Illuminate\Http\Request;
 
 class VcController extends Controller
 {

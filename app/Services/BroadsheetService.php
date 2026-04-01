@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Student;
-use App\Models\AcademicSession;
 use App\Models\AcademicSemester;
-use App\Models\Result;
+use App\Models\AcademicSession;
 use App\Models\Department;
+use App\Models\Result;
+use App\Models\Student;
 
 class BroadsheetService
 {
@@ -28,10 +28,7 @@ class BroadsheetService
     /**
      * Generate broadsheet data using only Results and Courses tables.
      *
-     * @param  string       $departmentId
-     * @param  string       $sessionId
-     * @param  string       $level
-     * @param  string|null  $semesterId   — pass null for sessional broadsheet
+     * @param  string|null  $semesterId  — pass null for sessional broadsheet
      */
     public function generateBroadsheet(string $departmentId, string $sessionId, string $level, ?string $semesterId = null): array
     {
@@ -51,13 +48,13 @@ class BroadsheetService
         // 1. Identify all unique courses registered or results uploaded for these students in this specific period
         // This will form the dynamic columns (e.g., ACC 103, ACC 201...)
         $registrationCodes = \App\Models\CourseRegistration::where('session', $session->name)
-            ->when($semesterFilter, fn($q) => $q->where('semester', $semesterFilter))
+            ->when($semesterFilter, fn ($q) => $q->where('semester', $semesterFilter))
             ->whereIn('matric_no', $students->pluck('matric_no'))
             ->pluck('course_code')
             ->toArray();
 
         $resultCodes = \App\Models\Result::where('session', $session->name)
-            ->when($semesterFilter, fn($q) => $q->where('semester', $semesterFilter))
+            ->when($semesterFilter, fn ($q) => $q->where('semester', $semesterFilter))
             ->whereIn('student_id', $students->pluck('user_id'))
             ->pluck('course_code')
             ->toArray();
@@ -92,7 +89,7 @@ class BroadsheetService
             // All registered courses (to find outstanding)
             $registrations = \App\Models\CourseRegistration::where('student_id', $student->user_id)
                 ->where('session', $session->name)
-                ->when($semesterFilter, fn($q) => $q->where('semester', $semesterFilter))
+                ->when($semesterFilter, fn ($q) => $q->where('semester', $semesterFilter))
                 ->get();
 
             // All historical results
@@ -101,13 +98,16 @@ class BroadsheetService
             // Results for the requested (Current) period
             $currentResults = $allResults->filter(function (Result $r) use ($session, $semesterFilter) {
                 $match = $r->session === $session->name;
-                if ($semesterFilter) { $match = $match && $r->semester === $semesterFilter; }
+                if ($semesterFilter) {
+                    $match = $match && $r->semester === $semesterFilter;
+                }
+
                 return $match;
             });
 
             // Outstanding: Registered but no result record with a total/grade
-            $outstanding = $registrations->filter(function($reg) use ($currentResults) {
-                return !$currentResults->contains('course_code', $reg->course_code);
+            $outstanding = $registrations->filter(function ($reg) use ($currentResults) {
+                return ! $currentResults->contains('course_code', $reg->course_code);
             })->pluck('course_code')->toArray();
 
             // Current metrics
@@ -118,15 +118,21 @@ class BroadsheetService
                 $sessIdxC = array_search($session->name, $allSessions);
                 $sessIdxR = array_search($r->session, $allSessions);
 
-                if ($sessIdxR < $sessIdxC) return true;
-                if ($sessIdxR > $sessIdxC) return false;
+                if ($sessIdxR < $sessIdxC) {
+                    return true;
+                }
+                if ($sessIdxR > $sessIdxC) {
+                    return false;
+                }
 
                 // Same session, compare semesters if we are filtering by semester
                 if ($semesterFilter) {
                     $semIdxC = array_search($semesterFilter, $allSemesters);
                     $semIdxR = array_search($r->semester, $allSemesters);
+
                     return $semIdxR < $semIdxC;
                 }
+
                 return false;
             });
             $previousCalc = $this->calculateGPAFromResults($previousResults);
@@ -137,14 +143,20 @@ class BroadsheetService
                 $sessIdxC = array_search($session->name, $allSessions);
                 $sessIdxR = array_search($r->session, $allSessions);
 
-                if ($sessIdxR < $sessIdxC) return true;
-                if ($sessIdxR > $sessIdxC) return false;
+                if ($sessIdxR < $sessIdxC) {
+                    return true;
+                }
+                if ($sessIdxR > $sessIdxC) {
+                    return false;
+                }
 
                 if ($semesterFilter) {
                     $semIdxC = array_search($semesterFilter, $allSemesters);
                     $semIdxR = array_search($r->semester, $allSemesters);
+
                     return $semIdxR <= $semIdxC;
                 }
+
                 return true;
             });
             $cumulativeCalc = $this->calculateGPAFromResults($cumulativeResults);
@@ -157,16 +169,20 @@ class BroadsheetService
             }
 
             // Stats booking
-            if ($currentResults->contains(fn($r) => ($r->total !== null && $r->total < 40) || $r->grade === 'F')) {
+            if ($currentResults->contains(fn ($r) => ($r->total !== null && $r->total < 40) || $r->grade === 'F')) {
                 $stats['repeats']++;
             } else {
                 $stats['clear_passes']++;
             }
 
             $cgpa = $cumulativeCalc['gpa']; // calculateGPAFromResults returns 'gpa' as the ratio
-            if ($cgpa >= 4.5) $stats['cgpa_classes']['first_class']++;
-            elseif ($cgpa >= 1.0 && $cgpa <= 1.5) $stats['cgpa_classes']['counselling']++;
-            elseif ($cgpa < 1.0 && $cgpa > 0) $stats['cgpa_classes']['withdrawal']++;
+            if ($cgpa >= 4.5) {
+                $stats['cgpa_classes']['first_class']++;
+            } elseif ($cgpa >= 1.0 && $cgpa <= 1.5) {
+                $stats['cgpa_classes']['counselling']++;
+            } elseif ($cgpa < 1.0 && $cgpa > 0) {
+                $stats['cgpa_classes']['withdrawal']++;
+            }
 
             $broadsheetData[] = [
                 'student' => $student,

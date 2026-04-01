@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Staff\Ict;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-use App\Models\UserType;
 use App\Models\Permission;
+use App\Models\UserType;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class UserTypeController extends Controller
@@ -14,6 +13,7 @@ class UserTypeController extends Controller
     public function index()
     {
         $userTypes = UserType::all();
+
         return view('staff.ict.user-types.index', compact('userTypes'));
     }
 

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Hostel;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class HostelSeeder extends Seeder
@@ -55,7 +55,7 @@ class HostelSeeder extends Seeder
             for ($i = 1; $i <= $data['total_rooms']; $i++) {
                 $hostel->rooms()->create([
                     'id' => Str::uuid(),
-                    'room_number' => 'Room ' . $i,
+                    'room_number' => 'Room '.$i,
                 ]);
             }
         }

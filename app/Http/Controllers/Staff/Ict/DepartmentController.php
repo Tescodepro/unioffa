@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Staff\Ict;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\Department;
 use App\Models\Faculty;
+use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
 {
@@ -39,8 +38,8 @@ class DepartmentController extends Controller
 
         $validated = $request->validate([
             'faculty_id' => 'required|exists:faculties,id',
-            'department_name' => 'required|string|max:255|unique:departments,department_name,' . $department->id,
-            'department_code' => 'required|string|max:50|unique:departments,department_code,' . $department->id,
+            'department_name' => 'required|string|max:255|unique:departments,department_name,'.$department->id,
+            'department_code' => 'required|string|max:50|unique:departments,department_code,'.$department->id,
             'qualification' => 'required|string|max:50',
             'department_description' => 'nullable|string',
         ]);

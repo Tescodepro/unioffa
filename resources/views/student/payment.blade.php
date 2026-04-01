@@ -124,6 +124,54 @@
                     </div>
                 </div>
 
+                <!-- Late Payment Banners -->
+                @if(isset($closestClosingDate) && now()->lt(\Carbon\Carbon::parse($closestClosingDate)))
+                    <div class="card bg-warning-subtle border-0 mb-4 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="avatar avatar-md bg-warning text-white rounded p-2">
+                                        <i class="fas fa-clock fa-2x"></i>
+                                    </span>
+                                    <div>
+                                        <h5 class="text-warning-dark mb-1">Upcoming Late Penalty</h5>
+                                        <p class="mb-0">Pay your outstanding fees soon to avoid a late payment penalty.</p>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-warning-dark mb-1">Penalty of ₦{{ number_format($closestClosingAmount, 2) }} applies in:</h6>
+                                    <h5 class="text-warning-dark fw-bold mb-0" id="payment-closing-countdown">Loading...</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @php
+                    $hasActivePenalty = isset($paymentSettings) ? $paymentSettings->contains('has_late_penalty', true) : false;
+                @endphp
+                @if($hasActivePenalty && isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                    <div class="card bg-danger-subtle border-0 mb-4 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="avatar avatar-md bg-danger text-white rounded p-2">
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                    </span>
+                                    <div>
+                                        <h5 class="text-danger mb-1">Penalty Escalation Warning</h5>
+                                        <p class="mb-0">Your late penalty will increase soon. Please clear your late fee immediately.</p>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <h6 class="text-danger mb-1">Fee increases to ₦{{ number_format($closestIncrementAmount, 2) }} in:</h6>
+                                    <h5 class="text-danger fw-bold mb-0" id="payment-increment-countdown">Loading...</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Required Payments -->
                 <div class="card mb-4">
                     <div class="card-header d-flex align-items-center justify-content-between flex-wrap pb-0">
@@ -316,6 +364,43 @@
                     }, 10);
                 });
             });
+
+            // Countdowns
+            @if(isset($closestClosingDate) && now()->lt(\Carbon\Carbon::parse($closestClosingDate)))
+                const closingDeadline = new Date("{{ \Carbon\Carbon::parse($closestClosingDate)->toIso8601String() }}").getTime();
+                const closingEl = document.getElementById('payment-closing-countdown');
+                
+                setInterval(() => {
+                    const distance = closingDeadline - new Date().getTime();
+                    if (distance < 0) {
+                        if (closingEl) closingEl.innerHTML = "Penalty Active";
+                        return;
+                    }
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((distance % (1000 * 60)) / 1000);
+                    if (closingEl) closingEl.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+                }, 1000);
+            @endif
+
+            @if(isset($paymentSettings) && $paymentSettings->contains('has_late_penalty', true) && isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                const incDeadline = new Date("{{ \Carbon\Carbon::parse($closestIncrementDate)->toIso8601String() }}").getTime();
+                const incEl = document.getElementById('payment-increment-countdown');
+                
+                setInterval(() => {
+                    const distance = incDeadline - new Date().getTime();
+                    if (distance < 0) {
+                        if (incEl) incEl.innerHTML = "Fee Increased";
+                        return;
+                    }
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((distance % (1000 * 60)) / 1000);
+                    if (incEl) incEl.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+                }, 1000);
+            @endif
         });
     </script>
 @endpush

@@ -66,7 +66,7 @@ class UserSeeder extends Seeder
             'username' => 'hod',
             'password' => 'hod@Unioffa123',
         ]);
-        
+
         $this->createAccount('lecturer', [
             'first_name' => 'Testing lecturer',
             'last_name' => 'testing',
@@ -83,6 +83,7 @@ class UserSeeder extends Seeder
 
         if (! $userTypeId) {
             $this->command->warn("⚠️ UserType '{$userTypeName}' not found. Please run UserTypeSeeder first.");
+
             return;
         }
 

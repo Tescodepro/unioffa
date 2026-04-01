@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('agent_applications', function (Blueprint $table) {
             //
-             $table->string('subaccount_code')->nullable()->after('account_name');
+            $table->string('subaccount_code')->nullable()->after('account_name');
         });
     }
 
@@ -24,7 +24,7 @@ return new class extends Migration
     {
         Schema::table('agent_applications', function (Blueprint $table) {
             //
-             $table->dropColumn('subaccount_code');
+            $table->dropColumn('subaccount_code');
         });
     }
 };

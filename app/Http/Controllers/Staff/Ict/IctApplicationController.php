@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Staff\Ict;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdmissionList;
 use App\Models\UserApplications;
 use Illuminate\Http\Request;
 
@@ -19,7 +18,7 @@ class IctApplicationController extends Controller
             'olevels',
             'educationHistories',
             'jambDetail',
-            'documents'
+            'documents',
         ])
             ->whereNotNull('submitted_by')
             ->where('academic_session', activeSession()->name)
@@ -32,7 +31,7 @@ class IctApplicationController extends Controller
             $modules = $app->applicationSetting->modules_enable ?? [];
             $missing = [];
 
-            if (isset($modules['profile']) && $modules['profile'] && !$app->profile) {
+            if (isset($modules['profile']) && $modules['profile'] && ! $app->profile) {
                 $missing[] = 'Profile';
             }
             if (isset($modules['olevel']) && $modules['olevel'] && $app->olevels->isEmpty()) {
@@ -41,10 +40,10 @@ class IctApplicationController extends Controller
             if (isset($modules['alevel']) && $modules['alevel'] && $app->educationHistories->isEmpty()) {
                 $missing[] = 'A\'Level';
             }
-            if (isset($modules['course_of_study']) && $modules['course_of_study'] && !$app->user->courseOfStudy) {
+            if (isset($modules['course_of_study']) && $modules['course_of_study'] && ! $app->user->courseOfStudy) {
                 $missing[] = 'Course of Study';
             }
-            if (isset($modules['jamb_detail']) && $modules['jamb_detail'] && !$app->jambDetail) {
+            if (isset($modules['jamb_detail']) && $modules['jamb_detail'] && ! $app->jambDetail) {
                 $missing[] = 'JAMB Detail';
             }
             if (isset($modules['documents']) && is_array($modules['documents'])) {
@@ -53,12 +52,12 @@ class IctApplicationController extends Controller
                 // Or easier:
                 $uploadedDocTypes = $app->documents->pluck('type')->toArray();
                 $missingDocs = array_diff($modules['documents'], $uploadedDocTypes);
-                if (!empty($missingDocs)) {
-                    $missing[] = 'Documents (' . implode(', ', $missingDocs) . ')';
+                if (! empty($missingDocs)) {
+                    $missing[] = 'Documents ('.implode(', ', $missingDocs).')';
                 }
             }
 
-            if (!empty($missing)) {
+            if (! empty($missing)) {
                 $app->missing_modules = implode(', ', $missing);
                 $incompleteApplications->push($app);
             }

@@ -3,12 +3,12 @@
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, WithColumnWidths
+class StudentsTemplateExport implements FromArray, WithColumnWidths, WithHeadings, WithStyles
 {
     public function array(): array
     {
@@ -25,7 +25,7 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 '2024/2025',
                 'UTME',
                 '2005-05-15',
-                ''
+                '',
             ],
             [
                 'Jane',
@@ -38,7 +38,7 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 '2023/2024',
                 'DE',
                 '2004-08-20',
-                '1'
+                '1',
             ],
         ];
     }
@@ -56,7 +56,7 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
             'admission_year',
             'entry_mode',
             'dob',
-            'stream'
+            'stream',
         ];
     }
 
@@ -67,12 +67,12 @@ class StudentsTemplateExport implements FromArray, WithHeadings, WithStyles, Wit
                 'font' => ['bold' => true],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => '4472C4']
+                    'startColor' => ['rgb' => '4472C4'],
                 ],
                 'font' => [
                     'bold' => true,
-                    'color' => ['rgb' => 'FFFFFF']
-                ]
+                    'color' => ['rgb' => 'FFFFFF'],
+                ],
             ],
         ];
     }

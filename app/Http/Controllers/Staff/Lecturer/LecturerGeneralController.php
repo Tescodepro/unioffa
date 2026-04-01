@@ -99,7 +99,7 @@ class LecturerGeneralController extends Controller
         $user = auth()->user();
         $staff = $user->staff;
 
-        if (!$staff && !$user->hasUserType('administrator')) {
+        if (! $staff && ! $user->hasUserType('administrator')) {
             abort(403, 'Unauthorized access.');
         }
 
@@ -117,7 +117,7 @@ class LecturerGeneralController extends Controller
         // Data for modals
         $faculties = Faculty::all();
         $userTypes = UserType::whereIn('name', ['dean', 'hod', 'lecturer', 'staff'])->get();
-        
+
         // Filter departments based on role
         if ($user->hasUserType('dean')) {
             $departments = Department::where('faculty_id', $staff->faculty_id)->get();
@@ -305,7 +305,6 @@ class LecturerGeneralController extends Controller
             abort(403, 'You are not authorized to delete staff outside your department.');
         }
 
-
         // Force delete associated user
         if ($staff->user) {
             $staff->user->forceDelete();
@@ -350,15 +349,15 @@ class LecturerGeneralController extends Controller
 
         // Filter selectable courses and lecturers based on role
         if ($user->hasUserType('dean')) {
-            $courseQuery->whereHas('department', function($q) use ($staff) {
+            $courseQuery->whereHas('department', function ($q) use ($staff) {
                 $q->where('faculty_id', $staff->faculty_id);
             });
-            $lecturerQuery->whereHas('staff', function($q) use ($staff) {
+            $lecturerQuery->whereHas('staff', function ($q) use ($staff) {
                 $q->where('faculty_id', $staff->faculty_id);
             });
         } elseif ($user->hasUserType('hod')) {
             $courseQuery->where('department_id', $staff->department_id);
-            $lecturerQuery->whereHas('staff', function($q) use ($staff) {
+            $lecturerQuery->whereHas('staff', function ($q) use ($staff) {
                 $q->where('department_id', $staff->department_id);
             });
         }

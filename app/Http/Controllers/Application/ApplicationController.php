@@ -106,15 +106,15 @@ class ApplicationController extends Controller
                     $subject = 'Referral Notification - New Applicant Registration';
 
                     $content = [
-                        'title' => 'Hello ' . $agentApplication->first_name . ',',
-                        'body' => 'A new applicant has registered using your referral code (' . $request->referee_code . ').<br><br>' .
-                            '<strong>Registration Details:</strong><br>' .
-                            '- Applicant Name: ' . $user->first_name . ' ' . $user->last_name . '<br>' .
-                            '- Applicant Email: ' . $user->email . '<br>' .
-                            '- Date: ' . now()->format('Y-m-d H:i:s') . '<br>' .
-                            '- IP Address: ' . request()->ip() . '<br><br>' .
-                            'Thank you for referring applicants to ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . '. Keep up the great work!',
-                        'footer' => 'Warm regards,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Team',
+                        'title' => 'Hello '.$agentApplication->first_name.',',
+                        'body' => 'A new applicant has registered using your referral code ('.$request->referee_code.').<br><br>'.
+                            '<strong>Registration Details:</strong><br>'.
+                            '- Applicant Name: '.$user->first_name.' '.$user->last_name.'<br>'.
+                            '- Applicant Email: '.$user->email.'<br>'.
+                            '- Date: '.now()->format('Y-m-d H:i:s').'<br>'.
+                            '- IP Address: '.request()->ip().'<br><br>'.
+                            'Thank you for referring applicants to '.\App\Models\SystemSetting::get('school_name', 'University of Offa').'. Keep up the great work!',
+                        'footer' => 'Warm regards,<br>'.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Team',
                     ];
 
                     // Mail::to($to)->send(new GeneralMail($subject, $content, false));
@@ -139,7 +139,7 @@ class ApplicationController extends Controller
             DB::rollBack();
 
             // Log failure with details
-            Log::error("❌ Failed to send mail to {$request->email}. Error: " . $e->getMessage());
+            Log::error("❌ Failed to send mail to {$request->email}. Error: ".$e->getMessage());
 
             return back()->withErrors(['email' => 'Registration failed because email could not be sent. Try again.']);
         }
@@ -176,16 +176,16 @@ class ApplicationController extends Controller
             $subject = 'Login Notification';
 
             $content = [
-                'title' => Auth::user()->full_name . ',',
-                'body' => 'We noticed a login to your ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' account.<br><br>
+                'title' => Auth::user()->full_name.',',
+                'body' => 'We noticed a login to your '.\App\Models\SystemSetting::get('school_name', 'University of Offa').' account.<br><br>
 
             Details:<br>  
-            - Date: ' . now()->format('Y-m-d H:i:s') . '<br>  
-            - IP Address: ' . request()->ip() . ' <br><br>
+            - Date: '.now()->format('Y-m-d H:i:s').'<br>  
+            - IP Address: '.request()->ip().' <br><br>
 
             If this was you, no action is required. If not, please reset your password immediately.',
                 'footer' => 'Stay safe,  
-            ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Team',
+            '.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Team',
             ];
 
             // Mail::to($to)->send(new GeneralMail($subject, $content, false));
@@ -215,6 +215,7 @@ class ApplicationController extends Controller
         if ($userCampusSlug !== 'main-campus') {
             $applicationSettings = $applicationSettings->map(function ($setting) {
                 $setting->acceptance_fee = 25000;
+
                 return $setting;
             });
         }
@@ -229,6 +230,7 @@ class ApplicationController extends Controller
                 if ($application->applicationSetting) {
                     $application->applicationSetting->acceptance_fee = 25000;
                 }
+
                 return $application;
             });
         }
@@ -242,7 +244,6 @@ class ApplicationController extends Controller
         $redirectRoute = null;
         $redirectMessage = null;
 
-
         foreach ($recentTransactions as $txn) {
             // Verify payment if not already verified
             if ($txn->payment_status != 1) {
@@ -251,7 +252,7 @@ class ApplicationController extends Controller
             }
 
             // Handle acceptance fee payment - ONLY for non-students
-            if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && !$user->student) {
+            if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && ! $user->student) {
                 // Check if user has submitted application for this session
                 $hasSubmittedApplication = UserApplications::where('user_id', Auth::id())
                     ->where('academic_session', $txn->session)
@@ -295,7 +296,7 @@ class ApplicationController extends Controller
                             $student->user->update(['username' => $newMatricNo]);
 
                             $redirectRoute = 'students.dashboard';
-                            $redirectMessage = 'Tuition payment successful! Matric number generated: ' . $newMatricNo;
+                            $redirectMessage = 'Tuition payment successful! Matric number generated: '.$newMatricNo;
                             break;
                         }
                     } else {
@@ -321,7 +322,7 @@ class ApplicationController extends Controller
             'application_setting_id' => 'required|exists:application_settings,id',
         ]);
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->back()->with('error', 'Please login first');
         }
 
@@ -360,7 +361,7 @@ class ApplicationController extends Controller
     public function applicationForm($user_application_id)
     {
         $users = Auth::user();
-        $title = Auth::user()->full_name . ' Application Form';
+        $title = Auth::user()->full_name.' Application Form';
 
         $application = UserApplications::with('applicationSetting')
             ->where('user_id', Auth::id())
@@ -455,7 +456,7 @@ class ApplicationController extends Controller
     {
         $request->validate([
             'olevel_exam_type' => 'required|in:waec,neco,nabteb',
-            'olevel_year' => 'required|integer|min:1910|max:' . date('Y'),
+            'olevel_year' => 'required|integer|min:1910|max:'.date('Y'),
             'olevel_subjects' => 'required|array|min:5|max:8',
             'olevel_subjects.*' => 'required|string',
             'olevel_grades' => 'required|array|min:5|max:8',
@@ -560,8 +561,8 @@ class ApplicationController extends Controller
                 }
 
                 // Store new file
-                $filename = time() . '_' . $doc . '_' . $file->getClientOriginalName();
-                $filePath = $file->storeAs('documents/' . Auth::id(), $filename, 'public');
+                $filename = time().'_'.$doc.'_'.$file->getClientOriginalName();
+                $filePath = $file->storeAs('documents/'.Auth::id(), $filename, 'public');
 
                 Document::updateOrCreate(
                     [
@@ -585,7 +586,7 @@ class ApplicationController extends Controller
     {
         $rules = [
             'registration_number' => 'required|string|max:255',
-            'exam_year' => 'required|integer|min:2000|max:' . date('Y'),
+            'exam_year' => 'required|integer|min:2000|max:'.date('Y'),
             'jamb_type' => 'required|in:utme,direct_entry',
         ];
 
@@ -619,7 +620,7 @@ class ApplicationController extends Controller
                 $data
             );
         } catch (Exception $th) {
-            return redirect()->back()->withErrors(['error' => 'An error occurred while saving JAMB details: ' . $th->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'An error occurred while saving JAMB details: '.$th->getMessage()]);
         }
 
         return redirect()->back()->with('success', 'JAMB details saved successfully.');
@@ -672,7 +673,7 @@ class ApplicationController extends Controller
         $pdf = Pdf::loadView('applications.admission-letter', $data)
             ->setPaper('A4', 'portrait');
 
-        return $pdf->download('Admission_Letter_' . $student->full_name . '.pdf');
+        return $pdf->download('Admission_Letter_'.$student->full_name.'.pdf');
     }
 
     public function showForgotPasswordForm()
@@ -696,7 +697,7 @@ class ApplicationController extends Controller
             //  Find the user
             $user = User::where('email', $request->email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return back()->withErrors(['email' => 'No account found with that email address.']);
             }
 
@@ -706,26 +707,26 @@ class ApplicationController extends Controller
             $user->save();
 
             //  Prepare email
-            $subject = 'Password Reset Request - ' . \App\Models\SystemSetting::get('school_name', 'University of Offa');
+            $subject = 'Password Reset Request - '.\App\Models\SystemSetting::get('school_name', 'University of Offa');
 
             $currentTime = now()->format('Y-m-d H:i:s');
             $ipAddress = $request->ip();
 
             $content = [
-                'title' => $user->full_name . ',',
+                'title' => $user->full_name.',',
                 'body' => '
                     We received a request to reset your password.  
                     Please use the following One-Time Password (OTP):  
-                    <h2>' . $otp . '</h2>  
+                    <h2>'.$otp.'</h2>  
 
                     Details:<br>  
-                    - Date: ' . $currentTime . '<br>  
-                    - IP Address: ' . $ipAddress . ' <br><br>
+                    - Date: '.$currentTime.'<br>  
+                    - IP Address: '.$ipAddress.' <br><br>
 
                     If this was you, proceed with resetting your password.  
                     If not, please secure your account immediately.
                 ',
-                'footer' => 'Stay safe,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Team',
+                'footer' => 'Stay safe,<br>'.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Team',
             ];
 
             // Send email
@@ -734,7 +735,7 @@ class ApplicationController extends Controller
             // Mail::to('obj4u2001@gmail.com')->send(new GeneralMail($subject, $content, false));
             return redirect()->route('password.otp.update')->with('success', "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp .");
         } catch (Exception $e) {
-            Log::error('Forgot Password Error: ' . $e->getMessage());
+            Log::error('Forgot Password Error: '.$e->getMessage());
 
             return back()->withErrors(['email' => 'Something went wrong. Please try again later.']);
         }
@@ -760,14 +761,14 @@ class ApplicationController extends Controller
             ->where('otp_expires_at', '>', now())
             ->first();
 
-        if (!$otpRecord) {
+        if (! $otpRecord) {
             return back()->withErrors(['otp' => 'Invalid or expired OTP.']);
         }
 
         // Update user password
         $user = User::where('email', $otpRecord->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors(['otp' => 'User not found.']);
         }
 
@@ -820,7 +821,8 @@ class ApplicationController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Application Deletion Error: ' . $e->getMessage());
+            Log::error('Application Deletion Error: '.$e->getMessage());
+
             return redirect()->back()->with('error', 'An error occurred while deleting the application.');
         }
     }

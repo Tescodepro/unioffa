@@ -1,17 +1,18 @@
 <?php
 
-use App\Models\User;
-use App\Models\Student;
-use App\Models\AcademicSession;
 use App\Models\AcademicSemester;
-use App\Models\UserType;
+use App\Models\AcademicSession;
+use App\Models\Campus;
+use App\Models\CourseRegistrationSetting;
 use App\Models\Department;
 use App\Models\Faculty;
-use App\Models\Campus;
+use App\Models\Student;
 use App\Models\SystemSetting;
-use App\Models\CourseRegistrationSetting;
 use App\Models\Transaction;
+use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+
 use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
@@ -19,28 +20,28 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->userType = UserType::create(['name' => 'student']);
     $this->campus = Campus::create([
-        'name' => 'Main Campus', 
+        'name' => 'Main Campus',
         'slug' => 'main-campus',
         'address' => 'Test Address',
         'phone_number' => '08000000000',
         'email' => 'campus@example.com',
-        'direction' => 'Test Direction'
+        'direction' => 'Test Direction',
     ]);
     $this->faculty = Faculty::create([
-        'faculty_name' => 'Test Faculty', 
+        'faculty_name' => 'Test Faculty',
         'faculty_code' => 'TF',
-        'description' => 'Test Description'
+        'description' => 'Test Description',
     ]);
     $this->department = Department::create([
         'department_name' => 'Test Department',
         'department_code' => 'TD',
         'faculty_id' => $this->faculty->id,
         'department_description' => 'Test Description',
-        'qualification' => 'B.Sc.'
+        'qualification' => 'B.Sc.',
     ]);
 
     $this->user = User::factory()->create([
-        'user_type_id' => $this->userType->id
+        'user_type_id' => $this->userType->id,
     ]);
 
     $this->student = Student::create([
@@ -51,7 +52,7 @@ beforeEach(function () {
         'matric_no' => '2024001',
         'programme' => 'B.Sc.',
         'entry_mode' => 'UTME',
-        'admission_session' => '2024/2025'
+        'admission_session' => '2024/2025',
     ]);
 
     $this->session = AcademicSession::create([
@@ -59,7 +60,7 @@ beforeEach(function () {
         'status' => 1,
         'status_upload_result' => 0,
         'lecturar_ids' => [],
-        'students_ids' => []
+        'students_ids' => [],
     ]);
 
     $this->semester = AcademicSemester::create([
@@ -69,7 +70,7 @@ beforeEach(function () {
         'status_upload_result' => 0,
         'academic_session_id' => $this->session->id,
         'lecturar_ids' => [],
-        'students_ids' => []
+        'students_ids' => [],
     ]);
 
     SystemSetting::create(['key' => 'max_units_per_semester', 'value' => '24']);
@@ -80,7 +81,7 @@ beforeEach(function () {
         'amount' => 100000,
         'session' => '2024/2025',
         'level' => [100],
-        'installmental_allow_status' => 0
+        'installmental_allow_status' => 0,
     ]);
 });
 
@@ -104,7 +105,7 @@ test('it blocks course registration if closing date is passed and shows late fee
         'payment_status' => 1,
         'description' => 'Tuition Payment',
         'refernce_number' => 'REF123',
-        'payment_method' => 'manual'
+        'payment_method' => 'manual',
     ]);
 
     $response = actingAs($this->user)->get(route('students.course.registration'));
@@ -134,7 +135,7 @@ test('it allows course registration if late fee is paid', function () {
         'payment_status' => 1,
         'description' => 'Tuition Payment',
         'refernce_number' => 'REF123',
-        'payment_method' => 'manual'
+        'payment_method' => 'manual',
     ]);
 
     // Make late fee payment
@@ -147,7 +148,7 @@ test('it allows course registration if late fee is paid', function () {
         'payment_status' => 1,
         'description' => 'Late Registration Fee',
         'refernce_number' => 'REF124',
-        'payment_method' => 'paystack'
+        'payment_method' => 'paystack',
     ]);
 
     $response = actingAs($this->user)->get(route('students.course.registration'));

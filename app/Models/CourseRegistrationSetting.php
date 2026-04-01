@@ -49,15 +49,15 @@ class CourseRegistrationSetting extends Model
         return self::where('campus_id', $student->campus_id)
             ->where(function ($q) use ($student) {
                 $q->whereNull('entry_mode')
-                  ->orWhereJsonContains('entry_mode', $student->entry_mode);
+                    ->orWhereJsonContains('entry_mode', $student->entry_mode);
             })
             ->where(function ($q) use ($session) {
                 $q->whereNull('session')
-                  ->orWhere('session', $session);
+                    ->orWhere('session', $session);
             })
             ->where(function ($q) use ($semester) {
                 $q->whereNull('semester')
-                  ->orWhere('semester', $semester);
+                    ->orWhere('semester', $semester);
             })
             ->orderBy('created_at', 'desc')
             ->first();

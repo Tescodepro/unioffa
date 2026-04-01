@@ -7,6 +7,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Staff\AuthController as StaffAuthController;
 use App\Http\Controllers\Staff\BursaryController;
+use App\Http\Controllers\Staff\CenterDirector\CenterDirectorController;
 use App\Http\Controllers\Staff\GeneralController as StaffGeneralController;
 use App\Http\Controllers\Staff\Ict\AcademicSemesterController;
 use App\Http\Controllers\Staff\Ict\AcademicSessionController;
@@ -19,16 +20,15 @@ use App\Http\Controllers\Staff\Ict\MenuItemController;
 use App\Http\Controllers\Staff\Ict\PermissionController;
 use App\Http\Controllers\Staff\Ict\UserSearchController;
 use App\Http\Controllers\Staff\Ict\UserTypeController;
+use App\Http\Controllers\Staff\LatePaymentSettingController;
 use App\Http\Controllers\Staff\Lecturer\CourseController;
 use App\Http\Controllers\Staff\Lecturer\LecturerGeneralController;
 use App\Http\Controllers\Staff\Lecturer\ResultController;
-use App\Http\Controllers\Staff\LatePaymentSettingController;
 use App\Http\Controllers\Staff\PaymentSettingController;
+use App\Http\Controllers\Staff\ProgrammeDirector\ProgrammeDirectorController;
 use App\Http\Controllers\Staff\Registrar\RegistrarController;
 use App\Http\Controllers\Staff\SystemSettingController;
 use App\Http\Controllers\Staff\Vc\VcController;
-use App\Http\Controllers\Staff\CenterDirector\CenterDirectorController;
-use App\Http\Controllers\Staff\ProgrammeDirector\ProgrammeDirectorController;
 use App\Http\Controllers\Student\AuthController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\website\GeneralController;
@@ -183,7 +183,7 @@ Route::prefix('staff')->group(function () {
             Route::post('/admission/admit/{userId}', 'admitStudent')->name('admission.admit');
             Route::post('/admission/recommend/{userId}', 'recommendStudent')->name('admission.recommend');
             Route::get('/admission/export-applicants', 'exportApplicants')->name('admission.exportApplicants');
-            
+
             Route::get('/agent-applicants', 'showAgentDetail')->name('admin.agent.applicants');
             Route::post('/agent-applicants/status', 'changeAgentStatus')->name('admin.agent.application.update_status');
         });
@@ -273,7 +273,7 @@ Route::prefix('staff')->group(function () {
                 Route::post('/staff-list', 'addStaff')->name('staff.users.store');
                 Route::put('/staff-list/{id}', 'updateStaff')->name('staff.users.update');
                 Route::delete('/staff-list/{id}', 'destroyStaff')->name('staff.users.destroy');
-                
+
                 Route::get('/course-assignments', 'courseAssignments')->name('staff.course.assignments');
                 Route::post('/course-assignments', 'assignCourse')->name('staff.course.assign');
                 Route::delete('/course-assignments/{id}', 'deleteAssignment')->name('staff.course.assign.delete');
@@ -371,7 +371,7 @@ Route::prefix('staff')->group(function () {
                 Route::post('/system-settings', 'update')->name('system_settings.update');
                 Route::post('/system-settings/grading/update', 'updateGrading')->name('system_settings.grading.update');
             });
-            
+
             Route::resource('course-registration-settings', \App\Http\Controllers\Staff\Ict\CourseRegistrationSettingController::class);
         });
     });

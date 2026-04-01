@@ -5,11 +5,11 @@ namespace App\Services;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 
 class PaymentVerificationService
 {
     protected string $baseUrl;
+
     protected string $secret;
 
     public function __construct()
@@ -29,7 +29,7 @@ class PaymentVerificationService
                 ->json();
 
             // Basic safety checks
-            if (!isset($response['status'])) {
+            if (! isset($response['status'])) {
                 return [
                     'payment_status' => 0,
                     'message' => 'Invalid response from Paystack server.',
@@ -43,7 +43,7 @@ class PaymentVerificationService
             $transaction = Transaction::where('refernce_number', $reference)->first();
 
             // If no record found locally
-            if (!$transaction) {
+            if (! $transaction) {
                 return [
                     'payment_status' => 0,
                     'message' => 'Transaction not found in the system.',
@@ -79,6 +79,7 @@ class PaymentVerificationService
                 ];
             } else {
                 $transaction->update(['payment_status' => 2]);
+
                 return [
                     'payment_status' => 2,
                     'message' => 'Payment not successful.',
@@ -87,11 +88,11 @@ class PaymentVerificationService
                 ];
             }
         } catch (\Exception $e) {
-            Log::error('Paystack verification failed: ' . $e->getMessage());
+            Log::error('Paystack verification failed: '.$e->getMessage());
 
             return [
                 'payment_status' => 0,
-                'message' => 'Verification failed: ' . $e->getMessage(),
+                'message' => 'Verification failed: '.$e->getMessage(),
             ];
         }
     }

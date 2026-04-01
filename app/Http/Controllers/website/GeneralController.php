@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\website;
 
 use App\Http\Controllers\Controller;
+use App\Mail\GeneralMail;
 use App\Models\AgentApplication;
 use App\Models\Lga;
+use App\Models\News;
 use App\Models\State;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\GeneralMail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use App\Models\News;
-
-
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 class GeneralController extends Controller
 {
@@ -58,7 +56,7 @@ class GeneralController extends Controller
                 ]);
             // Extract only bank name & code if response is successful
             $banks = $response->successful()
-                ? collect($response->json('data'))->map(fn($bank) => [
+                ? collect($response->json('data'))->map(fn ($bank) => [
                     'name' => $bank['name'],
                     'code' => $bank['code'],
                 ])
@@ -68,8 +66,10 @@ class GeneralController extends Controller
             // Handle network/API failure gracefully
             $banks = collect();
         }
+
         return view('website.application-form', compact('title', 'states', 'lgas', 'banks'));
     }
+
     public function submitAgentApplication(Request $request)
     {
         // 1. Validate input
@@ -129,7 +129,7 @@ class GeneralController extends Controller
             try {
                 $subject = 'Agent Application Received';
                 $content = [
-                    'title' => 'Hi ' . $application->first_name . ',',
+                    'title' => 'Hi '.$application->first_name.',',
                     'body' => "
                     We've received your Agent Application and it’s currently under review.<br><br>
                     <strong>Name:</strong> {$application->first_name} {$application->last_name}<br>
@@ -139,15 +139,15 @@ class GeneralController extends Controller
                     <strong>LGA:</strong> {$application->lga->name}<br><br>
                     Once approved, you’ll receive your unique referral code via email.
                 ",
-                    'footer' => 'Warm regards,<br>' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Admissions Team',
+                    'footer' => 'Warm regards,<br>'.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Admissions Team',
                 ];
 
                 Mail::to($application->email)->send(new GeneralMail($subject, $content, false));
-                Log::info('Agent application confirmation email sent to ' . $application->email);
+                Log::info('Agent application confirmation email sent to '.$application->email);
 
             } catch (\Exception $e) {
                 // Log the error but continue execution
-                Log::warning('Failed to send agent application confirmation email to ' . $application->email . '. Error: ' . $e->getMessage());
+                Log::warning('Failed to send agent application confirmation email to '.$application->email.'. Error: '.$e->getMessage());
             }
 
             // 6. Notify admin
@@ -166,13 +166,13 @@ class GeneralController extends Controller
                     <strong>Account Number:</strong> {$application->account_number}<br>
                     You can review and approve this application from the admin dashboard.
                 ",
-                    'footer' => '— Automated Notification from ' . \App\Models\SystemSetting::get('school_name', 'University of Offa') . ' Website',
+                    'footer' => '— Automated Notification from '.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Website',
                 ];
 
                 Mail::to($adminEmail)->send(new GeneralMail($adminSubject, $adminContent, false));
 
             } catch (\Exception $e) {
-                Log::error('Failed to send Admin Notification for Agent Application. Error: ' . $e->getMessage());
+                Log::error('Failed to send Admin Notification for Agent Application. Error: '.$e->getMessage());
             }
 
             // 7. Return Success
@@ -180,13 +180,16 @@ class GeneralController extends Controller
 
         } catch (\Exception $e) {
             // This catches database errors or critical logic failures
-            Log::error('Agent Application Critical Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', "An error occurred while submitting your application. Please try again later.");
+            Log::error('Agent Application Critical Error: '.$e->getMessage());
+
+            return redirect()->back()->with('error', 'An error occurred while submitting your application. Please try again later.');
         }
     }
+
     public function getLgas($state_id)
     {
         $lgas = Lga::where('state_id', $state_id)->get();
+
         return response()->json($lgas);
     }
 
@@ -200,6 +203,7 @@ class GeneralController extends Controller
     public function prochancellor()
     {
         $title = 'Pro-Chancellor';
+
         // Loads resources/views/website/pro-chancellor.blade.php
         return view('website.pro-chancellor', compact('title'));
     }
@@ -207,6 +211,7 @@ class GeneralController extends Controller
     public function registrar()
     {
         $title = 'The Registrar';
+
         // Loads resources/views/website/registrar.blade.php
         return view('website.registrar', compact('title'));
     }
@@ -216,6 +221,7 @@ class GeneralController extends Controller
     public function council_suraj()
     {
         $title = 'Council Member - Mr. Suraj Oyewale';
+
         // Loads resources/views/website/council-suraj.blade.php
         return view('website.council-suraj', compact('title'));
     }
@@ -223,6 +229,7 @@ class GeneralController extends Controller
     public function council_abdulateef()
     {
         $title = 'Council Member - Mr. Oyewale O. Abdulateef';
+
         // Loads resources/views/website/council-abdulateef.blade.php
         return view('website.council-abdulateef', compact('title'));
     }
@@ -230,6 +237,7 @@ class GeneralController extends Controller
     public function council_abdulrasheed()
     {
         $title = 'Council Member - Abdulrasheed Oyewale';
+
         // Loads resources/views/website/council-abdulrasheed.blade.php
         return view('website.council-abdulrasheed', compact('title'));
     }
@@ -237,6 +245,7 @@ class GeneralController extends Controller
     public function council_akeem()
     {
         $title = 'Council Member - Dr. Akeem Oyewale';
+
         // Loads resources/views/website/council-akeem.blade.php
         return view('website.council-akeem', compact('title'));
     }

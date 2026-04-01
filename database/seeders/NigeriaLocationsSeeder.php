@@ -73,7 +73,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Ukwa West',
                 'Umuahia North',
                 'Umuahia South',
-                'Umu Nneochi'
+                'Umu Nneochi',
             ],
             'Adamawa' => [
                 'Girei',
@@ -96,7 +96,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Mubi South',
                 'Toungo',
                 'Yola North',
-                'Yola South'
+                'Yola South',
             ],
             'Akwa Ibom' => [
                 'Ikono',
@@ -129,7 +129,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Uyo',
                 'Ukanafun',
                 'Udung-Uko',
-                'Uruan'
+                'Uruan',
             ],
             'Anambra' => [
                 'Aguata',
@@ -152,7 +152,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Onitsha South',
                 'Orumba North',
                 'Orumba South',
-                'Oyi'
+                'Oyi',
             ],
             'Bauchi' => [
                 'Bogoro',
@@ -174,7 +174,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Jama’are',
                 'Zaki',
                 'Gamawa',
-                'Damban'
+                'Damban',
             ],
             'Bayelsa' => [
                 'Kolokuma/Opokuma',
@@ -184,7 +184,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Brass',
                 'Ekeremor',
                 'Southern Ijaw',
-                'Yenagoa'
+                'Yenagoa',
             ],
             'Benue' => [
                 'Guma',
@@ -208,7 +208,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Otukpo',
                 'Tarka',
                 'Ushongo',
-                'Vandeikya'
+                'Vandeikya',
             ],
             'Borno' => [
                 'Bayo',
@@ -235,7 +235,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Magumeri',
                 'Ngala',
                 'Nganzai',
-                'Shani'
+                'Shani',
             ],
             'Cross River' => [
                 'Calabar Municipal',
@@ -255,7 +255,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Bekwarra',
                 'Ogoja',
                 'Yakuur',
-                'Yala'
+                'Yala',
             ],
             'Delta' => [
                 'Ethiope West',
@@ -281,7 +281,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Ndokwa East',
                 'Ndokwa West',
                 'Ughelli South',
-                'Ughelli North'
+                'Ughelli North',
             ],
             'Ebonyi' => [
                 'Izzi',
@@ -296,7 +296,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Onicha',
                 'Ezza South',
                 'Ikwo',
-                'Ishielu'
+                'Ishielu',
             ],
             'Edo' => [
                 'Igueben',
@@ -316,7 +316,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Etsako West',
                 'Owan East',
                 'Owan West',
-                'Uhunmwonde'
+                'Uhunmwonde',
             ],
             'Ekiti' => [
                 'Efon',
@@ -334,7 +334,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Ekiti South-West',
                 'Ekiti West',
                 'Ise/Orun',
-                'Moba'
+                'Moba',
             ],
             'Enugu' => [
                 'Ezza South',
@@ -356,7 +356,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Ezeagu',
                 'Igbo Etiti',
                 'Igbo Eze North',
-                'Uzo-Uwani'
+                'Uzo-Uwani',
             ],
             'Gombe' => [
                 'Akko',
@@ -369,7 +369,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Kwami',
                 'Nafada/Bajoga',
                 'Shomgom',
-                'Yamaltu/Deba'
+                'Yamaltu/Deba',
             ],
             'Imo' => [
                 'Ezinihitte Mbaise',
@@ -398,7 +398,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Orlu',
                 'Orsu',
                 'Owerri North',
-                'Owerri West'
+                'Owerri West',
             ],
             'Jigawa' => [
                 'Buji',
@@ -427,7 +427,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Roni',
                 'Sule Tankarkar',
                 'Taura',
-                'Yankwashi'
+                'Yankwashi',
             ],
             'Kaduna' => [
                 'Kaduna North',
@@ -452,7 +452,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Zangon Kataf',
                 'Sabon Gari',
                 'Sanga',
-                'Zaria'
+                'Zaria',
             ],
             'Kano' => [
                 'Ajingi',
@@ -498,7 +498,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Tudun Wada',
                 'Ungogo',
                 'Warawa',
-                'Wudil'
+                'Wudil',
             ],
             'Katsina' => [
                 'Bindawa',
@@ -534,7 +534,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Sabuwa',
                 'Safana',
                 'Sandamu',
-                'Zango'
+                'Zango',
             ],
             'Kebbi' => [
                 'Dandi',
@@ -557,7 +557,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Aleiro',
                 'Bagudo',
                 'Birnin Kebbi',
-                'Bunza'
+                'Bunza',
             ],
             'Kogi' => [
                 'Dekina',
@@ -580,7 +580,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Mopa-Muro',
                 'Omala',
                 'Yagba East',
-                'Yagba West'
+                'Yagba West',
             ],
             'Lagos' => [
                 'Apapa',
@@ -602,7 +602,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Ikorodu',
                 'Kosofe',
                 'Lagos Island',
-                'Lagos Mainland'
+                'Lagos Mainland',
             ],
             'Nasarawa' => [
                 'Karu',
@@ -617,7 +617,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Akwanga',
                 'Awe',
                 'Doma',
-                'Lafia'
+                'Lafia',
             ],
             'Niger' => [
                 'Gurara',
@@ -644,7 +644,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Munya',
                 'Paikoro',
                 'Tafa',
-                'Wushishi'
+                'Wushishi',
             ],
             'Ogun' => [
                 'Ifo',
@@ -666,7 +666,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Ikenne',
                 'Odeda',
                 'Ogun Waterside',
-                'Remo North'
+                'Remo North',
             ],
             'Ondo' => [
                 'Akoko North',
@@ -686,7 +686,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Ifedore',
                 'Ese Odo',
                 'Ilaje',
-                'Ile Oluji/Okeigbo'
+                'Ile Oluji/Okeigbo',
             ],
             'Kwara' => [
                 'Asa',
@@ -704,7 +704,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Offa',
                 'Oke Ero',
                 'Oyun',
-                'Pategi'
+                'Pategi',
             ],
             'Osun' => [
                 'Bolawaduro',
@@ -736,7 +736,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Isokan',
                 'Iwo',
                 'Obokun',
-                'Odo Otin'
+                'Odo Otin',
             ],
             'Oyo' => [
                 'Akinyele',
@@ -771,7 +771,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Oluyole',
                 'Ogo Oluwa',
                 'Oyo East',
-                'Ona Ara'
+                'Ona Ara',
             ],
             'Plateau' => [
                 'Bokkos',
@@ -790,7 +790,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Mangu',
                 'Mikang',
                 'Pankshin',
-                'Qua’an Pan'
+                'Qua’an Pan',
             ],
             'Rivers' => [
                 'Abua-Odual',
@@ -815,7 +815,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Obio-Akpor',
                 'Ogba-Egbema-Ndoni',
                 'Ogu-Bolo',
-                'Okrika'
+                'Okrika',
             ],
             'Sokoto' => [
                 'Gada',
@@ -840,7 +840,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Sokoto North',
                 'Sokoto South',
                 'Tambuwal',
-                'Tangaza'
+                'Tangaza',
             ],
             'Taraba' => [
                 'Ardo Kola',
@@ -858,7 +858,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Lau',
                 'Sardauna',
                 'Takum',
-                'Ussa'
+                'Ussa',
             ],
             'Yobe' => [
                 'Fune',
@@ -877,7 +877,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Nangere',
                 'Nguru',
                 'Yunusari',
-                'Yusufari'
+                'Yusufari',
             ],
             'Zamfara' => [
                 'Bungudu',
@@ -893,7 +893,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Gusau',
                 'Kaura Namoda',
                 'Maradun',
-                'Maru'
+                'Maru',
             ],
             'FCT' => [
                 'Gwagwalada',
@@ -901,7 +901,7 @@ class NigeriaLocationsSeeder extends Seeder
                 'Bwari',
                 'Abaji',
                 'Abuja Municipal',
-                'Kwali'
+                'Kwali',
             ],
         ];
 

@@ -19,35 +19,35 @@ class SystemSettingSeeder extends Seeder
                 'value' => 'University of Offa',
                 'group' => 'general',
                 'type' => 'string',
-                'description' => 'Official Name of the Institution'
+                'description' => 'Official Name of the Institution',
             ],
             [
                 'key' => 'school_motto',
                 'value' => 'Knowledge, Integrity, and Service',
                 'group' => 'general',
                 'type' => 'string',
-                'description' => 'School Motto'
+                'description' => 'School Motto',
             ],
             [
                 'key' => 'school_address',
                 'value' => 'PMB 1020, Offa, Kwara State, Nigeria',
                 'group' => 'general',
                 'type' => 'string',
-                'description' => 'Physical Address'
+                'description' => 'Physical Address',
             ],
             [
                 'key' => 'contact_email',
                 'value' => 'info@unioffa.edu.ng',
                 'group' => 'general',
                 'type' => 'string',
-                'description' => 'General Contact Email'
+                'description' => 'General Contact Email',
             ],
             [
                 'key' => 'contact_phone',
                 'value' => '+234 810 000 0000', // Default placeholder
                 'group' => 'general',
                 'type' => 'string',
-                'description' => 'General Contact Phone'
+                'description' => 'General Contact Phone',
             ],
 
             // Assets Group
@@ -56,21 +56,21 @@ class SystemSettingSeeder extends Seeder
                 'value' => 'assets/images/logo.png',
                 'group' => 'assets',
                 'type' => 'file',
-                'description' => 'School Logo Path'
+                'description' => 'School Logo Path',
             ],
             [
                 'key' => 'letterhead_path',
                 'value' => 'portal_assets/img/users/letter_head.png',
                 'group' => 'assets',
                 'type' => 'file',
-                'description' => 'Official Letterhead Image'
+                'description' => 'Official Letterhead Image',
             ],
             [
                 'key' => 'registrar_signature_path',
                 'value' => 'portal_assets/img/users/signature.png',
                 'group' => 'assets',
                 'type' => 'file',
-                'description' => 'Registrar Signature Image'
+                'description' => 'Registrar Signature Image',
             ],
 
             // Admission/Registrar Group
@@ -79,14 +79,14 @@ class SystemSettingSeeder extends Seeder
                 'value' => 'Mr. Salaudeen OYEWALE',
                 'group' => 'admission',
                 'type' => 'string',
-                'description' => 'Name of the Registrar'
+                'description' => 'Name of the Registrar',
             ],
             [
                 'key' => 'current_session',
                 'value' => '2024/2025',
                 'group' => 'academics',
                 'type' => 'string',
-                'description' => 'Current Academic Session'
+                'description' => 'Current Academic Session',
             ],
 
             // Unit Limits Group
@@ -95,15 +95,15 @@ class SystemSettingSeeder extends Seeder
                 'value' => '24',
                 'group' => 'academics',
                 'type' => 'number',
-                'description' => 'Maximum allowed units per semester'
+                'description' => 'Maximum allowed units per semester',
             ],
             [
                 'key' => 'max_units_per_session',
                 'value' => '48',
                 'group' => 'academics',
                 'type' => 'number',
-                'description' => 'Maximum allowed units per session'
-            ]
+                'description' => 'Maximum allowed units per session',
+            ],
         ];
 
         foreach ($settings as $setting) {

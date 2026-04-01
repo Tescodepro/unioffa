@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Staff\ProgrammeDirector;
 use App\Http\Controllers\Controller;
 use App\Models\AdmissionList;
 use App\Models\UserApplications;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 

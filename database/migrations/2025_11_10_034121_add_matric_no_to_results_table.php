@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::table('results', function (Blueprint $table) {
-        $table->string('matric_no')->after('student_id')->index();
-    });
+        Schema::table('results', function (Blueprint $table) {
+            $table->string('matric_no')->after('student_id')->index();
+        });
     }
 
     /**
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('results', function (Blueprint $table) {
-        $table->dropColumn('matric_no');
-    });
+            $table->dropColumn('matric_no');
+        });
     }
 };

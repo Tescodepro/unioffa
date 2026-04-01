@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Staff\Ict;
 
 use App\Http\Controllers\Controller;
-use App\Models\CourseRegistrationSetting;
 use App\Models\Campus;
+use App\Models\CourseRegistrationSetting;
 use App\Models\EntryMode;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class CourseRegistrationSettingController extends Controller
 {
     public function index()
     {
         $settings = CourseRegistrationSetting::with('campus')->orderBy('created_at', 'desc')->get();
+
         return view('staff.ict.course-registration-settings.index', compact('settings'));
     }
 
@@ -23,7 +23,7 @@ class CourseRegistrationSettingController extends Controller
         $entryModes = EntryMode::all();
         $sessions = \App\Models\AcademicSession::all();
         $semesters = \App\Models\AcademicSemester::all();
-        
+
         return view('staff.ict.course-registration-settings.create', compact('campuses', 'entryModes', 'sessions', 'semesters'));
     }
 
@@ -57,7 +57,7 @@ class CourseRegistrationSettingController extends Controller
         $entryModes = EntryMode::all();
         $sessions = \App\Models\AcademicSession::all();
         $semesters = \App\Models\AcademicSemester::all();
-        
+
         return view('staff.ict.course-registration-settings.edit', compact('setting', 'campuses', 'entryModes', 'sessions', 'semesters'));
     }
 

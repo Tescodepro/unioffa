@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
+use App\Models\Faculty;
+use App\Models\Staff;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use App\Models\User;
-use App\Models\Staff;
-use App\Models\Faculty;
-use App\Models\Department;
 
 class StaffSeeder extends Seeder
 {
@@ -20,7 +20,7 @@ class StaffSeeder extends Seeder
         $deanUser = User::where('email', 'dean@unioffa.edu.ng')->first();
         $faculty = Faculty::where('faculty_code', 'FSC')->first(); // replace with correct faculty
 
-        if ($deanUser && !$deanUser->staff) {
+        if ($deanUser && ! $deanUser->staff) {
             Staff::create([
                 'id' => Str::uuid(),
                 'user_id' => $deanUser->id,
@@ -36,7 +36,7 @@ class StaffSeeder extends Seeder
         $hodUser = User::where('email', 'hod@unioffa.edu.ng')->first();
         $department = Department::where('department_code', 'CSC')->first(); // replace with correct department
 
-        if ($hodUser && !$hodUser->staff) {
+        if ($hodUser && ! $hodUser->staff) {
             Staff::create([
                 'id' => Str::uuid(),
                 'user_id' => $hodUser->id,
@@ -51,7 +51,7 @@ class StaffSeeder extends Seeder
         // 🔹 Example: Lecturer
         $lecturerUser = User::where('email', 'lecturer@unioffa.edu.ng')->first();
 
-        if ($lecturerUser && !$lecturerUser->staff) {
+        if ($lecturerUser && ! $lecturerUser->staff) {
             Staff::create([
                 'id' => Str::uuid(),
                 'user_id' => $lecturerUser->id,

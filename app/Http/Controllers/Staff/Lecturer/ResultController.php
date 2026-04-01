@@ -62,7 +62,7 @@ class ResultController extends Controller
 
         $course = Course::where('course_code', $request->course_code)->firstOrFail();
         $user = auth()->user();
-        if ($user->hasRole('lecturer') && !$user->isAssignedToCourse($course->id)) {
+        if ($user->hasRole('lecturer') && ! $user->isAssignedToCourse($course->id)) {
             return back()->with('error', 'You are not authorized to upload results for this course.');
         }
 
@@ -84,7 +84,7 @@ class ResultController extends Controller
             return array_combine($normalizedHeaders, $row);
         })->filter(function ($row) {
             // Skip empty rows
-            return !empty(array_filter($row));
+            return ! empty(array_filter($row));
         });
 
         // ✅ Initialize report
@@ -115,7 +115,7 @@ class ResultController extends Controller
 
             // 2️⃣ Validate student exists
             $student = Student::where('matric_no', $matric_no)->first();
-            if (!$student) {
+            if (! $student) {
                 $report['skipped_not_student'][] = "Matric No: {$matric_no} — not found in student records.";
 
                 continue;
@@ -129,7 +129,7 @@ class ResultController extends Controller
                 'semester' => $request->input('semester'),
             ])->exists();
 
-            if (!$registered) {
+            if (! $registered) {
                 $report['skipped_not_registered'][] = "Matric No: {$matric_no} — did not register {$course->course_code} ({$course->course_title}) for {$request->input('semester')} Semester, {$request->input('session')} session.";
 
                 continue;
@@ -176,21 +176,21 @@ class ResultController extends Controller
 
                 $report['uploaded'][] = "Matric No: {$matric_no} — uploaded successfully.";
             } catch (\Exception $e) {
-                $report['errors'][] = "Matric No: {$matric_no} — error: " . $e->getMessage();
+                $report['errors'][] = "Matric No: {$matric_no} — error: ".$e->getMessage();
             }
         }
 
         // ✅ Build summary
         $summary = '
-            ✅ Uploaded: ' . count($report['uploaded']) . '
-            ❌ Not Students: ' . count($report['skipped_not_student']) . '
-            ⚠️ Not Registered: ' . count($report['skipped_not_registered']) . '
-            🧯 Errors: ' . count($report['errors']);
+            ✅ Uploaded: '.count($report['uploaded']).'
+            ❌ Not Students: '.count($report['skipped_not_student']).'
+            ⚠️ Not Registered: '.count($report['skipped_not_registered']).'
+            🧯 Errors: '.count($report['errors']);
 
         // ✅ Flash report to session (for detailed display)
         session()->flash('upload_report', $report);
 
-        return back()->with('success', 'Results processed successfully. ' . $summary);
+        return back()->with('success', 'Results processed successfully. '.$summary);
     }
 
     public function downloadSheet(Request $request)
@@ -232,7 +232,7 @@ class ResultController extends Controller
 
             return [
                 'matric_no' => $reg->matric_no ?? '', // Keep original case for display
-                'name' => $reg->student ? trim($reg->student->last_name . ' ' . $reg->student->first_name) : '',
+                'name' => $reg->student ? trim($reg->student->last_name.' '.$reg->student->first_name) : '',
                 'ca' => $ca,
                 'exam' => $exam,
             ];
@@ -245,9 +245,7 @@ class ResultController extends Controller
         return Excel::download(new \App\Exports\ArrayExport($data, $headings), "{$courseCode}_result_sheet.xlsx");
     }
 
-    public function approveResults(Request $request)
-    {
-    }
+    public function approveResults(Request $request) {}
 
     public function viewUploadedResults(Request $request)
     {
@@ -286,7 +284,7 @@ class ResultController extends Controller
 
             if ($user->hasRole('lecturer')) {
                 $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
-                if (!$isAssigned) {
+                if (! $isAssigned) {
                     return back()->with('error', 'You are not allowed to view results for this course.');
                 }
             }
@@ -343,7 +341,6 @@ class ResultController extends Controller
         $selectedDepartment = Department::with('faculty')->findOrFail($request->department_id);
         $studentTypeId = UserType::where('name', 'student')->value('id');
 
-
         $students = User::query()
             ->join('students', 'users.id', '=', 'students.user_id')
             ->where('users.user_type_id', $studentTypeId)
@@ -362,10 +359,10 @@ class ResultController extends Controller
                 $unit = (int) $result->course_unit;
                 $score = (float) $result->total;
                 $totalUnitsOffered += $unit;
-                
+
                 // Use dynamic grading system
                 $points = \App\Models\GradingSystem::getPoint($score);
-                
+
                 $totalGradePoints += ($unit * $points);
                 if ($score >= 40) {
                     $totalUnitsPassed += $unit;
@@ -376,6 +373,7 @@ class ResultController extends Controller
             $student->units_offered = $totalUnitsOffered;
             $student->units_passed = $totalUnitsPassed;
             $student->cgpa = number_format($cgpa, 2);
+
             return $student;
         });
 
@@ -399,7 +397,7 @@ class ResultController extends Controller
             if ($user->hasRole('lecturer')) {
                 $isAssigned = $user->courses()->where('course_id', $course->id)->exists();
 
-                if (!$isAssigned) {
+                if (! $isAssigned) {
                     return redirect()->back()->with('error', 'You are not authorized to download results for this course.');
                 }
             }
@@ -454,7 +452,7 @@ class ResultController extends Controller
             );
 
         } catch (\Exception $e) {
-            \Log::error('Failed to download results: ' . $e->getMessage());
+            \Log::error('Failed to download results: '.$e->getMessage());
 
             return redirect()->back()->with('error', 'Failed to download results. Please try again.');
         }
@@ -509,7 +507,7 @@ class ResultController extends Controller
 
                 // Semester validation
                 $semester = strtolower(trim($row['F'] ?? ''));
-                if (!in_array($semester, ['1st', '2nd', '3rd'])) {
+                if (! in_array($semester, ['1st', '2nd', '3rd'])) {
                     $logs['invalid_rows'][] = "Row $index: Invalid semester '$semester'. Must be 1st, 2nd, or 3rd.";
 
                     continue;
@@ -533,15 +531,15 @@ class ResultController extends Controller
                     $missing[] = 'Exam Score (Column H)';
                 }
 
-                if (!empty($missing)) {
-                    $logs['missing_values'][] = "Row $index is missing or invalid: " . implode(', ', $missing);
+                if (! empty($missing)) {
+                    $logs['missing_values'][] = "Row $index is missing or invalid: ".implode(', ', $missing);
 
                     continue;
                 }
 
                 // Score Validation
                 if ($ca + $exam > 100) {
-                    $logs['invalid_rows'][] = "Row $index: Total score (" . ($ca + $exam) . ') cannot exceed 100.';
+                    $logs['invalid_rows'][] = "Row $index: Total score (".($ca + $exam).') cannot exceed 100.';
 
                     continue;
                 }
@@ -549,13 +547,13 @@ class ResultController extends Controller
                 $student = User::where('username', $matric)->first();
                 $course = Course::where('course_code', $courseCode)->first();
 
-                if (!$student) {
+                if (! $student) {
                     $logs['invalid_rows'][] = "Row $index: Student with matric $matric not found.";
 
                     continue;
                 }
 
-                if (!$course) {
+                if (! $course) {
                     $logs['invalid_rows'][] = "Row $index: Course $courseCode not found.";
 
                     continue;
@@ -589,7 +587,7 @@ class ResultController extends Controller
                     }
 
                 } catch (Throwable $e) {
-                    $logs['invalid_rows'][] = "Row $index failed to save or update. Error: " . $e->getMessage();
+                    $logs['invalid_rows'][] = "Row $index failed to save or update. Error: ".$e->getMessage();
                 }
             }
             session()->put('upload_logs', $logs);
@@ -629,7 +627,6 @@ class ResultController extends Controller
 
             // 1. Get UserType ID for 'Student'
             $studentTypeId = UserType::where('name', 'student')->value('id');
-
 
             // 2. Query Users by Joining the 'students' profile table
             $students = User::query()
@@ -692,7 +689,7 @@ class ResultController extends Controller
         $currentYear = date('Y');
         $sessions = [];
         for ($i = 0; $i < 5; $i++) {
-            $sessions[] = ($currentYear - $i) . '/' . ($currentYear - $i + 1);
+            $sessions[] = ($currentYear - $i).'/'.($currentYear - $i + 1);
         }
 
         $records = [];
@@ -760,7 +757,7 @@ class ResultController extends Controller
             ->where('semester', $request->input('semester'))
             ->update(['status' => $request->status]);
 
-        return back()->with('success', 'Bulk update successful! Changed status to ' . ucfirst($request->status));
+        return back()->with('success', 'Bulk update successful! Changed status to '.ucfirst($request->status));
     }
 
     // 2. Process the Status Update
@@ -795,7 +792,7 @@ class ResultController extends Controller
 
         $student = User::where('username', $request->matric)->first();
 
-        if (!$student) {
+        if (! $student) {
             return back()->with('error', 'Student not found.');
         }
 
@@ -816,15 +813,17 @@ class ResultController extends Controller
         $cumulativeTWGP = 0;
 
         foreach ($resultsBySession as $session => $sessionResults) {
-            $tco = 0; $tcp = 0; $twgp = 0;
+            $tco = 0;
+            $tcp = 0;
+            $twgp = 0;
 
             foreach ($sessionResults as $r) {
                 $unit = (int) ($r->course_unit ?? ($r->course->course_unit ?? 0));
-                
+
                 // Use dynamic points from score
                 $score = (float) ($r->total ?? (($r->ca ?? 0) + ($r->exam ?? 0)));
                 $gp = \App\Models\GradingSystem::getPoint($score);
-                
+
                 $tco += $unit;
                 if ($score >= 40) {
                     $tcp += $unit;
@@ -833,11 +832,11 @@ class ResultController extends Controller
             }
 
             $gpa = $tco > 0 ? round($twgp / $tco, 2) : 0.00;
-            
+
             $cumulativeTCO += $tco;
             $cumulativeTCP += $tcp;
             $cumulativeTWGP += $twgp;
-            
+
             $cgpa = $cumulativeTCO > 0 ? round($cumulativeTWGP / $cumulativeTCO, 2) : 0.00;
 
             $sessionMetrics[$session] = [
@@ -853,7 +852,7 @@ class ResultController extends Controller
             'ctco' => $cumulativeTCO,
             'ctcp' => $cumulativeTCP,
             'ctwgp' => $cumulativeTWGP,
-            'cgpa' => $cumulativeTCO > 0 ? number_format($cumulativeTWGP / $cumulativeTCO, 2) : "0.00",
+            'cgpa' => $cumulativeTCO > 0 ? number_format($cumulativeTWGP / $cumulativeTCO, 2) : '0.00',
         ];
 
         return view('staff.lecturer.results.student-transcript', compact('student', 'resultsBySession', 'sessionMetrics', 'finalMetrics'));
@@ -884,13 +883,17 @@ class ResultController extends Controller
         $cumulativeTWGP = 0;
 
         foreach ($resultsBySession as $session => $sessionResults) {
-            $tco = 0; $tcp = 0; $twgp = 0;
+            $tco = 0;
+            $tcp = 0;
+            $twgp = 0;
             foreach ($sessionResults as $r) {
                 $unit = (int) ($r->course_unit ?? ($r->course->course_unit ?? 0));
                 $score = (float) ($r->total ?? (($r->ca ?? 0) + ($r->exam ?? 0)));
                 $gp = \App\Models\GradingSystem::getPoint($score);
                 $tco += $unit;
-                if ($score >= 40) { $tcp += $unit; }
+                if ($score >= 40) {
+                    $tcp += $unit;
+                }
                 $twgp += ($unit * $gp);
             }
             $gpa = $tco > 0 ? round($twgp / $tco, 2) : 0.00;
@@ -907,7 +910,7 @@ class ResultController extends Controller
 
         $finalMetrics = [
             'ctco' => $cumulativeTCO, 'ctcp' => $cumulativeTCP, 'ctwgp' => $cumulativeTWGP,
-            'cgpa' => $cumulativeTCO > 0 ? number_format($cumulativeTWGP / $cumulativeTCO, 2) : "0.00",
+            'cgpa' => $cumulativeTCO > 0 ? number_format($cumulativeTWGP / $cumulativeTCO, 2) : '0.00',
         ];
 
         return view('staff.lecturer.results.print-transcript', compact('student', 'resultsBySession', 'sessionMetrics', 'finalMetrics'));

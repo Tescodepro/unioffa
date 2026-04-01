@@ -61,6 +61,59 @@
                 </div>
                 <!-- /Page Header -->
 
+                <!-- Late Payment Banners -->
+                @if(isset($closestClosingDate) && now()->lt(\Carbon\Carbon::parse($closestClosingDate)))
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card bg-warning-subtle border-0">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="avatar avatar-md bg-warning text-white rounded p-2">
+                                            <i class="fas fa-clock fa-2x"></i>
+                                        </span>
+                                        <div>
+                                            <h5 class="text-warning-dark mb-1">Upcoming Late Penalty</h5>
+                                            <p class="mb-0">Pay your outstanding fees soon to avoid a late payment penalty.</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <h6 class="text-warning-dark mb-1">Penalty of ₦{{ number_format($closestClosingAmount, 2) }} applies in:</h6>
+                                        <h5 class="text-warning-dark fw-bold mb-0" id="creg-closing-countdown">Loading...</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card bg-danger-subtle border-0">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="avatar avatar-md bg-danger text-white rounded p-2">
+                                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                        </span>
+                                        <div>
+                                            <h5 class="text-danger mb-1">Penalty Escalation Warning</h5>
+                                            <p class="mb-0">Your late penalty will increase soon. Please clear your late fee immediately.</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <h6 class="text-danger mb-1">Fee increases to ₦{{ number_format($closestIncrementAmount, 2) }} in:</h6>
+                                        <h5 class="text-danger fw-bold mb-0" id="creg-increment-countdown">Loading...</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 @if(isset($courseRegistrationSetting))
                 <div class="row mb-4">
                     <div class="col-12">
@@ -141,4 +194,41 @@
 @push('scripts')
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(isset($closestClosingDate) && now()->lt(\Carbon\Carbon::parse($closestClosingDate)))
+                const cregClosingDeadline = new Date("{{ \Carbon\Carbon::parse($closestClosingDate)->toIso8601String() }}").getTime();
+                const cregClosingEl = document.getElementById('creg-closing-countdown');
+                setInterval(() => {
+                    const distance = cregClosingDeadline - new Date().getTime();
+                    if (distance < 0) {
+                        if (cregClosingEl) cregClosingEl.innerHTML = "Penalty Active";
+                        return;
+                    }
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((distance % (1000 * 60)) / 1000);
+                    if (cregClosingEl) cregClosingEl.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+                }, 1000);
+            @endif
+
+            @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                const cregIncDeadline = new Date("{{ \Carbon\Carbon::parse($closestIncrementDate)->toIso8601String() }}").getTime();
+                const cregIncEl = document.getElementById('creg-increment-countdown');
+                setInterval(() => {
+                    const distance = cregIncDeadline - new Date().getTime();
+                    if (distance < 0) {
+                        if (cregIncEl) cregIncEl.innerHTML = "Fee Increased";
+                        return;
+                    }
+                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((distance % (1000 * 60)) / 1000);
+                    if (cregIncEl) cregIncEl.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+                }, 1000);
+            @endif
+        });
+    </script>
 @endpush

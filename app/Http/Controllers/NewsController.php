@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\News;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use App\Models\News;
 
 class NewsController extends Controller
 {
     public function index()
     {
         $news = News::latest()->get();
+
         return view('staff.ict.news', compact('news'));
     }
 
@@ -20,7 +21,7 @@ class NewsController extends Controller
             'title' => 'required|unique:news,title',
             'short_title' => 'required',
             'content' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         $imagePath = null;
@@ -30,12 +31,12 @@ class NewsController extends Controller
         }
 
         News::create([
-            'title'       => $request->title,
+            'title' => $request->title,
             'short_title' => $request->short_title,
-            'slug'        => Str::slug($request->slug ?? $request->title),
-            'image'       => $imagePath,
-            'content'     => $request->content,
-            'is_active'   => $request->has('is_active'),
+            'slug' => Str::slug($request->slug ?? $request->title),
+            'image' => $imagePath,
+            'content' => $request->content,
+            'is_active' => $request->has('is_active'),
         ]);
 
         return back()->with('success', 'News added successfully.');
@@ -48,7 +49,7 @@ class NewsController extends Controller
         $request->validate([
             'title' => 'required',
             'short_title' => 'required',
-            'slug' => 'required|unique:news,slug,' . $news->id,
+            'slug' => 'required|unique:news,slug,'.$news->id,
             'content' => 'required',
         ]);
 
@@ -63,7 +64,7 @@ class NewsController extends Controller
 
         return back()->with('success', 'News updated successfully.');
     }
-    
+
     public function destroy($id)
     {
         $news = News::findOrFail($id);
@@ -76,6 +77,7 @@ class NewsController extends Controller
     {
         $title = $news->title;
         $latest = News::where('id', '!=', $news->id)->latest()->take(5)->get();
+
         return view('website.news-details', compact('news', 'latest', 'title'));
     }
 }

@@ -40,6 +40,7 @@ class IctStudentController extends Controller
             ->get()
             ->map(function ($faculty) {
                 $faculty->total_students = $faculty->departments->map(fn ($dept) => $dept->students->count())->sum();
+
                 return $faculty;
             });
 

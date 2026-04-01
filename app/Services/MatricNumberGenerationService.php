@@ -5,14 +5,12 @@ namespace App\Services;
 use App\Models\Student;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class MatricNumberGenerationService
 {
     /**
      * Generate matric number for student if needed
      *
-     * @param Student $student
      * @return bool True if generated, False if already exists
      */
     public function generateIfNeeded(Student $student): bool
@@ -21,15 +19,16 @@ class MatricNumberGenerationService
             // ✅ CHECK IF THIS SPECIFIC STUDENT ALREADY HAS A VALID MATRIC NUMBER
             if ($student->hasMatricNumber()) {
                 Log::info("Student {$student->id} already has valid matric: {$student->matric_no}");
+
                 return false; // Already has valid matric
             }
 
             $department = $student->department;
-            if (!$department) {
+            if (! $department) {
                 Log::error("No department found for student: {$student->id}");
+
                 return false;
             }
-
 
             // Extract year from session format (e.g., "2024/2025" -> 24)
             $year = (int) explode('/', $student->admission_session)[0];
@@ -47,9 +46,10 @@ class MatricNumberGenerationService
             });
 
         } catch (\Exception $e) {
-            Log::error('Matric number generation failed: ' . $e->getMessage(), [
-                'student_id' => $student->id
+            Log::error('Matric number generation failed: '.$e->getMessage(), [
+                'student_id' => $student->id,
             ]);
+
             return false;
         }
     }
@@ -62,9 +62,9 @@ class MatricNumberGenerationService
         $student->update(['matric_no' => $newMatricNo]);
         $student->user->update(['username' => $newMatricNo]);
 
-        Log::info("Matric number generated successfully", [
+        Log::info('Matric number generated successfully', [
             'student_id' => $student->id,
-            'matric_no' => $newMatricNo
+            'matric_no' => $newMatricNo,
         ]);
 
         return true;
@@ -72,9 +72,6 @@ class MatricNumberGenerationService
 
     /**
      * Validate if matric number has correct format
-     * 
-     * @param string $matricNo
-     * @return bool
      */
     private function isValidMatricFormat(string $matricNo): bool
     {
@@ -83,13 +80,13 @@ class MatricNumberGenerationService
         // 25/ENG/DPCSC/112
         // 23/SCI/TRCSC/005
         $pattern = '/^\d{2}\/[A-Z]{2,5}\/(T|D|DP|DE|TR)?[A-Z]{2,5}\/\d{3}$/i';
+
         return preg_match($pattern, $matricNo) === 1;
     }
 
     /**
      * Generate matric number for ALL students who need it
      *
-     * @param string $userId
      * @return int Number of students updated
      */
     public function generateForUser(string $userId): int

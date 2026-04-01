@@ -19,12 +19,12 @@ return new class extends Migration
 
         // Step 2: Copy existing data from foreign keys into new columns
         if (DB::getDriverName() === 'mysql') {
-            DB::statement("
+            DB::statement('
                 UPDATE course_registrations cr
                 JOIN academic_sessions s ON cr.session_id = s.id
                 JOIN academic_semesters sem ON cr.semester_id = sem.id
                 SET cr.session_temp = s.name, cr.semester_temp = sem.name
-            ");
+            ');
         }
 
         Schema::table('course_registrations', function (Blueprint $table) {
@@ -39,11 +39,10 @@ return new class extends Migration
         });
     }
 
-
     /**
      * Reverse the migrations.
      */
-   public function down(): void
+    public function down(): void
     {
         Schema::table('course_registrations', function (Blueprint $table) {
             // Rollback logic (optional)

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -23,16 +24,16 @@ return new class extends Migration {
             $updates = [];
 
             // Convert Entry Mode
-            if ($setting->entry_mode && !str_starts_with($setting->entry_mode, '[')) {
+            if ($setting->entry_mode && ! str_starts_with($setting->entry_mode, '[')) {
                 $updates['entry_mode'] = json_encode([$setting->entry_mode]);
             }
 
             // Convert Student Type
-            if ($setting->student_type && !str_starts_with($setting->student_type, '[')) {
+            if ($setting->student_type && ! str_starts_with($setting->student_type, '[')) {
                 $updates['student_type'] = json_encode([$setting->student_type]);
             }
 
-            if (!empty($updates)) {
+            if (! empty($updates)) {
                 \DB::table('payment_settings')
                     ->where('id', $setting->id)
                     ->update($updates);
@@ -57,7 +58,7 @@ return new class extends Migration {
                 $updates['student_type'] = $arr[0] ?? null;
             }
 
-            if (!empty($updates)) {
+            if (! empty($updates)) {
                 \DB::table('payment_settings')
                     ->where('id', $setting->id)
                     ->update($updates);

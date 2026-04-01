@@ -11,7 +11,7 @@ class OgunStatePaymentSplitsSeeder extends Seeder
     public function run()
     {
         // Default student types
-        $defaultStudentTypes = ["TOPUP", "IDELDE", "IDELUTME", "REGULAR"];
+        $defaultStudentTypes = ['TOPUP', 'IDELDE', 'IDELUTME', 'REGULAR'];
 
         $splits = [
             [
@@ -87,7 +87,7 @@ class OgunStatePaymentSplitsSeeder extends Seeder
                 ->where('split_code', $split['split_code'])
                 ->exists();
 
-            if (!$exists) {
+            if (! $exists) {
                 DB::table('payment_splits')->insert([
                     'id' => (string) Str::uuid(),
                     'name' => $split['name'],

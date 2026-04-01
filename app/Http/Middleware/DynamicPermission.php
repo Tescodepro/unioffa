@@ -23,7 +23,7 @@ class DynamicPermission
 
         // If route has no name, we can't look up a permission mapping.
         // For our architecture, all staff/portal routes MUST be named.
-        if (!$routeName) {
+        if (! $routeName) {
             return $next($request);
         }
 
@@ -34,7 +34,7 @@ class DynamicPermission
 
         // If no restriction is defined in the database, we treat it as "Staff Only"
         // provided they are authenticated (the 'auth' middleware handles that).
-        if (!isset($map[$routeName])) {
+        if (! isset($map[$routeName])) {
             return $next($request);
         }
 
@@ -43,7 +43,7 @@ class DynamicPermission
 
         // Explicit "public" or "open" bypass can be handled if needed,
         // but for now, we check the user's permissions.
-        if (!$user || !$user->hasPermission($permission)) {
+        if (! $user || ! $user->hasPermission($permission)) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthorized access.'], 403);
             }

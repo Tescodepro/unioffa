@@ -94,6 +94,31 @@
                                     @endpush
                                 @endif
                             @endif
+
+                            @if(isset($closestClosingDate) && now()->lt(\Carbon\Carbon::parse($closestClosingDate)))
+                                <div class="col-xl-12 d-flex mb-4">
+                                    <div class="card bg-warning-subtle border-0 flex-fill">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="avatar avatar-md bg-warning text-white rounded">
+                                                        <i class="ti ti-clock-exclamation fs-16"></i>
+                                                    </span>
+                                                    <div>
+                                                        <h5 class="text-warning-dark mb-1">Upcoming Late Penalty</h5>
+                                                        <p class="mb-0">Pay your outstanding fees soon to avoid a late payment penalty.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <h6 class="text-warning-dark mb-1">Penalty of ₦{{ number_format($closestClosingAmount, 2) }} applies in:</h6>
+                                                    <h5 class="text-warning-dark fw-bold mb-2" id="penalty-closing-countdown">Loading...</h5>
+                                                    <a href="{{ route('students.load_payment') }}" class="btn btn-warning">Pay Now</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                             @if(isset($hasLatePenalty) && $hasLatePenalty)
                                 <div class="col-xl-12 d-flex mb-4">
                                     <div class="card bg-danger-subtle border-0 flex-fill">
@@ -345,5 +370,31 @@
 @endsection
 
 @push('scripts')
-    <!-- Add any additional JavaScript files here -->
+    <!-- Build Tier 1 Penalty Target Timer -->
+    @if(isset($closestClosingDate) && now()->lt(\Carbon\Carbon::parse($closestClosingDate)))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const closingDeadline = new Date("{{ \Carbon\Carbon::parse($closestClosingDate)->toIso8601String() }}").getTime();
+                const closingEl = document.getElementById('penalty-closing-countdown');
+                
+                setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = closingDeadline - now;
+                    
+                    if (distance < 0) {
+                        if (closingEl) closingEl.innerHTML = "Penalty Active";
+                        return;
+                    }
+                    
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    const timeStr = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+                    
+                    if (closingEl) closingEl.innerHTML = timeStr;
+                }, 1000);
+            });
+        </script>
+    @endif
 @endpush

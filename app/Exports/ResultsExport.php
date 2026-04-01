@@ -3,12 +3,11 @@
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ResultsExport implements FromArray, WithStyles, WithColumnWidths
+class ResultsExport implements FromArray, WithColumnWidths, WithStyles
 {
     protected $data;
 

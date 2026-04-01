@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Application;
 
-use App\Http\Controllers\Controller;
-use App\Models\Student;
-use App\Models\Department;
-use App\Models\Campus;
-use App\Models\AcademicSession;
 use App\Exports\AdmittedStudentsExport;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\Controller;
+use App\Models\AcademicSession;
+use App\Models\Campus;
+use App\Models\Department;
+use App\Models\Student;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdmittedStudentsDownloadController extends Controller
 {
@@ -115,17 +114,17 @@ class AdmittedStudentsDownloadController extends Controller
         // Generate filename with filters
         $filterNames = [];
         if ($request->filled('session')) {
-            $filterNames[] = 'Session-' . str_replace('/', '-', $validated['session']);
+            $filterNames[] = 'Session-'.str_replace('/', '-', $validated['session']);
         }
         if ($request->filled('department_id')) {
             $dept = Department::find($validated['department_id']);
-            $filterNames[] = 'Department-' . ($dept ? str_replace(' ', '-', $dept->department_name) : '');
+            $filterNames[] = 'Department-'.($dept ? str_replace(' ', '-', $dept->department_name) : '');
         }
         if ($request->filled('entry_mode')) {
-            $filterNames[] = 'EntryMode-' . $validated['entry_mode'];
+            $filterNames[] = 'EntryMode-'.$validated['entry_mode'];
         }
 
-        $filename = 'AdmittedStudents_' . (count($filterNames) > 0 ? implode('_', $filterNames) : 'all') . '_' . now()->format('Y-m-d-His') . '.xlsx';
+        $filename = 'AdmittedStudents_'.(count($filterNames) > 0 ? implode('_', $filterNames) : 'all').'_'.now()->format('Y-m-d-His').'.xlsx';
 
         return Excel::download(
             new AdmittedStudentsExport($students, $validated),

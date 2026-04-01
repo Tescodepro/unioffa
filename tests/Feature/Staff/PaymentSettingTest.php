@@ -1,11 +1,12 @@
 <?php
 
+use App\Models\PaymentSetting;
 use App\Models\User;
 use App\Models\UserType;
-use App\Models\PaymentSetting;
-use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use function Pest\Laravel\{actingAs, post};
+use Illuminate\Support\Str;
+
+use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
