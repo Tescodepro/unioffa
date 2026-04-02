@@ -42,6 +42,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use App\Services\BrevoMailService;
 
 class ApplicationController extends Controller
 {
@@ -712,7 +713,7 @@ class ApplicationController extends Controller
             $currentTime = now()->format('Y-m-d H:i:s');
             $ipAddress = $request->ip();
 
-            $content = [
+            $mailContent = [
                 'title' => $user->full_name.',',
                 'body' => '
                     We received a request to reset your password.  
@@ -730,9 +731,10 @@ class ApplicationController extends Controller
             ];
 
             // Send email
-            Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
+            $brevo = new BrevoMailService();
+            $htmlContent = '<p>'.$mailContent['title'].'</p>'.$mailContent['body'].'<br><p>'.$mailContent['footer'].'</p>';
+            $brevo->send($user->email, $user->full_name, $subject, $htmlContent);
 
-            // Mail::to('obj4u2001@gmail.com')->send(new GeneralMail($subject, $content, false));
             return redirect()->route('password.otp.update')->with('success', "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp .");
         } catch (Exception $e) {
             Log::error('Forgot Password Error: '.$e->getMessage());
