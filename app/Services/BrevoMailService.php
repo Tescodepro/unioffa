@@ -2,18 +2,19 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
 use Exception;
+use GuzzleHttp\Client;
 
 class BrevoMailService
 {
     protected $client;
+
     protected $apiKey;
 
     public function __construct()
     {
         $this->apiKey = env('BREVO_API_KEY');
-        $this->client = new Client();
+        $this->client = new Client;
     }
 
     public function send(string $toEmail, string $toName, string $subject, string $htmlContent): bool
@@ -21,19 +22,19 @@ class BrevoMailService
         try {
             $response = $this->client->post('https://api.brevo.com/v3/smtp/email', [
                 'headers' => [
-                    'api-key'      => $this->apiKey,
+                    'api-key' => $this->apiKey,
                     'Content-Type' => 'application/json',
-                    'Accept'       => 'application/json',
+                    'Accept' => 'application/json',
                 ],
                 'json' => [
                     'sender' => [
-                        'name'  => env('APP_NAME'),
+                        'name' => env('APP_NAME'),
                         'email' => env('MAIL_FROM_ADDRESS'),
                     ],
                     'to' => [
-                        ['email' => $toEmail, 'name' => $toName]
+                        ['email' => $toEmail, 'name' => $toName],
                     ],
-                    'subject'     => $subject,
+                    'subject' => $subject,
                     'htmlContent' => $htmlContent,
                 ],
             ]);
@@ -41,7 +42,21 @@ class BrevoMailService
             return $response->getStatusCode() === 201;
 
         } catch (Exception $e) {
-            \Log::error('Brevo Mail Error: ' . $e->getMessage());
+            \Log::error('Brevo Mail Error: '.$e->getMessage());
+
+            return false;
+        }
+    }
+
+    public function sendView(string $toEmail, string $toName, string $subject, string $view, array $data = []): bool
+    {
+        try {
+            $htmlContent = view($view, $data)->render();
+
+            return $this->send($toEmail, $toName, $subject, $htmlContent);
+        } catch (Exception $e) {
+            \Log::error('Brevo Mail View Error: '.$e->getMessage());
+
             return false;
         }
     }

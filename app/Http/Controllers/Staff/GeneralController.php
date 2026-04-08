@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use App\Mail\GeneralMail;
 use App\Models\AdmissionList;
 use App\Models\AgentApplication;
 use App\Models\ApplicationSetting;
@@ -12,10 +11,10 @@ use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\User;
 use App\Models\UserApplications;
+use App\Services\BrevoMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class GeneralController extends Controller
 {
@@ -218,7 +217,8 @@ class GeneralController extends Controller
             'footer' => '',
         ];
 
-        // Mail::to($to)->send(new GeneralMail($subject, $content, false));
+        $brevo = new BrevoMailService;
+        $brevo->sendView($to, $studentUser->first_name, $subject, 'emails.general', ['content' => $content]);
 
         return back()->with('success', 'Student admitted successfully.');
     }
@@ -421,7 +421,8 @@ class GeneralController extends Controller
         ];
 
         try {
-            Mail::to($agent->email)->send(new GeneralMail($subject, $content, false));
+            $brevo = new BrevoMailService;
+            $brevo->sendView($agent->email, $agent->first_name, $subject, 'emails.general', ['content' => $content]);
         } catch (\Exception $e) {
             Log::warning('Failed to send agent status email to '.$agent->email.': '.$e->getMessage());
         }

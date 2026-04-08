@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\website;
 
 use App\Http\Controllers\Controller;
-use App\Mail\GeneralMail;
 use App\Models\AgentApplication;
 use App\Models\Lga;
 use App\Models\News;
 use App\Models\State;
+use App\Services\BrevoMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class GeneralController extends Controller
@@ -142,7 +141,8 @@ class GeneralController extends Controller
                     'footer' => 'Warm regards,<br>'.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Admissions Team',
                 ];
 
-                Mail::to($application->email)->send(new GeneralMail($subject, $content, false));
+                $brevo = new BrevoMailService;
+                $brevo->sendView($application->email, $application->first_name, $subject, 'emails.general', ['content' => $content]);
                 Log::info('Agent application confirmation email sent to '.$application->email);
 
             } catch (\Exception $e) {
@@ -169,7 +169,8 @@ class GeneralController extends Controller
                     'footer' => '— Automated Notification from '.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Website',
                 ];
 
-                Mail::to($adminEmail)->send(new GeneralMail($adminSubject, $adminContent, false));
+                $brevo = new BrevoMailService;
+                $brevo->sendView($adminEmail, 'Admin', $adminSubject, 'emails.general', ['content' => $adminContent]);
 
             } catch (\Exception $e) {
                 Log::error('Failed to send Admin Notification for Agent Application. Error: '.$e->getMessage());

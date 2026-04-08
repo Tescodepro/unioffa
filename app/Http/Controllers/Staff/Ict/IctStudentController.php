@@ -5,19 +5,18 @@ namespace App\Http\Controllers\Staff\Ict;
 use App\Exports\StudentsTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Imports\StudentsImport;
-use App\Mail\GeneralMail;
 use App\Models\Campus;
 use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\Student;
 use App\Models\User;
 use App\Models\UserType;
+use App\Services\BrevoMailService;
 use App\Services\UniqueIdService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -230,7 +229,8 @@ class IctStudentController extends Controller
                 'footer' => 'Best regards,  
         Offa University Administration',
             ];
-            Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            $brevo = new BrevoMailService;
+            $brevo->sendView($to, $request->first_name, $subject, 'emails.general', ['content' => $content]);
 
             DB::commit();
 

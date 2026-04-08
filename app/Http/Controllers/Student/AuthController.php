@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Mail\GeneralMail;
 use App\Models\Campus;
 use App\Models\User;
+use App\Services\BrevoMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -70,26 +69,25 @@ class AuthController extends Controller
         // Regenerate session to protect from fixation
         $request->session()->regenerate();
 
-        // OPTIONAL: Send login notification email
-        /*
+        // Send login notification email
         $to = $user->email;
         $subject = 'Login Notification';
 
         $content = [
-            'title' => $user->full_name . ',',
+            'title' => $user->full_name.',',
             'body' => '
                 We noticed a login to your Offa University account.<br><br>
                 <strong>Details:</strong><br>
-                - Date: ' . now()->format('Y-m-d H:i:s') . '<br>
-                - IP Address: ' . request()->ip() . '<br><br>
+                - Date: '.now()->format('Y-m-d H:i:s').'<br>
+                - IP Address: '.request()->ip().'<br><br>
                 If this was you, no action is required.
                 If not, please reset your password immediately.
             ',
             'footer' => 'Stay safe,<br>Offa University Security Team',
         ];
 
-        Mail::to($to)->send(new GeneralMail($subject, $content, false));
-        */
+        $brevo = new BrevoMailService;
+        $brevo->sendView($to, $user->first_name, $subject, 'emails.general', ['content' => $content]);
 
         return redirect()
             ->intended(route('students.dashboard'))
@@ -137,7 +135,8 @@ class AuthController extends Controller
         ];
 
         // Send email
-        // Mail::to($user->email)->send(new GeneralMail($subject, $content, false));
+        $brevo = new BrevoMailService;
+        $brevo->sendView($user->email, $user->first_name, $subject, 'emails.general', ['content' => $content]);
 
         // Always generic response to prevent user enumeration
         return redirect()->route('students.auth.change-password')->with(

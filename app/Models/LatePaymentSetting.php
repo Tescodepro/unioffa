@@ -24,6 +24,7 @@ class LatePaymentSetting extends Model
         'late_fee_amount',
         'increment_amount',
         'increment_date',
+        'excluded_matric_numbers',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class LatePaymentSetting extends Model
         'late_fee_amount' => 'decimal:2',
         'increment_amount' => 'decimal:2',
         'increment_date' => 'datetime',
+        'excluded_matric_numbers' => 'array',
     ];
 
     protected static function boot()
@@ -51,7 +53,7 @@ class LatePaymentSetting extends Model
 
     public static function getActiveForStudent($student, $session, $semester, $paymentType)
     {
-        return self::where('campus_id', $student->campus_id)
+        $setting = self::where('campus_id', $student->campus_id)
             ->where('payment_type', $paymentType)
             ->where(function ($q) use ($student) {
                 $q->whereNull('entry_mode')
@@ -60,15 +62,21 @@ class LatePaymentSetting extends Model
             })
             ->where(function ($q) use ($session) {
                 $q->whereNull('session')
-                    ->orWhere('session', '[]') // Might happen through UI
+                    ->orWhere('session', '[]')
                     ->orWhere('session', $session);
             })
             ->where(function ($q) use ($semester) {
                 $q->whereNull('semester')
-                    ->orWhere('semester', '[]') // Might happen through UI
+                    ->orWhere('semester', '[]')
                     ->orWhere('semester', $semester);
             })
             ->orderBy('created_at', 'desc')
             ->first();
+
+        if ($setting && $setting->excluded_matric_numbers && in_array($student->matric_no, $setting->excluded_matric_numbers)) {
+            return null;
+        }
+
+        return $setting;
     }
 }

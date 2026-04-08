@@ -162,6 +162,15 @@
                                     @error('entry_mode')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                 {{-- Excluded Matric Numbers --}}
+                                <div class="col-md-12">
+                                    <label class="form-label fw-medium text-dark">Excluded Matric Numbers <span class="text-muted small fw-normal">(Optional)</span></label>
+                                    <textarea name="excluded_matric_numbers" class="form-control @error('excluded_matric_numbers') is-invalid @enderror" 
+                                        rows="3" placeholder="Enter matric numbers separated by commas (e.g., MAT/001, MAT/002)">{{ old('excluded_matric_numbers') }}</textarea>
+                                    <small class="text-muted mt-1 d-block"><i class="ti ti-info-circle"></i> Students whose matric numbers are listed here will <strong>never</strong> be charged this late fee, even after the deadline.</small>
+                                    @error('excluded_matric_numbers')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>

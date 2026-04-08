@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Application;
 
 use App\Http\Controllers\Controller;
-use App\Mail\ApplicantRegisteredMail;
-use App\Mail\GeneralMail;
 // Authentication & User Models
 use App\Models\AdmissionList;
 use App\Models\Alevel;
@@ -28,6 +26,7 @@ use App\Models\User;
 use App\Models\UserApplications;
 // Transaction Models
 use App\Models\UserType;
+use App\Services\BrevoMailService;
 use App\Services\PaymentVerificationService;
 use App\Services\StudentMigrationService;
 use App\Services\UniqueIdService;
@@ -39,10 +38,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-use App\Services\BrevoMailService;
 
 class ApplicationController extends Controller
 {
@@ -102,10 +99,8 @@ class ApplicationController extends Controller
 
                 if ($agentApplication) {
                     // Send notification email to the agent
-                    $to = $agentApplication->email; // assuming 'email' column exists in agent_applications
-
+                    $to = $agentApplication->email;
                     $subject = 'Referral Notification - New Applicant Registration';
-
                     $content = [
                         'title' => 'Hello '.$agentApplication->first_name.',',
                         'body' => 'A new applicant has registered using your referral code ('.$request->referee_code.').<br><br>'.
@@ -118,7 +113,8 @@ class ApplicationController extends Controller
                         'footer' => 'Warm regards,<br>'.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Team',
                     ];
 
-                    // Mail::to($to)->send(new GeneralMail($subject, $content, false));
+                    $brevo = new BrevoMailService;
+                    $brevo->sendView($to, $agentApplication->first_name, $subject, 'emails.general', ['content' => $content]);
 
                     // Log referral for records
                     Log::info("Referral: User {$user->email} registered with referral code {$request->referee_code}, referred by Agent ID {$agentApplication->id}");
@@ -126,7 +122,12 @@ class ApplicationController extends Controller
             }
 
             // Try sending email
-            // Mail::to($user->email)->send(new ApplicantRegisteredMail($user, $uniqueId));
+            $brevo = new BrevoMailService;
+            $brevo->sendView($user->email, $user->first_name, 'Registration Successful', 'emails.applicant_registered', [
+                'user' => $user,
+                'applicationNumber' => $uniqueId,
+            ]);
+
             // If no exception thrown, log success
             Log::info("📧 Mail sent successfully to {$user->email} with registration no: {$uniqueId}");
 
@@ -189,7 +190,8 @@ class ApplicationController extends Controller
             '.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Team',
             ];
 
-            // Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            $brevo = new BrevoMailService;
+            $brevo->sendView($to, Auth::user()->first_name, $subject, 'emails.general', ['content' => $content]);
 
             return redirect()->intended(route('application.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }
@@ -731,9 +733,8 @@ class ApplicationController extends Controller
             ];
 
             // Send email
-            $brevo = new BrevoMailService();
-            $htmlContent = '<p>'.$mailContent['title'].'</p>'.$mailContent['body'].'<br><p>'.$mailContent['footer'].'</p>';
-            $brevo->send($user->email, $user->full_name, $subject, $htmlContent);
+            $brevo = new BrevoMailService;
+            $brevo->sendView($user->email, $user->full_name, $subject, 'emails.general', ['content' => $mailContent]);
 
             return redirect()->route('password.otp.update')->with('success', "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp .");
         } catch (Exception $e) {

@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use App\Mail\GeneralMail;
+use App\Services\BrevoMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -45,7 +44,8 @@ class AuthController extends Controller
             Offa University Team',
             ];
 
-            // Mail::to($to)->send(new GeneralMail($subject, $content, false));
+            $brevo = new BrevoMailService;
+            $brevo->sendView($to, Auth::user()->first_name, $subject, 'emails.general', ['content' => $content]);
 
             // 🔹 Redirect based on the user type's configured dashboard route
             $route = $user->userType->dashboard_route ?? null;

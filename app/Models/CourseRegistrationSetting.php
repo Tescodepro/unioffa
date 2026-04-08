@@ -21,12 +21,14 @@ class CourseRegistrationSetting extends Model
         'session',
         'closing_date',
         'late_registration_fee',
+        'excluded_matric_numbers',
     ];
 
     protected $casts = [
         'entry_mode' => 'array',
         'closing_date' => 'datetime',
         'late_registration_fee' => 'decimal:2',
+        'excluded_matric_numbers' => 'array',
     ];
 
     protected static function boot()
@@ -46,7 +48,7 @@ class CourseRegistrationSetting extends Model
 
     public static function getActiveForStudent($student, $session, $semester)
     {
-        return self::where('campus_id', $student->campus_id)
+        $setting = self::where('campus_id', $student->campus_id)
             ->where(function ($q) use ($student) {
                 $q->whereNull('entry_mode')
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
@@ -61,5 +63,11 @@ class CourseRegistrationSetting extends Model
             })
             ->orderBy('created_at', 'desc')
             ->first();
+
+        if ($setting && $setting->excluded_matric_numbers && in_array($student->matric_no, $setting->excluded_matric_numbers)) {
+            return null;
+        }
+
+        return $setting;
     }
 }

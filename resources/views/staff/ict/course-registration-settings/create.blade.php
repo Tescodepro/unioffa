@@ -78,9 +78,15 @@
                                         <input type="datetime-local" name="closing_date" class="form-control" required>
                                     </div>
 
-                                    <div class="mb-3">
+                                     <div class="mb-3">
                                         <label class="form-label">Late Registration Fee (₦) <span class="text-danger">*</span></label>
                                         <input type="number" step="0.01" name="late_registration_fee" class="form-control" value="0" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Excluded Matric Numbers <small>(Optional, comma-separated)</small></label>
+                                        <textarea name="excluded_matric_numbers" class="form-control" rows="3" placeholder="MAT/001, MAT/002">{{ old('excluded_matric_numbers') }}</textarea>
+                                        <small class="text-muted"><i class="ti ti-info-circle text-primary"></i> Students listed here will not be charged late registration fees.</small>
                                     </div>
 
                                     <div class="mt-4 text-end">

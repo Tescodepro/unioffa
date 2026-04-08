@@ -62,6 +62,7 @@ class LatePaymentSettingController extends Controller
             'late_fee_amount' => 'required|numeric|min:0',
             'increment_amount' => 'nullable|numeric|min:0',
             'increment_date' => 'nullable|date|after:closing_date',
+            'excluded_matric_numbers' => 'nullable|string',
         ]);
 
         LatePaymentSetting::create([
@@ -74,6 +75,9 @@ class LatePaymentSettingController extends Controller
             'late_fee_amount' => $validated['late_fee_amount'],
             'increment_amount' => $validated['increment_amount'] ?? null,
             'increment_date' => $validated['increment_date'] ?? null,
+            'excluded_matric_numbers' => $request->filled('excluded_matric_numbers')
+                ? array_map('trim', explode(',', $request->excluded_matric_numbers))
+                : null,
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')
@@ -103,6 +107,7 @@ class LatePaymentSettingController extends Controller
             'late_fee_amount' => 'required|numeric|min:0',
             'increment_amount' => 'nullable|numeric|min:0',
             'increment_date' => 'nullable|date|after:closing_date',
+            'excluded_matric_numbers' => 'nullable|string',
         ]);
 
         $latePaymentSetting->update([
@@ -115,6 +120,9 @@ class LatePaymentSettingController extends Controller
             'late_fee_amount' => $validated['late_fee_amount'],
             'increment_amount' => $validated['increment_amount'] ?? null,
             'increment_date' => $validated['increment_date'] ?? null,
+            'excluded_matric_numbers' => $request->filled('excluded_matric_numbers')
+                ? array_map('trim', explode(',', $request->excluded_matric_numbers))
+                : null,
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')

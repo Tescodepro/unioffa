@@ -36,15 +36,19 @@ class CourseRegistrationSettingController extends Controller
             'session' => 'nullable|string',
             'closing_date' => 'required|date',
             'late_registration_fee' => 'required|numeric|min:0',
+            'excluded_matric_numbers' => 'nullable|string',
         ]);
 
         CourseRegistrationSetting::create([
-            'campus_id' => $request->campus_id,
-            'entry_mode' => $request->entry_mode,
-            'semester' => $request->semester,
-            'session' => $request->session,
-            'closing_date' => $request->closing_date,
-            'late_registration_fee' => $request->late_registration_fee,
+            'campus_id' => $request->input('campus_id'),
+            'entry_mode' => $request->input('entry_mode'),
+            'semester' => $request->input('semester'),
+            'session' => $request->input('session'),
+            'closing_date' => $request->input('closing_date'),
+            'late_registration_fee' => $request->input('late_registration_fee'),
+            'excluded_matric_numbers' => $request->filled('excluded_matric_numbers')
+                ? array_map('trim', explode(',', $request->input('excluded_matric_numbers')))
+                : null,
         ]);
 
         return redirect()->route('ict.course-registration-settings.index')->with('success', 'Course registration setting created successfully.');
@@ -70,16 +74,20 @@ class CourseRegistrationSettingController extends Controller
             'session' => 'nullable|string',
             'closing_date' => 'required|date',
             'late_registration_fee' => 'required|numeric|min:0',
+            'excluded_matric_numbers' => 'nullable|string',
         ]);
 
         $setting = CourseRegistrationSetting::findOrFail($id);
         $setting->update([
-            'campus_id' => $request->campus_id,
-            'entry_mode' => $request->entry_mode,
-            'semester' => $request->semester,
-            'session' => $request->session,
-            'closing_date' => $request->closing_date,
-            'late_registration_fee' => $request->late_registration_fee,
+            'campus_id' => $request->input('campus_id'),
+            'entry_mode' => $request->input('entry_mode'),
+            'semester' => $request->input('semester'),
+            'session' => $request->input('session'),
+            'closing_date' => $request->input('closing_date'),
+            'late_registration_fee' => $request->input('late_registration_fee'),
+            'excluded_matric_numbers' => $request->filled('excluded_matric_numbers')
+                ? array_map('trim', explode(',', $request->input('excluded_matric_numbers')))
+                : null,
         ]);
 
         return redirect()->route('ict.course-registration-settings.index')->with('success', 'Course registration setting updated successfully.');
