@@ -141,7 +141,7 @@ class AuthController extends Controller
         // Always generic response to prevent user enumeration
         return redirect()->route('students.auth.change-password')->with(
             'success',
-            "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp ."
+            "An OTP has been sent to your email address. Kindly check your email to reset your password."
         );
     }
 

@@ -35,7 +35,7 @@ class BursaryController extends Controller
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhereIn('id', function ($sub) {
-                        $sub->selectRaw('MIN(id)')
+                        $sub->selectRaw('MAX(id)')
                             ->from('transactions')
                             ->where('payment_status', 1)
                             ->where('payment_type', 'technical')
@@ -63,7 +63,7 @@ class BursaryController extends Controller
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhereIn('id', function ($sub) {
-                        $sub->selectRaw('MIN(id)')
+                        $sub->selectRaw('MAX(id)')
                             ->from('transactions')
                             ->where('payment_status', 1)
                             ->where('payment_type', 'technical')
@@ -92,7 +92,7 @@ class BursaryController extends Controller
             ->where(function ($q) {
                 $q->where('transactions.payment_type', '!=', 'technical')
                     ->orWhereIn('transactions.id', function ($sub) {
-                        $sub->selectRaw('MIN(id)')
+                        $sub->selectRaw('MAX(id)')
                             ->from('transactions')
                             ->where('payment_status', 1)
                             ->where('payment_type', 'technical')
@@ -152,7 +152,7 @@ class BursaryController extends Controller
             ->where(function ($q) {
                 $q->where('transactions.payment_type', '!=', 'technical')
                     ->orWhereIn('transactions.id', function ($sub) {
-                        $sub->selectRaw('MIN(id)')
+                        $sub->selectRaw('MAX(id)')
                             ->from('transactions')
                             ->where('payment_status', 1)
                             ->where('payment_type', 'technical')
@@ -198,7 +198,7 @@ class BursaryController extends Controller
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhereIn('id', function ($sub) {
-                        $sub->selectRaw('MIN(id)')
+                        $sub->selectRaw('MAX(id)')
                             ->from('transactions')
                             ->where('payment_status', 1)
                             ->where('payment_type', 'technical')
@@ -283,7 +283,7 @@ class BursaryController extends Controller
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhereIn('id', function ($sub) {
-                        $sub->selectRaw('MIN(id)')
+                        $sub->selectRaw('MAX(id)')
                             ->from('transactions')
                             ->where('payment_status', 1)
                             ->where('payment_type', 'technical')
@@ -350,7 +350,7 @@ class BursaryController extends Controller
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
                     ->orWhereIn('id', function ($sub) {
-                        $sub->selectRaw('MIN(id)')
+                        $sub->selectRaw('MAX(id)')
                             ->from('transactions')
                             ->where('payment_status', 1)
                             ->where('payment_type', 'technical')
@@ -511,7 +511,7 @@ class BursaryController extends Controller
                     ->where(function ($q) {
                         $q->where('payment_type', '!=', 'technical')
                             ->orWhereIn('id', function ($sub) {
-                                $sub->selectRaw('MIN(id)')
+                                $sub->selectRaw('MAX(id)')
                                     ->from('transactions')
                                     ->where('payment_status', 1)
                                     ->where('payment_type', 'technical')
@@ -609,7 +609,7 @@ class BursaryController extends Controller
                     ->where(function ($q) {
                         $q->where('payment_type', '!=', 'technical')
                             ->orWhereIn('id', function ($sub) {
-                                $sub->selectRaw('MIN(id)')
+                                $sub->selectRaw('MAX(id)')
                                     ->from('transactions')
                                     ->where('payment_status', 1)
                                     ->where('payment_type', 'technical')
@@ -731,7 +731,7 @@ class BursaryController extends Controller
                             ->where(function ($q) {
                                 $q->where('payment_type', '!=', 'technical')
                                     ->orWhereIn('id', function ($sub) {
-                                        $sub->selectRaw('MIN(id)')
+                                        $sub->selectRaw('MAX(id)')
                                             ->from('transactions')
                                             ->where('payment_status', 1)
                                             ->where('payment_type', 'technical')
@@ -818,7 +818,7 @@ class BursaryController extends Controller
                     ->where(function ($q) {
                         $q->where('payment_type', '!=', 'technical')
                             ->orWhereIn('id', function ($sub) {
-                                $sub->selectRaw('MIN(id)')
+                                $sub->selectRaw('MAX(id)')
                                     ->from('transactions')
                                     ->where('payment_status', 1)
                                     ->where('payment_type', 'technical')

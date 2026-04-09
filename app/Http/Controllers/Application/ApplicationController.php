@@ -190,8 +190,8 @@ class ApplicationController extends Controller
             '.\App\Models\SystemSetting::get('school_name', 'University of Offa').' Team',
             ];
 
-            $brevo = new BrevoMailService;
-            $brevo->sendView($to, Auth::user()->first_name, $subject, 'emails.general', ['content' => $content]);
+            // $brevo = new BrevoMailService;
+            // $brevo->sendView($to, Auth::user()->first_name, $subject, 'emails.general', ['content' => $content]);
 
             return redirect()->intended(route('application.dashboard'))->with('success', 'You must be logged in.'); // or your home route
         }
@@ -736,7 +736,7 @@ class ApplicationController extends Controller
             $brevo = new BrevoMailService;
             $brevo->sendView($user->email, $user->full_name, $subject, 'emails.general', ['content' => $mailContent]);
 
-            return redirect()->route('password.otp.update')->with('success', "An OTP has been sent to your email address. If you did not receive the email, kindly use this OTP:  $otp .");
+            return redirect()->route('password.otp.update')->with('success', "An OTP has been sent to your email address. Kindly check your email to reset your password.");
         } catch (Exception $e) {
             Log::error('Forgot Password Error: '.$e->getMessage());
 
