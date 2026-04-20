@@ -144,7 +144,8 @@
                             <div class="about-img">
                                 <!-- <div class="row g-4"> -->
                                 <div class="col-md-12">
-                                    <img class="img-1" src="assets/img/about/vc.png" alt="" loading="lazy">
+                                    <img class="img-1 h-96 object-cover" src="assets/img/about/vc.png" alt=""
+                                        loading="lazy">
                                 </div>
                                 <!-- </div> -->
                             </div>
@@ -295,7 +296,7 @@
                     <div class="col-lg-4">
                         <div class="choose-img wow fadeInRight" data-wow-delay=".25s">
                             <img src="{{ asset('assets/img/choose/faculty.png') }}" alt="University Faculties"
-                                loading="lazy" width="500" height="500">
+                                loading="lazy" width="500" height="500" class="h-80 object-cover">
                         </div>
                     </div>
                 </div>
@@ -598,8 +599,9 @@
                                     {{ \Carbon\Carbon::parse($item->created_at)->format('F d, Y') }}
                                 </div>
 
-                                <div class="blog-item-img">
-                                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}">
+                                <div class="blog-item-img h-56 overflow-hidden rounded">
+                                    <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}"
+                                        class="h-full w-full object-cover">
                                 </div>
 
                                 <div class="blog-item-info">
