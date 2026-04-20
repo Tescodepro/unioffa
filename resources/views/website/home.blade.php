@@ -144,8 +144,8 @@
                             <div class="about-img">
                                 <!-- <div class="row g-4"> -->
                                 <div class="col-md-12">
-                                    <img class="img-1 h-96 object-cover" src="assets/img/about/vc.png" alt=""
-                                        loading="lazy">
+                                    <img class="img-1" src="assets/img/about/vc.png" alt="" loading="lazy"
+                                        style="height: 384px; object-fit: cover; width: 100%; display: block;">
                                 </div>
                                 <!-- </div> -->
                             </div>
@@ -296,7 +296,8 @@
                     <div class="col-lg-4">
                         <div class="choose-img wow fadeInRight" data-wow-delay=".25s">
                             <img src="{{ asset('assets/img/choose/faculty.png') }}" alt="University Faculties"
-                                loading="lazy" width="500" height="500" class="h-80 object-cover">
+                                loading="lazy" width="500" height="500"
+                                style="height: 320px; object-fit: cover; width: 100%; display: block;">
                         </div>
                     </div>
                 </div>
@@ -599,9 +600,9 @@
                                     {{ \Carbon\Carbon::parse($item->created_at)->format('F d, Y') }}
                                 </div>
 
-                                <div class="blog-item-img h-56 overflow-hidden rounded">
+                                <div class="blog-item-img" style="height: 224px; overflow: hidden; border-radius: 8px;">
                                     <img src="{{ asset('storage/' . $item->image) }}" alt="{{ $item->title }}"
-                                        class="h-full w-full object-cover">
+                                        style="height: 100%; width: 100%; object-fit: cover;">
                                 </div>
 
                                 <div class="blog-item-info">
