@@ -68,4 +68,27 @@ class AuthController extends Controller
 
         return redirect()->route('staff.login')->with('success', 'Logged out successfully.');
     }
+
+    public function showChangePasswordForm()
+    {
+        return view('staff.auth.change_password');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+        $user->update([
+            'password' => bcrypt($request->password),
+            'must_change_password' => false,
+            'password_changed_at' => now(),
+        ]);
+
+        $route = $user->userType->dashboard_route ?? 'staff.login';
+
+        return redirect()->route($route)->with('success', 'Password successfully updated. Welcome to your portal.');
+    }
 }

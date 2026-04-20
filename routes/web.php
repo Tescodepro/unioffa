@@ -168,12 +168,18 @@ Route::prefix('staff')->group(function () {
         Route::get('/', 'login')->name('staff.login');
         Route::post('/', 'loginAction');
         Route::get('logout', 'logoutAction')->name('staff.logout');
+
+        Route::middleware('auth')->group(function () {
+            Route::get('change-password', 'showChangePasswordForm')->name('staff.password.change');
+            Route::post('change-password', 'updatePassword')->name('staff.password.update');
+        });
     });
 
     // --- Unified Staff Portal ---
     // All staff access is now purely determined by the 'dynamic.permission' middleware
     // which checks the 'route_permissions' table mappings.
-    Route::middleware(['auth', 'user.type:staff', 'dynamic.permission'])->group(function () {
+    // ADDED: 'must-change-password' to enforce password updates upon first login.
+    Route::middleware(['auth', 'user.type:staff', 'dynamic.permission', 'must-change-password'])->group(function () {
 
         // --- Admissions & Agent Management ---
         Route::controller(StaffGeneralController::class)->group(function () {

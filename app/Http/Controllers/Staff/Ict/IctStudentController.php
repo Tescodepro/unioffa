@@ -473,6 +473,7 @@ class IctStudentController extends Controller
             'user_type_id' => $request->user_type_id,
             'campus_id' => $request->campus_id ?: null,
             'password' => bcrypt('password123'),
+            'must_change_password' => true,
         ]);
 
         $userType = UserType::find($request->user_type_id);

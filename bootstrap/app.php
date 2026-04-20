@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'user.type' => \App\Http\Middleware\UserTypeMiddleware::class,
             'dynamic.permission' => \App\Http\Middleware\DynamicPermission::class,
+            'must-change-password' => \App\Http\Middleware\MustChangePassword::class,
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $request) => match (true) {

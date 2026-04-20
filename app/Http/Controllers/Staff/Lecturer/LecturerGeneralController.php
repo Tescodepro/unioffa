@@ -186,6 +186,7 @@ class LecturerGeneralController extends Controller
                 'phone' => $request->phone,
                 'password' => bcrypt($defaultPassword),
                 'user_type_id' => $request->user_type_id,
+                'must_change_password' => true,
             ]);
 
             // Create Staff
