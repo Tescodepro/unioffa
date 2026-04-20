@@ -99,17 +99,21 @@ class LecturerGeneralController extends Controller
         $user = auth()->user();
         $staff = $user->staff;
 
-        if (! $staff && ! $user->hasUserType('administrator')) {
+        // Allow access if user is staff OR has administrator/ict user types
+        if (! $staff && ! $user->hasUserType('administrator') && ! $user->hasUserType('ict')) {
             abort(403, 'Unauthorized access.');
         }
 
         $query = Staff::with(['user', 'faculty', 'department']);
 
-        // Role-based filtering
-        if ($user->hasUserType('dean')) {
-            $query->where('faculty_id', $staff->faculty_id);
-        } elseif ($user->hasUserType('hod')) {
-            $query->where('department_id', $staff->department_id);
+        // Role-based filtering: Only filter if the user has a staff record and is a Dean or HOD.
+        // Administrators and ICT accounts see all staff.
+        if ($staff) {
+            if ($user->hasUserType('dean')) {
+                $query->where('faculty_id', $staff->faculty_id);
+            } elseif ($user->hasUserType('hod')) {
+                $query->where('department_id', $staff->department_id);
+            }
         }
 
         $staffs = $query->get();
@@ -148,10 +152,10 @@ class LecturerGeneralController extends Controller
         ]);
 
         $caller = auth()->user();
-        if ($caller->hasUserType('dean') && $request->faculty_id != $caller->staff->faculty_id) {
+        if ($caller->hasUserType('dean') && $caller->staff && $request->faculty_id != $caller->staff->faculty_id) {
             return redirect()->back()->withErrors(['error' => 'You can only add staff to your own faculty.']);
         }
-        if ($caller->hasUserType('hod') && $request->department_id != $caller->staff->department_id) {
+        if ($caller->hasUserType('hod') && $caller->staff && $request->department_id != $caller->staff->department_id) {
             return redirect()->back()->withErrors(['error' => 'You can only add staff to your own department.']);
         }
 
@@ -268,10 +272,10 @@ class LecturerGeneralController extends Controller
         ]);
 
         $caller = auth()->user();
-        if ($caller->hasUserType('dean') && $request->faculty_id != $caller->staff->faculty_id) {
+        if ($caller->hasUserType('dean') && $caller->staff && $request->faculty_id != $caller->staff->faculty_id) {
             return redirect()->back()->withErrors(['error' => 'You can only manage staff within your own faculty.']);
         }
-        if ($caller->hasUserType('hod') && $request->department_id != $caller->staff->department_id) {
+        if ($caller->hasUserType('hod') && $caller->staff && $request->department_id != $caller->staff->department_id) {
             return redirect()->back()->withErrors(['error' => 'You can only manage staff within your own department.']);
         }
 
@@ -299,11 +303,11 @@ class LecturerGeneralController extends Controller
         $staff = Staff::findOrFail($id);
 
         $caller = auth()->user();
-        if ($caller->hasUserType('dean') && $staff->faculty_id != $caller->staff->faculty_id) {
-            abort(403, 'You are not authorized to delete staff outside your faculty.');
+        if ($caller->hasUserType('dean') && $caller->staff && $staff->faculty_id != $caller->staff->faculty_id) {
+            return abort(403, 'You are not authorized to delete staff outside your faculty.');
         }
-        if ($caller->hasUserType('hod') && $staff->department_id != $caller->staff->department_id) {
-            abort(403, 'You are not authorized to delete staff outside your department.');
+        if ($caller->hasUserType('hod') && $caller->staff && $staff->department_id != $caller->staff->department_id) {
+            return abort(403, 'You are not authorized to delete staff outside your department.');
         }
 
         // Force delete associated user
