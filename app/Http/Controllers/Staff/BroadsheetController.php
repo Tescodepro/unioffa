@@ -44,23 +44,23 @@ class BroadsheetController extends Controller
         $user = Auth::user();
         $departments = collect();
 
-        if ($user->hasUserType('dean')) {
+        if ($user->hasRole('dean')) {
             if ($user->staff && $user->staff->faculty_id) {
                 $departments = Department::where('faculty_id', $user->staff->faculty_id)->get();
             } else {
                 session()->flash('error', 'Faculty not assigned to this Dean profile.');
             }
-        } elseif ($user->hasUserType('hod')) {
+        } elseif ($user->hasRole('hod')) {
             if ($user->staff && $user->staff->department_id) {
                 $departments = Department::where('id', $user->staff->department_id)->get();
             } else {
                 session()->flash('error', 'Department not assigned to this HOD profile.');
             }
-        } elseif ($user->hasUserType('vice-chancellor')) {
+        } elseif ($user->hasRole('vice-chancellor')) {
             $departments = Department::all();
-        } elseif ($user->hasUserType('registrar')) {
+        } elseif ($user->hasRole('registrar')) {
             $departments = Department::all();
-        } elseif ($user->hasUserType('ict')) {
+        } elseif ($user->hasRole('ict')) {
             $departments = Department::all();
         }
 
@@ -82,7 +82,7 @@ class BroadsheetController extends Controller
         if ($request->filled('department_id') && $request->filled('session_id') && $request->filled('level')) {
 
             // Security: HOD cannot request another department
-            if ($user->hasUserType('hod')) {
+            if ($user->hasRole('hod')) {
                 if (! $user->staff || $user->staff->department_id !== $request->department_id) {
                     session()->flash('error', 'Unauthorized access to this department.');
 
@@ -91,7 +91,7 @@ class BroadsheetController extends Controller
             }
 
             // Security: Dean cannot request a department outside their faculty
-            if ($user->hasUserType('dean')) {
+            if ($user->hasRole('dean')) {
                 $dept = Department::find($request->department_id);
                 if (! $dept || ! $user->staff || $dept->faculty_id !== $user->staff->faculty_id) {
                     session()->flash('error', 'Unauthorized access to this department.');

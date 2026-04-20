@@ -1,8 +1,8 @@
 @php
     $caller = auth()->user();
-    $isDean = $caller->hasUserType('dean');
-    $isHOD = $caller->hasUserType('hod');
-    $isAdmin = $caller->hasUserType('administrator');
+    $isDean = $caller->hasRole('dean');
+    $isHOD = $caller->hasRole('hod');
+    $isAdmin = $caller->hasRole('administrator');
     
     // Determine pre-selected values
     $selectedFacultyId = isset($staff) ? $staff->faculty_id : ($isDean ? $caller->staff->faculty_id : null);

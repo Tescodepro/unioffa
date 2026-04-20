@@ -27,8 +27,8 @@ class DynamicPermission
             return $next($request);
         }
 
-        // Load all route→permission mappings from cache
-        $map = Cache::rememberForever('route_permissions_map', function () {
+        // Load all route→permission mappings from cache (refreshed every hour)
+        $map = Cache::remember('route_permissions_map', now()->addHour(), function () {
             return RoutePermission::pluck('permission_identifier', 'route_name')->all();
         });
 

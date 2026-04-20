@@ -45,7 +45,7 @@
 
                             <div class="col-md-{{ $type === 'semester' ? '3' : '4' }}">
                                 <label class="form-label">Department <span class="text-danger">*</span></label>
-                                @if(auth()->user()->hasUserType('hod'))
+                                @if(auth()->user()->hasRole('hod'))
                                     <input type="hidden" name="department_id" value="{{ $departments->first()->id ?? '' }}">
                                     <input type="text" class="form-control"
                                         value="{{ $departments->first()->department_name ?? 'No Department Assigned' }}" readonly>

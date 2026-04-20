@@ -61,15 +61,22 @@ class User extends Authenticatable
         return $this->belongsTo(UserType::class, 'user_type_id');
     }
 
-    public function hasUserType(array|string $types): bool
+    /**
+     * Determine if the user has a given role (user type).
+     *
+     * Available roles: administrator, ict, dean, hod, lecturer, registrar,
+     * bursary, vice-chancellor, center-director, programme-director,
+     * public relations officer, director igbeti centre, student, applicant
+     *
+     * @param  string|string[]  $roles
+     */
+    public function hasRole(array|string $roles): bool
     {
         $typeName = $this->userType?->name;
 
-        if (is_array($types)) {
-            return in_array($typeName, $types);
-        }
-
-        return $typeName === $types;
+        return is_array($roles)
+            ? in_array($typeName, $roles)
+            : $typeName === $roles;
     }
 
     public function admissionList()
@@ -151,36 +158,11 @@ class User extends Authenticatable
         return $this->courses()->where('course_id', $courseId)->exists();
     }
 
-    public function hasRole($roleName)
-    {
-        return $this->userType->name === $roleName;
-    }
-
-    public function hasAnyRole(array $roleNames)
-    {
-        return in_array($this->userType->name, $roleNames);
-    }
-
-    public function hasPermission($permission)
+    public function hasPermission(string $permission): bool
     {
         $this->loadMissing('userType.permissions');
 
         return $this->userType?->permissions->contains('identifier', $permission) ?? false;
-    }
-
-    public function canAccessRoute(string $routeName): bool
-    {
-        $permissions = \Illuminate\Support\Facades\Cache::rememberForever('route_permissions_map', function () {
-            return \App\Models\RoutePermission::pluck('permission_identifier', 'route_name')->all();
-        });
-
-        $requiredPermission = $permissions[$routeName] ?? null;
-
-        if ($requiredPermission) {
-            return $this->hasPermission($requiredPermission);
-        }
-
-        return true; // If no permission is mapped, assume allowed or handle accordingly
     }
 
     /**
