@@ -27,7 +27,7 @@
                     <div class="card-body">
                         <form action="{{ route('ict.application-settings.update', $setting->id) }}" method="POST">
                             @csrf
-                            @method('POST')
+                            @method('PUT')
                             
                             <div class="row g-3">
                                 {{-- Basic Details --}}
