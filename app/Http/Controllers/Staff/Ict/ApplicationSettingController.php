@@ -68,7 +68,7 @@ class ApplicationSettingController extends Controller
             'modules_enable' => $modules,
         ]);
 
-        return redirect()->route('ict.application_settings.index')
+        return redirect()->route('ict.application-settings.index')
             ->with('success', 'Application setting created successfully.');
     }
 
@@ -130,7 +130,7 @@ class ApplicationSettingController extends Controller
             'modules_enable' => $modules,
         ]);
 
-        return redirect()->route('ict.application_settings.index')
+        return redirect()->route('ict.application-settings.index')
             ->with('success', 'Application setting updated successfully.');
     }
 }
