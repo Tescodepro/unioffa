@@ -18,14 +18,14 @@
                         <h3 class="page-title mb-1">Edit Setting: {{ $setting->name }}</h3>
                         <p class="text-muted mb-0">Update configuration for {{ $setting->application_code }}</p>
                     </div>
-                    <a href="{{ route('ict.application_settings.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('ict.application-settings.index') }}" class="btn btn-secondary">
                         <i class="ti ti-arrow-left"></i> Back
                     </a>
                 </div>
 
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ route('ict.application_settings.update', $setting->id) }}" method="POST">
+                        <form action="{{ route('ict.application-settings.update', $setting->id) }}" method="POST">
                             @csrf
                             @method('POST')
                             
