@@ -20,7 +20,7 @@
                         <p class="text-muted mb-0">Manage admission application types and fees.</p>
                     </div>
                     <div>
-                        <a href="{{ route('ict.application_settings.create') }}" class="btn btn-primary btn-sm">
+                        <a href="{{ route('ict.application-settings.create') }}" class="btn btn-primary btn-sm">
                             <i class="ti ti-plus"></i> Create New
                         </a>
                     </div>
@@ -69,7 +69,7 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <a href="{{ route('ict.application_settings.edit', $setting->id) }}"
+                                                <a href="{{ route('ict.application-settings.edit', $setting->id) }}"
                                                     class="btn btn-sm btn-info">
                                                     <i class="ti ti-edit"></i> Edit
                                                 </a>
