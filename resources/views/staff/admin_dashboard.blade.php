@@ -204,13 +204,13 @@
                                                         @if ($student->application_status !== 'submitted')
                                                             <span class="badge bg-secondary">Application Not
                                                                 Submitted</span>
-                                                        @elseif (auth()->user()->canAccessRoute('admission.admit'))
+                                                        @elseif (auth()->user()->hasPermission('admission.admit'))
                                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                                 data-bs-target="#admitModal{{ $student->id }}">
                                                                 Admit
                                                             </button>
 
-                                                        @elseif (auth()->user()->canAccessRoute('admission.recommend'))
+                                                        @elseif (auth()->user()->hasPermission('admission.recommend'))
                                                             <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
                                                                 data-bs-target="#recommendModal{{ $student->id }}">
                                                                 Recommend
