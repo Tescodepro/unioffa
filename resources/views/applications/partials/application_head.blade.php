@@ -4,8 +4,23 @@
             <center>
                 <span class="mb-4">Welcome to the Student Application Portal of
                     {{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }}. </span><br />
+                @php
+                    $displaySession = $application->academic_session ?? null;
+
+                    if (!$displaySession && isset($applicationSettings) && $applicationSettings->isNotEmpty()) {
+                        $displaySession = $applicationSettings->first()->academic_session;
+                    }
+
+                    if (!$displaySession) {
+                        $displaySession = \App\Models\ApplicationSetting::where('enabled', true)->latest()->value('academic_session');
+                    }
+
+                    if (!$displaySession) {
+                        $displaySession = activeSession()->name ?? 'N/A';
+                    }
+                @endphp
                 <span class="mb-4" style="text-align:center; font-size:25px;">Student Application Portal Dashboard for
-                    Academic Session {{ activeSession()->name }} </span>
+                    Academic Session {{ $displaySession }} </span>
                 <hr />
             </center>
             <h3>{{ auth()->user()->full_name }}</h3>
