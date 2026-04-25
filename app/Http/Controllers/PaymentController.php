@@ -38,16 +38,27 @@ class PaymentController extends Controller
         $reference = $this->generateReference($request->fee_type);
 
         // Log transaction as pending
+        $session = activeSession()->name ?? '---';
+        if ($request->has('application_id')) {
+            $application = \App\Models\UserApplications::find($request->application_id);
+            if ($application) {
+                $session = $application->academic_session;
+            }
+        } elseif ($request->has('session')) {
+            $session = $request->input('session');
+        }
+
         $transaction = Transaction::create([
             'id' => Str::uuid(),
             'user_id' => $user->id,
+            'user_application_id' => $request->application_id ?? null,
             'description' => $request->fee_type ?? 'Payment',
             'refernce_number' => $reference,
             'amount' => $request->amount,
             'payment_status' => 0, // pending
             'payment_type' => $request->fee_type ?? 'tuition',
             'payment_method' => $gateway,
-            'session' => activeSession()->name ?? '---',
+            'session' => $session,
             'semester' => activeSemester()->code ?? null,
             'meta_data' => json_encode([
                 'user_agent' => $request->userAgent(),
@@ -124,7 +135,7 @@ class PaymentController extends Controller
                 'user_type' => $user->user_type,
                 'referee_code' => $user->referee_code,
                 'date_paid' => Carbon::now()->format('Y-m-d H:i:s'),
-                'session' => activeSession()->name ?? '---',
+                'session' => $session,
                 'semester' => activeSemester()->code ?? null,
             ],
         ];

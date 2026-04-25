@@ -300,6 +300,7 @@
                                                                                     value="{{ $payment->balance }}">
                                                                             @endif
 
+                                                                            <input type="hidden" name="session" value="{{ $currentSession }}">
                                                                             <input type="hidden" name="fee_type"
                                                                                 value="{{ $payment->payment_type }}">
                                                                             <input type="hidden" name="gateway" value="oneapp">
