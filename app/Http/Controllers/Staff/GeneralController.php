@@ -199,7 +199,7 @@ class GeneralController extends Controller
         $admission = AdmissionList::firstOrNew(['user_id' => $userId]);
         $admission->admission_status = 'admitted';
         $admission->approved_department_id = $request->final_course; // optional, if you want to track
-        $admission->session_admitted = activeSession()?->name ?? '';
+        $admission->session_admitted = $user_application->academic_session;
         $admission->save();
 
         $department = Department::find($request->final_course);
