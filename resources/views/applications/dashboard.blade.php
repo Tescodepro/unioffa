@@ -239,9 +239,8 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                    <input type="hidden" name="academic_session" id="academic_session_input" value="">
 
-                                    <input type="hidden" name="academic_session"
-                                        value="{{ $setting->academic_session }}">
                                     <small class="text-muted d-block mt-2" id="application_hint" style="display:none;">
                                         Great — we’ll load the details below.
                                     </small>
@@ -400,6 +399,12 @@
             // Find the selected setting
             const setting = settings.find(s => s.id == selectedId);
             if (!setting) return;
+
+            // Update the hidden academic_session input dynamically
+            const sessionInput = document.getElementById('academic_session_input');
+            if (sessionInput) {
+                sessionInput.value = setting.academic_session;
+            }
 
             // Show instructions section
             instructionsSection.style.display = 'block';

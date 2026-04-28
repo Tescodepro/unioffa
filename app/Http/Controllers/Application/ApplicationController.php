@@ -736,7 +736,7 @@ class ApplicationController extends Controller
             $brevo = new BrevoMailService;
             $brevo->sendView($user->email, $user->full_name, $subject, 'emails.general', ['content' => $mailContent]);
 
-            return redirect()->route('password.otp.update')->with('success', "An OTP has been sent to your email address. Kindly check your email to reset your password.");
+            return redirect()->route('password.otp.update')->with('success', 'An OTP has been sent to your email address. Kindly check your email to reset your password.');
         } catch (Exception $e) {
             Log::error('Forgot Password Error: '.$e->getMessage());
 
