@@ -125,12 +125,9 @@ class CourseRegistrationController extends Controller
         if (! $payment_status['allCleared']) {
             $courses = collect();
 
-            // Allow showing courses if tuition is >= 60% and it's 1st semester
-            $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
-
-            $hasPartialTuitionAccess = $isRegularOrDiploma
-                ? ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st')
-                : (isset($keyedStatus['tuition']) && $keyedStatus['tuition']['percentage_paid'] >= 60 && strtolower($currentSemester) === '1st');
+            // Allow showing courses if tuition is >= 60%, it's 1st semester, and no other fees are pending
+            $otherPending = collect($keyedStatus)->except('tuition')->count();
+            $hasPartialTuitionAccess = ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st' && $otherPending === 0);
 
             if ($hasPartialTuitionAccess) {
                 $courses = Course::where('active_for_register', 1)
@@ -230,44 +227,44 @@ class CourseRegistrationController extends Controller
         $currentSession = activeSession()->name;
         $rawStatus = $paymentStatusService->getStatus($student, $currentSession);
         $keyedStatus = collect($rawStatus)->keyBy('payment_type')->toArray();
-        $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
-
         $tuitionPercentage = 100;
         if (isset($keyedStatus['tuition'])) {
             $tuitionPercentage = $keyedStatus['tuition']['percentage_paid'];
         }
 
+        $currentSemester = activeSemester()->code ?? (activeSemester()->name ?? '1st');
+
         if (! $paymentStatusService->hasClearedAll($student, $currentSession)) {
-            $canRegisterPartial = $isRegularOrDiploma && $tuitionPercentage >= 60;
-
-            // Ensure no other fees except tuition are pending for partial access
             $otherPending = collect($keyedStatus)->except('tuition')->count();
+            $canRegisterPartial = ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st' && $otherPending === 0);
 
-            if (! $canRegisterPartial || $otherPending > 0) {
+            if (! $canRegisterPartial) {
                 return redirect()->back()->with('error', 'You must clear all outstanding payments before registering courses.');
             }
         }
 
-        $currentSession = activeSession()->name;
-        $currentSemester = activeSemester()->code ?? (activeSemester()->name ?? '1st');
         $successCount = 0;
 
         // Unit Limit Validation
         $maxSemesterUnits = (int) \App\Models\SystemSetting::get('max_units_per_semester', 24);
         $maxSessionUnits = (int) \App\Models\SystemSetting::get('max_units_per_session', 48);
 
-        // Calculate units for new courses only
+        // Calculate units for new courses separately per semester
         $newRequestedCourseIds = [];
-        $newUnits = 0;
+        $newUnitsBySemester = [];
+        $newUnitsTotal = 0;
 
-        foreach ($request->courses as $courseId) {
+        // Ensure courses array only contains unique IDs
+        $requestedCourses = array_unique($request->courses);
+
+        foreach ($requestedCourses as $courseId) {
             $course = Course::find($courseId);
             if (! $course || ! $course->active_for_register) {
                 continue;
             }
 
-            // Enforce semester restriction for REGULAR/DIPLOMA with < 100% tuition
-            if ($isRegularOrDiploma && $tuitionPercentage < 100 && strtolower($course->semester) === '2nd') {
+            // Enforce semester restriction for < 100% tuition
+            if ($tuitionPercentage < 100 && strtolower($course->semester) === '2nd') {
                 return redirect()->back()->with('error', "You must pay 100% of your tuition to register for 2nd semester courses like {$course->course_code}.");
             }
 
@@ -279,7 +276,14 @@ class CourseRegistrationController extends Controller
 
             if (! $exists) {
                 $newRequestedCourseIds[] = $courseId;
-                $newUnits += $course->course_unit;
+
+                $sem = strtolower($course->semester);
+                if (! isset($newUnitsBySemester[$sem])) {
+                    $newUnitsBySemester[$sem] = 0;
+                }
+
+                $newUnitsBySemester[$sem] += $course->course_unit;
+                $newUnitsTotal += $course->course_unit;
             }
         }
 
@@ -287,41 +291,48 @@ class CourseRegistrationController extends Controller
             return redirect()->back()->with('info', 'No new courses were selected for registration.');
         }
 
-        // Check semester total (using course semester)
-        // Note: For partial registration, they can only do 1st semester anyway
-        $semesterForLimit = $currentSemester; // Default to active
-        $currentSemesterTotal = CourseRegistration::where('student_id', $user->id)
+        // Get existing units grouped by semester
+        $existingUnitsBySemester = CourseRegistration::where('student_id', $user->id)
             ->where('session', $currentSession)
-            ->where('semester', $semesterForLimit)
-            ->sum('course_unit');
+            ->selectRaw('LOWER(semester) as sem, SUM(course_unit) as total')
+            ->groupBy('sem')
+            ->pluck('total', 'sem')
+            ->toArray();
 
-        if (($currentSemesterTotal + $newUnits) > $maxSemesterUnits) {
-            return redirect()->back()->with('error', 'Limit Exceeded: Adding these courses would bring your total to '.($currentSemesterTotal + $newUnits)." units, which exceeds the semester limit of {$maxSemesterUnits}.");
+        // Check limits per semester
+        foreach ($newUnitsBySemester as $sem => $units) {
+            $currentSemTotal = $existingUnitsBySemester[$sem] ?? 0;
+
+            if (($currentSemTotal + $units) > $maxSemesterUnits) {
+                $semDisplay = ucfirst($sem);
+
+                return redirect()->back()->with('error', 'Limit Exceeded: Adding these courses would bring your total to '.($currentSemTotal + $units)." units, which exceeds the limit of {$maxSemesterUnits} units for the {$semDisplay} semester.");
+            }
         }
 
         // Check current session total
-        $currentSessionTotal = CourseRegistration::where('student_id', $user->id)
-            ->where('session', $currentSession)
-            ->sum('course_unit');
+        $currentSessionTotal = array_sum($existingUnitsBySemester);
 
-        if (($currentSessionTotal + $newUnits) > $maxSessionUnits) {
-            return redirect()->back()->with('error', 'Limit Exceeded: Adding these courses would bring your total to '.($currentSessionTotal + $newUnits)." units, which exceeds the session limit of {$maxSessionUnits}.");
+        if (($currentSessionTotal + $newUnitsTotal) > $maxSessionUnits) {
+            return redirect()->back()->with('error', 'Limit Exceeded: Adding these courses would bring your total to '.($currentSessionTotal + $newUnitsTotal)." units, which exceeds the session limit of {$maxSessionUnits}.");
         }
 
         foreach ($newRequestedCourseIds as $courseId) {
             $course = Course::findOrFail($courseId);
 
-            CourseRegistration::create([
-                'student_id' => $user->id,
-                'matric_no' => $student->matric_no,
-                'course_id' => $course->id,
-                'course_code' => $course->course_code,
-                'course_title' => $course->course_title,
-                'course_unit' => $course->course_unit,
-                'session' => $currentSession,
-                'semester' => $course->semester,
-                'status' => 'pending',
-            ]);
+            CourseRegistration::firstOrCreate(
+                [
+                    'student_id' => $user->id,
+                    'course_id' => $course->id,
+                    'session' => $currentSession,
+                    'semester' => $course->semester,
+                    'matric_no' => $student->matric_no,
+                    'course_code' => $course->course_code,
+                    'course_title' => $course->course_title,
+                    'course_unit' => $course->course_unit,
+                    'status' => 'pending',
+                ]
+            );
             $successCount++;
         }
 
