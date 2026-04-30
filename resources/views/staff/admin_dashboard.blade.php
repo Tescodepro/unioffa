@@ -199,7 +199,7 @@
                                                 </td>
 
                                                 <td>
-                                                    @if (optional($student->admissionList)->admission_status !== 'admitted')
+                                                    @if (optional($student->admissionList)->admission_status !== 'admitted' )
                                                         {{-- If application not submitted --}}
                                                         @if ($student->application_status !== 'submitted')
                                                             <span class="badge bg-secondary">Application Not

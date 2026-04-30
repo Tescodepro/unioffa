@@ -168,8 +168,8 @@
                             </div>
                         @endif
 
-                        {{-- Admit Action (VC & Registrar only, not already admitted) --}}
-                        <!-- @isset($admitRoute)
+                        {{-- Admit Action (VC, Registrar & Programme Director, not already admitted) --}}
+                        @if(isset($admitRoute) && auth()->user()->hasRole(['vice-chancellor', 'registrar', 'programme-director']))
                             @php $alreadyAdmitted = optional($application->user->admissionList)->admission_status === 'admitted'; @endphp
                             <div class="card mb-4 border-{{ $alreadyAdmitted ? 'success' : 'warning' }}">
                                 <div
@@ -188,31 +188,43 @@
                                         <form method="POST" action="{{ route($admitRoute, $application->user_id) }}">
                                             @csrf
                                             <input type="hidden" name="application_id" value="{{ $application->id }}">
-                                            <div class="row g-3 align-items-end">
-                                                <div class="col-md-8">
+                                            <div class="row g-3">
+                                                <div class="col-md-5">
                                                     <label class="form-label fw-semibold">Approve Department <span
                                                             class="text-danger">*</span></label>
                                                     <select name="final_course" class="form-select" required>
                                                         <option value="">— Select Department —</option>
-                                                        @foreach($departments as $dept)
-                                                            <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
+                                                        @foreach($faculties as $faculty)
+                                                            <optgroup label="{{ $faculty->faculty_name }}">
+                                                                @foreach($departments->where('faculty_id', $faculty->id) as $dept)
+                                                                    <option value="{{ $dept->id }}">{{ $dept->department_name }}</option>
+                                                                @endforeach
+                                                            </optgroup>
                                                         @endforeach
                                                     </select>
-                                                    <div class="form-text">This will mark the applicant as <strong>Admitted</strong>
-                                                        and send an email notification.</div>
                                                 </div>
                                                 <div class="col-md-4">
+                                                    <label class="form-label fw-semibold">Admission Status <span
+                                                            class="text-danger">*</span></label>
+                                                    <select name="status" class="form-select" required>
+                                                        <option value="admitted" selected>Admitted</option>
+                                                        <option value="rejected">Rejected</option>
+                                                        <option value="pending">Pending</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3 d-flex align-items-end">
                                                     <button type="submit" class="btn btn-success w-100"
-                                                        onclick="return confirm('Confirm admission for {{ $application->user->full_name }}?')">
-                                                        <i class="ti ti-user-check me-1"></i> Grant Admission
+                                                        onclick="return confirm('Confirm admission decision for {{ $application->user->full_name }}?')">
+                                                        <i class="ti ti-user-check me-1"></i> Submit Decision
                                                     </button>
                                                 </div>
                                             </div>
+                                            <div class="form-text mt-2">Submitting as <strong>Admitted</strong> will send an offer letter to the applicant.</div>
                                         </form>
                                     @endif
                                 </div>
                             </div>
-                        @endisset -->
+                        @endif
 
                         {{-- Back Button --}}
                         <div class="text-end">

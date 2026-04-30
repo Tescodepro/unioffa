@@ -192,33 +192,34 @@ class GeneralController extends Controller
             }
         }
 
-        $user_application->is_approved = 1;
+        // Set admission status from request
+        $status = $request->status ?? 'admitted';
+        $user_application->is_approved = ($status === 'admitted') ? 1 : (($status === 'rejected') ? 3 : 0);
         $user_application->save();
 
         // Get or create admission record
         $admission = AdmissionList::firstOrNew(['user_id' => $userId]);
-        $admission->admission_status = 'admitted';
-        $admission->approved_department_id = $request->final_course; // optional, if you want to track
+        $admission->admission_status = $status;
+        $admission->approved_department_id = $request->final_course;
         $admission->session_admitted = $user_application->academic_session;
         $admission->save();
 
-        $department = Department::find($request->final_course);
-        $studentUser = User::findOrFail($userId);
+        // Only send email if status is 'admitted'
+        if ($status === 'admitted') {
+            $department = Department::find($request->final_course);
+            $studentUser = User::findOrFail($userId);
+            $to = $studentUser->email;
+            $subject = 'Offer of Admission - Offa University';
 
-        $applicationSetting = ApplicationSetting::find($user_application->application_setting_id);
+            $content = [
+                'title' => 'Dear '.$studentUser->full_name.',',
+                'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study '.($department->department_name ?? 'your chosen course').'. for the '.$user_application->academic_session.' academic session admission. log in to your portal for further information',
+                'footer' => '',
+            ];
 
-        $to = $studentUser->email;
-
-        $subject = 'Offer of Admission - Offa University';
-
-        $content = [
-            'title' => 'Dear '.$studentUser->full_name.',',
-            'body' => 'Congratulations! We are delighted to inform you that you have been offered admission to Offa University to study '.($department->department_name ?? 'your chosen course').'. for the '.$user_application->academic_session.' academic session admission. log in to your portal for further information',
-            'footer' => '',
-        ];
-
-        $brevo = new BrevoMailService;
-        $brevo->sendView($to, $studentUser->first_name, $subject, 'emails.general', ['content' => $content]);
+            $brevo = new BrevoMailService;
+            $brevo->sendView($to, $studentUser->first_name, $subject, 'emails.general', ['content' => $content]);
+        }
 
         return back()->with('success', 'Student admitted successfully.');
     }
@@ -294,7 +295,10 @@ class GeneralController extends Controller
 
         $departments = \App\Models\Department::orderBy('department_name')->get();
 
-        return view('staff.applicant_details', compact('application', 'modules', 'departments'));
+        $faculties = \App\Models\Faculty::all();
+        $admitRoute = 'admission.admit';
+
+        return view('staff.applicant_details', compact('application', 'modules', 'departments', 'faculties', 'admitRoute'));
     }
 
     public function showAgentDetail()
