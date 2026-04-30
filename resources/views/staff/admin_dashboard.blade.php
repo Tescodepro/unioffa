@@ -204,7 +204,7 @@
                                                         @if ($student->application_status !== 'submitted')
                                                             <span class="badge bg-secondary">Application Not
                                                                 Submitted</span>
-                                                        @elseif (auth()->user()->hasRole(['vice-chancellor', 'registrar']))
+                                                        @elseif (auth()->user()->hasRole(['vice-chancellor', 'registrar', 'programme-director']))
                                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                                 data-bs-target="#admitModal{{ $student->id }}">
                                                                 Admit
