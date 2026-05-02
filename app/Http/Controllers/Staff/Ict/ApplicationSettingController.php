@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Staff\Ict;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationSetting;
+use App\Models\Department;
+use App\Models\Faculty;
 use Illuminate\Http\Request;
 
 class ApplicationSettingController extends Controller
@@ -23,7 +25,10 @@ class ApplicationSettingController extends Controller
      */
     public function create()
     {
-        return view('staff.ict.application-settings.create');
+        $faculties = Faculty::orderBy('faculty_name')->get();
+        $departments = Department::orderBy('department_name')->get();
+
+        return view('staff.ict.application-settings.create', compact('faculties', 'departments'));
     }
 
     /**
@@ -43,6 +48,8 @@ class ApplicationSettingController extends Controller
             'enabled' => 'required|boolean',
             'modules_enable' => 'array',
             'modules_enable.documents' => 'nullable|array',
+            'available_faculties' => 'nullable|array',
+            'available_departments' => 'nullable|array',
         ]);
 
         // Build modules array
@@ -66,6 +73,8 @@ class ApplicationSettingController extends Controller
             'status' => $validated['status'],
             'enabled' => $validated['enabled'],
             'modules_enable' => $modules,
+            'available_faculties' => $request->input('available_faculties'),
+            'available_departments' => $request->input('available_departments'),
         ]);
 
         return redirect()->route('ict.application-settings.index')
@@ -79,11 +88,10 @@ class ApplicationSettingController extends Controller
     {
         $setting = ApplicationSetting::findOrFail($id);
 
-        if (is_string($setting->modules_enable)) {
-            $setting->modules_enable = json_decode($setting->modules_enable, true) ?? [];
-        }
+        $faculties = Faculty::orderBy('faculty_name')->get();
+        $departments = Department::orderBy('department_name')->get();
 
-        return view('staff.ict.application-settings.edit', compact('setting'));
+        return view('staff.ict.application-settings.edit', compact('setting', 'faculties', 'departments'));
     }
 
     /**
@@ -105,6 +113,8 @@ class ApplicationSettingController extends Controller
             'enabled' => 'required|boolean',
             'modules_enable' => 'array',
             'modules_enable.documents' => 'nullable|array',
+            'available_faculties' => 'nullable|array',
+            'available_departments' => 'nullable|array',
         ]);
 
         // Build modules array
@@ -128,6 +138,8 @@ class ApplicationSettingController extends Controller
             'status' => $validated['status'],
             'enabled' => $validated['enabled'],
             'modules_enable' => $modules,
+            'available_faculties' => $request->input('available_faculties'),
+            'available_departments' => $request->input('available_departments'),
         ]);
 
         return redirect()->route('ict.application-settings.index')

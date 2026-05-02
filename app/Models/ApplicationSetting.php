@@ -21,10 +21,14 @@ class ApplicationSetting extends Model
         'academic_session',
         'enabled',
         'description',
+        'available_faculties',
+        'available_departments',
     ];
 
     protected $casts = [
         'modules_enable' => 'array',
+        'available_faculties' => 'array',
+        'available_departments' => 'array',
     ];
 
     public function users()

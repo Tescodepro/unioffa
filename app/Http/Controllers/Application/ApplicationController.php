@@ -389,8 +389,29 @@ class ApplicationController extends Controller
         $educationHistories = EducationHistory::where('user_application_id', $user_application_id)->get();
 
         // === get department and faculties
-        $departments = Department::all();
-        $faculties = Faculty::all();
+        $setting = $application->applicationSetting;
+        $availableFaculties = $setting->available_faculties ?? [];
+        $availableDepartments = $setting->available_departments ?? [];
+
+        $departmentsQuery = Department::query();
+        if (! empty($availableFaculties) || ! empty($availableDepartments)) {
+            $departmentsQuery->where(function ($q) use ($availableFaculties, $availableDepartments) {
+                if (! empty($availableFaculties)) {
+                    $q->orWhereIn('faculty_id', $availableFaculties);
+                }
+                if (! empty($availableDepartments)) {
+                    $q->orWhereIn('id', $availableDepartments);
+                }
+            });
+        }
+        $departments = $departmentsQuery->orderBy('department_name')->get();
+
+        if (! empty($availableFaculties) || ! empty($availableDepartments)) {
+            $facultyIds = $departments->pluck('faculty_id')->unique();
+            $faculties = Faculty::whereIn('id', $facultyIds)->orderBy('faculty_name')->get();
+        } else {
+            $faculties = Faculty::orderBy('faculty_name')->get();
+        }
 
         // Payment Settings
         $payment_transaction = Transaction::where('user_id', $users->id)
@@ -605,7 +626,7 @@ class ApplicationController extends Controller
 
             $request->validate($rules);
 
-            $request->score = array_sum($request->jamb_subject_scores);
+            $totalScore = array_sum($request->jamb_subject_scores);
 
             $data = [
                 'user_id' => Auth::id(),
@@ -613,7 +634,7 @@ class ApplicationController extends Controller
                 'registration_number' => $request->registration_number,
                 'exam_year' => $request->exam_year,
                 'jamb_type' => $request->jamb_type,
-                'score' => $request->score,
+                'score' => $totalScore,
                 'subjects' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subjects) : null,
                 'subject_scores' => $request->jamb_type === 'utme' ? json_encode($request->jamb_subject_scores) : null,
             ];
@@ -850,8 +871,15 @@ class ApplicationController extends Controller
 
         // Process olevels
         foreach ($application->olevels as $olevel) {
-            $subjects = is_string($olevel->subjects) ? json_decode($olevel->subjects, true) : ($olevel->subjects ?? []);
-            $grades = is_string($olevel->grades) ? json_decode($olevel->grades, true) : ($olevel->grades ?? []);
+            $subjects = $olevel->subjects;
+            $grades = $olevel->grades;
+
+            if (is_string($subjects)) {
+                $subjects = json_decode($subjects, true) ?? [];
+            }
+            if (is_string($grades)) {
+                $grades = json_decode($grades, true) ?? [];
+            }
 
             if (is_array($subjects) && is_array($grades) && count($subjects) === count($grades) && count($subjects) > 0) {
                 $olevel->subjects = array_combine($subjects, $grades) ?: [];
@@ -862,8 +890,15 @@ class ApplicationController extends Controller
 
         // Process JAMB details
         if ($application->jambDetail) {
-            $subjects = is_string($application->jambDetail->subjects) ? json_decode($application->jambDetail->subjects, true) : ($application->jambDetail->subjects ?? []);
-            $scores = is_string($application->jambDetail->subject_scores) ? json_decode($application->jambDetail->subject_scores, true) : ($application->jambDetail->subject_scores ?? []);
+            $subjects = $application->jambDetail->subjects;
+            $scores = $application->jambDetail->subject_scores;
+
+            if (is_string($subjects)) {
+                $subjects = json_decode($subjects, true) ?? [];
+            }
+            if (is_string($scores)) {
+                $scores = json_decode($scores, true) ?? [];
+            }
 
             if (is_array($subjects) && is_array($scores) && count($subjects) === count($scores) && count($subjects) > 0) {
                 $application->jambDetail->subject_scores = array_combine($subjects, $scores) ?: [];

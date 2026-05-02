@@ -153,6 +153,32 @@
                                 </div>
                                 @endforeach
 
+                                {{-- Course Restrictions --}}
+                                <div class="col-12 mt-4">
+                                    <h5 class="fw-bold text-primary mb-1">Course Availability (Optional)</h5>
+                                    <p class="text-muted small">Restrict which faculties and departments are available for this application type. Leave blank to allow all.</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Available Faculties</label>
+                                    <select name="available_faculties[]" class="form-select select2" multiple data-placeholder="Select Faculties">
+                                        @foreach($faculties as $faculty)
+                                            <option value="{{ $faculty->id }}" {{ in_array($faculty->id, $setting->available_faculties ?? []) ? 'selected' : '' }}>
+                                                {{ $faculty->faculty_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Available Departments</label>
+                                    <select name="available_departments[]" class="form-select select2" multiple data-placeholder="Select Departments">
+                                        @foreach($departments as $department)
+                                            <option value="{{ $department->id }}" {{ in_array($department->id, $setting->available_departments ?? []) ? 'selected' : '' }}>
+                                                {{ $department->department_name }} ({{ $department->faculty->faculty_name ?? 'N/A' }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
                                 <div class="col-12 mt-3">
                                     <label class="form-label">Add Custom Document</label>
                                     <div class="input-group" style="max-width: 400px;">
