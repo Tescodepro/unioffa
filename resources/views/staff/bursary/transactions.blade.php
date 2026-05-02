@@ -37,15 +37,26 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <form action="{{ route('bursary.transactions') }}" method="GET" class="row g-3 align-items-end">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Reference Number</label>
                             <input type="text" name="reference" value="{{ request('reference') }}" class="form-control" placeholder="e.g. TXN-1234ABC">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Username / Matric No</label>
                             <input type="text" name="username" value="{{ request('username') }}" class="form-control" placeholder="e.g. 2023/001">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Academic Session</label>
+                            <select name="session" class="form-select">
+                                <option value="">-- All Sessions --</option>
+                                @foreach ($sessions as $session)
+                                    <option value="{{ $session->name }}" {{ request('session') == $session->name ? 'selected' : '' }}>
+                                        {{ $session->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label">Payment Type</label>
                             <select name="payment_type" class="form-select">
                                 <option value="">-- Select --</option>

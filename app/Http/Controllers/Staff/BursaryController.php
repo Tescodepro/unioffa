@@ -293,6 +293,10 @@ class BursaryController extends Controller
                     });
             });
 
+        if ($request->filled('session')) {
+            $query->where('session', $request->input('session'));
+        }
+
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
         }
@@ -334,12 +338,13 @@ class BursaryController extends Controller
             }
         }
 
-        $transactions = $query->latest()->paginate(100);
+        $transactions = $query->latest()->paginate(100)->withQueryString();
 
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
         $campuses = Campus::orderBy('name')->get();
+        $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->get();
 
-        return view('staff.bursary.transactions', compact('transactions', 'paymentTypes', 'campuses'));
+        return view('staff.bursary.transactions', compact('transactions', 'paymentTypes', 'campuses', 'sessions'));
     }
 
     public function exportTransactions(Request $request, $format)
@@ -359,6 +364,10 @@ class BursaryController extends Controller
                             ->groupBy('user_id', 'session');
                     });
             });
+
+        if ($request->filled('session')) {
+            $query->where('session', $request->input('session'));
+        }
 
         if ($request->filled('reference')) {
             $query->where('refernce_number', 'like', "%{$request->reference}%");
@@ -385,11 +394,11 @@ class BursaryController extends Controller
             });
         }
 
-        $transactions = $query->latest()->get();
-
         if ($format === 'excel') {
-            return Excel::download(new TransactionsExport($transactions), 'transactions.xlsx');
+            return Excel::download(new TransactionsExport($query), 'transactions.xlsx');
         }
+
+        $transactions = $query->latest()->get();
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('staff.bursary.reports.transactions-pdf', compact('transactions'));
