@@ -278,7 +278,7 @@ class BursaryController extends Controller
     public function transactions(Request $request)
     {
         $query = Transaction::query()
-            ->with(['user.campus'])
+            ->with(['user:id,first_name,last_name,username,campus_id', 'user.campus:id,name'])
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
@@ -349,8 +349,11 @@ class BursaryController extends Controller
 
     public function exportTransactions(Request $request, $format)
     {
+        set_time_limit(0);
+        ini_set('memory_limit', '1G');
+
         $query = Transaction::query()
-            ->with(['user.campus'])
+            ->with(['user:id,first_name,last_name,username,campus_id', 'user.campus:id,name'])
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
@@ -401,9 +404,6 @@ class BursaryController extends Controller
         $transactions = $query->latest()->get();
 
         if ($format === 'pdf') {
-            set_time_limit(0);
-            ini_set('memory_limit', '512M');
-
             $pdf = Pdf::loadView('staff.bursary.reports.transactions-pdf', compact('transactions'));
 
             return $pdf->download('transactions.pdf');
@@ -877,11 +877,12 @@ class BursaryController extends Controller
     //  EXPORT HANDLER
     public function export(Request $request, $type, $format)
     {
+        set_time_limit(0);
+        ini_set('memory_limit', '1G');
+
         $fileName = "report_{$type}.".$format;
 
         if ($format === 'pdf') {
-            set_time_limit(0);
-            ini_set('memory_limit', '512M');
             // First, dynamically get the data by calling the appropriate report method
             $data = collect();
             switch ($type) {

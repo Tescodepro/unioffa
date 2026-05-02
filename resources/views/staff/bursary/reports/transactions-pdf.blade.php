@@ -6,10 +6,10 @@
     <title>{{ \App\Models\SystemSetting::get('school_name', 'University of Offa') }} — Transactions Report</title>
     <style>
         body {
-            font-family: "DejaVu Sans", sans-serif;
-            font-size: 12px;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10px;
             color: #222;
-            margin: 20px;
+            margin: 10px;
         }
 
         .header {
