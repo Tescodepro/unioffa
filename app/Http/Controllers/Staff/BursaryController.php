@@ -401,6 +401,9 @@ class BursaryController extends Controller
         $transactions = $query->latest()->get();
 
         if ($format === 'pdf') {
+            set_time_limit(0);
+            ini_set('memory_limit', '512M');
+
             $pdf = Pdf::loadView('staff.bursary.reports.transactions-pdf', compact('transactions'));
 
             return $pdf->download('transactions.pdf');
@@ -877,6 +880,8 @@ class BursaryController extends Controller
         $fileName = "report_{$type}.".$format;
 
         if ($format === 'pdf') {
+            set_time_limit(0);
+            ini_set('memory_limit', '512M');
             // First, dynamically get the data by calling the appropriate report method
             $data = collect();
             switch ($type) {
