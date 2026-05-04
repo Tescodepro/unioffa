@@ -36,12 +36,12 @@
                                 <select name="payment_type" class="form-select" required>
                                     <option value="">-- Select Payment Type --</option>
                                     @foreach ($paymentTypes as $type)
-                                        @if($type !== 'technical')
+                                        <!-- @if($type !== 'technical') -->
                                             <option value="{{ $type }}"
                                                 {{ old('payment_type') == $type ? 'selected' : '' }}>
                                                 {{ ucfirst($type) }}
                                             </option>
-                                        @endif
+                                        <!-- @endif -->
                                     @endforeach
                                 </select>
                             </div>
