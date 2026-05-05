@@ -36,12 +36,12 @@
                                 <select name="payment_type" class="form-select" required>
                                     <option value="">-- Select Payment Type --</option>
                                     @foreach ($paymentTypes as $type)
-                                        {{-- @if($type !== 'technical') --}}
+                                        @if($type !== 'technical')
                                             <option value="{{ $type }}"
                                                 {{ old('payment_type') == $type ? 'selected' : '' }}>
                                                 {{ ucfirst($type) }}
                                             </option>
-                                        {{--  @endif --}}
+                                         @endif
                                     @endforeach
                                 </select>
                             </div>
@@ -79,10 +79,10 @@
                                 <select name="payment_status" class="form-select" required>
                                     
                                     <option value="0">Pending</option>
-                                    {{-- @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'registrar']))  --}}
+                                     @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'registrar']))  
                                     <option value="2">Failed</option>
                                     <option value="1">Successful</option>
-                                     {{-- @endif --}}
+                                     @endif
                                 </select>
                             </div>
 
@@ -142,7 +142,7 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'registrar']))
+                                                @if (in_array(auth()->user()->userType->name, ['vice-chancellor', 'registrar','ict']))
                                                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
                                                     data-bs-target="#editModal{{ $txn->id }}">
                                                     <i class="ti ti-edit"></i>
