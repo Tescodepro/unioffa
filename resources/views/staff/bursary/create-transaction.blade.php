@@ -174,12 +174,12 @@
                                                                 <label class="form-label">Payment Type</label>
                                                                 <select name="payment_type" class="form-select" required>
                                                                     @foreach ($paymentTypes as $type)
-                                                                        @if($type !== 'technical')
+                                                                        {{-- @if($type !== 'technical') --}}
                                                                             <option value="{{ $type }}"
                                                                                 {{ $txn->payment_type == $type ? 'selected' : '' }}>
                                                                                 {{ ucfirst($type) }}
                                                                             </option>
-                                                                        @endif
+                                                                        {{-- @endif --}}
                                                                     @endforeach
                                                                 </select>
                                                             </div>
