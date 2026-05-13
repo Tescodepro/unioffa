@@ -264,7 +264,7 @@ class ApplicationController extends Controller
                 // dd($hasSubmittedApplication);
                 if ($hasSubmittedApplication) {
                     $studentMigration = new StudentMigrationService;
-                    $newStudent = $studentMigration->migrate(Auth::id());
+                    $newStudent = $studentMigration->migrate(Auth::id(), $txn->session);
 
                     if ($newStudent) {
                         $redirectRoute = 'students.dashboard';

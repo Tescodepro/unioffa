@@ -56,7 +56,7 @@ class DashboardController extends Controller
                 if ($txn->payment_type == 'acceptance' && $txn->payment_status == 1 && ! $user->student) {
                     $user = User::find($txn->user_id);
                     if (! $user->student) {
-                        $newStudent = $studentMigration->migrate($txn->user_id);
+                        $newStudent = $studentMigration->migrate($txn->user_id, $txn->session);
                         $user->load('student.department.faculty');
                     }
                 }

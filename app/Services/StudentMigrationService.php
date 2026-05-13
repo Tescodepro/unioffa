@@ -18,7 +18,7 @@ class StudentMigrationService
     /**
      * Migrate user to student
      */
-    public function migrate(?string $userId = null): ?Student
+    public function migrate(?string $userId = null, ?string $session = null): ?Student
     {
         try {
             $user = $userId ? User::findOrFail($userId) : Auth::user();
@@ -37,8 +37,8 @@ class StudentMigrationService
             }
 
             // Wrap entire migration in DB transaction
-            return DB::transaction(function () use ($user) {
-                return $this->performMigration($user);
+            return DB::transaction(function () use ($user, $session) {
+                return $this->performMigration($user, $session);
             });
 
         } catch (\Exception $e) {
@@ -54,22 +54,40 @@ class StudentMigrationService
     /**
      * Perform the actual migration logic
      */
-    private function performMigration(User $user): Student
+    private function performMigration(User $user, ?string $session = null): ?Student
     {
         // Update user type to student
         $this->updateUserType($user);
 
         // Get current session
-        $currentSession = $this->getActiveSession();
+        $currentSession = $session ?? $this->getActiveSession();
 
         // Get user application
         $userApplication = $this->getUserApplication($user->id, $currentSession);
 
+        if (! $userApplication) {
+            Log::error("User application not found for migration. User: {$user->id}, Session: {$currentSession}");
+
+            return null;
+        }
+
         // Get application settings
         $applicationSetting = $this->getApplicationSetting($userApplication);
 
+        if (! $applicationSetting) {
+            Log::error("Application settings not found for migration. Application ID: {$userApplication->id}");
+
+            return null;
+        }
+
         // Get admission
         $admission = $this->getAdmission($user->id);
+
+        if (! $admission) {
+            Log::error("Admission record not found for migration. User: {$user->id}");
+
+            return null;
+        }
 
         // Prepare student data based on application type
         $studentData = $this->prepareStudentData($applicationSetting, $userApplication, $user);
