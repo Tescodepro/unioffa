@@ -219,6 +219,11 @@ Route::prefix('staff')->group(function () {
             Route::get('/ict/students/template', 'downloadTemplate')->name('ict.students.bulk.template');
             Route::get('/ict/students/bulk', 'bulkUploadForm')->name('ict.students.bulk');
             Route::post('/ict/students/bulk', 'bulkUpload')->name('ict.students.bulk.upload');
+            
+            // Student Level Management
+            Route::get('/ict/students/change-level', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'index'])->name('ict.students.change-level');
+            Route::post('/ict/students/change-level/specific', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'updateSpecific'])->name('ict.students.change-level.specific');
+            Route::post('/ict/students/change-level/bulk', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'updateBulk'])->name('ict.students.change-level.bulk');
         });
 
         // --- Financial / Bursary Management ---
