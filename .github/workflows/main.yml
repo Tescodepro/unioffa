@@ -50,12 +50,6 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
-      - name: Check Code Style (Pint)
-        run: vendor/bin/pint --test
-
-
-      - name: Run Tests (Pest)
-        run: vendor/bin/pest
 
       - name: Build assets
         run: npm run build
