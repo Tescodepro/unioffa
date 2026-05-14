@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Staff;
 
+use App\Exports\LatePaymentSettingsExport;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicSemester;
 use App\Models\AcademicSession;
@@ -10,6 +11,7 @@ use App\Models\EntryMode;
 use App\Models\LatePaymentSetting;
 use App\Models\PaymentSetting;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LatePaymentSettingController extends Controller
 {
@@ -29,14 +31,26 @@ class LatePaymentSettingController extends Controller
         if ($request->filled('campus_id')) {
             $query->where('campus_id', $request->campus_id);
         }
+        if ($request->filled('student_type')) {
+            $query->whereJsonContains('student_type', $request->student_type);
+        }
+        if ($request->filled('level')) {
+            $query->whereJsonContains('level', $request->level);
+        }
+        if ($request->filled('entry_mode')) {
+            $query->whereJsonContains('entry_mode', $request->entry_mode);
+        }
 
         $settings = $query->paginate(20);
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
         $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
         $semesters = AcademicSemester::orderBy('name')->get(['name', 'code']);
         $campuses = Campus::all();
+        $programmes = \DB::table('students')->distinct()->pluck('programme')->filter()->values();
+        $entryModes = EntryMode::orderBy('name')->get();
+        $levels = [100, 200, 300, 400, 500];
 
-        return view('staff.bursary.late_payment_settings.index', compact('settings', 'paymentTypes', 'sessions', 'semesters', 'campuses'));
+        return view('staff.bursary.late_payment_settings.index', compact('settings', 'paymentTypes', 'sessions', 'semesters', 'campuses', 'programmes', 'entryModes', 'levels'));
     }
 
     public function create()
@@ -46,8 +60,10 @@ class LatePaymentSettingController extends Controller
         $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
         $semesters = AcademicSemester::orderBy('name')->get(['name', 'code']);
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
+        $programmes = \DB::table('students')->distinct()->pluck('programme')->filter()->values();
+        $levels = [100, 200, 300, 400, 500];
 
-        return view('staff.bursary.late_payment_settings.create', compact('campuses', 'entryModes', 'sessions', 'semesters', 'paymentTypes'));
+        return view('staff.bursary.late_payment_settings.create', compact('campuses', 'entryModes', 'sessions', 'semesters', 'paymentTypes', 'programmes', 'levels'));
     }
 
     public function store(Request $request)
@@ -63,6 +79,8 @@ class LatePaymentSettingController extends Controller
             'increment_amount' => 'nullable|numeric|min:0',
             'increment_date' => 'nullable|date|after:closing_date',
             'excluded_matric_numbers' => 'nullable|string',
+            'student_type' => 'nullable|array',
+            'level' => 'nullable|array',
         ]);
 
         LatePaymentSetting::create([
@@ -78,6 +96,8 @@ class LatePaymentSettingController extends Controller
             'excluded_matric_numbers' => $request->filled('excluded_matric_numbers')
                 ? array_map('trim', explode(',', $request->excluded_matric_numbers))
                 : null,
+            'student_type' => $request->input('student_type', []),
+            'level' => $request->input('level', []),
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')
@@ -91,8 +111,10 @@ class LatePaymentSettingController extends Controller
         $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
         $semesters = AcademicSemester::orderBy('name')->get(['name', 'code']);
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
+        $programmes = \DB::table('students')->distinct()->pluck('programme')->filter()->values();
+        $levels = [100, 200, 300, 400, 500];
 
-        return view('staff.bursary.late_payment_settings.edit', compact('latePaymentSetting', 'campuses', 'entryModes', 'sessions', 'semesters', 'paymentTypes'));
+        return view('staff.bursary.late_payment_settings.edit', compact('latePaymentSetting', 'campuses', 'entryModes', 'sessions', 'semesters', 'paymentTypes', 'programmes', 'levels'));
     }
 
     public function update(Request $request, LatePaymentSetting $latePaymentSetting)
@@ -108,6 +130,8 @@ class LatePaymentSettingController extends Controller
             'increment_amount' => 'nullable|numeric|min:0',
             'increment_date' => 'nullable|date|after:closing_date',
             'excluded_matric_numbers' => 'nullable|string',
+            'student_type' => 'nullable|array',
+            'level' => 'nullable|array',
         ]);
 
         $latePaymentSetting->update([
@@ -123,6 +147,8 @@ class LatePaymentSettingController extends Controller
             'excluded_matric_numbers' => $request->filled('excluded_matric_numbers')
                 ? array_map('trim', explode(',', $request->excluded_matric_numbers))
                 : null,
+            'student_type' => $request->input('student_type', []),
+            'level' => $request->input('level', []),
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')
@@ -134,5 +160,12 @@ class LatePaymentSettingController extends Controller
         $latePaymentSetting->delete();
 
         return back()->with('success', 'Late payment setting deleted successfully.');
+    }
+
+    public function export(Request $request)
+    {
+        $filters = $request->only(['payment_type', 'session', 'semester', 'campus_id']);
+
+        return Excel::download(new LatePaymentSettingsExport($filters), 'late_payment_settings_'.now()->format('Y_m_d_His').'.xlsx');
     }
 }

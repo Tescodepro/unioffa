@@ -16,21 +16,5 @@ class DatabaseSeeder extends Seeder
         $this->call(DefaultUserTypePermissionsSeeder::class);
         $this->call(RoutePermissionSeeder::class);
         $this->call(MenuItemSeeder::class);
-
-        // $this->call(NigeriaLocationsSeeder::class);
-        // $this->call(UserTypesSeeder::class);
-        // $this->call(ApplicationSettingsSeeder::class);
-        // $this->call(FacultyDepartmentSeeder::class);
-        // $this->call(PaymentGateWaySettingsSeeder::class);
-        // $this->call(UserSeeder::class);
-        // $this->call(CampusSeeder::class);
-        // // $this->call(StudentSeeder::class);
-        // $this->call(CourseSeeder::class);
-        // $this->call(SemesterSeeder::class);
-        // $this->call(SessionSeeder::class);
-        // $this->call(PaymentSettingsSeeder::class);
-        // $this->call(PaymentSlitSeeder::class);
-        // $this->call(HostelSeeder::class);
-
     }
 }

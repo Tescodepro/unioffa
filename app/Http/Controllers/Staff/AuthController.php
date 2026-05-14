@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\BrevoMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -16,13 +17,22 @@ class AuthController extends Controller
 
     public function loginAction(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
+        $identifier = $request->input('email');
+        $fieldType = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        $credentials = [
+            $fieldType => $identifier,
+            'password' => $request->password,
+        ];
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            \Log::info('Staff Login Success', ['user' => Auth::user()->email]);
 
             $user = Auth::user();
             $name = $user->full_name;
@@ -82,13 +92,13 @@ class AuthController extends Controller
 
         $user = Auth::user();
         $user->update([
-            'password' => bcrypt($request->password),
+            'password' => Hash::make($request->password),
             'must_change_password' => false,
             'password_changed_at' => now(),
         ]);
 
         $route = $user->userType->dashboard_route ?? 'staff.login';
 
-        return redirect()->route($route)->with('success', 'Password successfully updated. Welcome to your portal.');
+        return redirect()->route($route)->with('success', 'Password updated successfully. Welcome back!');
     }
 }

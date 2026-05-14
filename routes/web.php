@@ -244,6 +244,7 @@ Route::prefix('staff')->group(function () {
             });
             Route::controller(PaymentSettingController::class)->group(function () {
                 Route::get('/payment-settings', 'index')->name('bursary.payment-settings.index');
+                Route::get('/payment-settings/export', 'export')->name('bursary.payment-settings.export');
                 Route::post('/payment-settings', 'store')->name('bursary.payment-settings.store');
                 Route::get('/payment-settings/create', 'create')->name('bursary.payment-settings.create');
                 Route::get('/payment-settings/{paymentSetting}/edit', 'edit')->name('bursary.payment-settings.edit');
@@ -252,6 +253,7 @@ Route::prefix('staff')->group(function () {
             });
             Route::controller(LatePaymentSettingController::class)->group(function () {
                 Route::get('/late-payment-settings', 'index')->name('bursary.late-payment-settings.index');
+                Route::get('/late-payment-settings/export', 'export')->name('bursary.late-payment-settings.export');
                 Route::post('/late-payment-settings', 'store')->name('bursary.late-payment-settings.store');
                 Route::get('/late-payment-settings/create', 'create')->name('bursary.late-payment-settings.create');
                 Route::get('/late-payment-settings/{latePaymentSetting}/edit', 'edit')->name('bursary.late-payment-settings.edit');

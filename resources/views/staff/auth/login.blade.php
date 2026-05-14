@@ -94,10 +94,12 @@
 														<span class="input-icon-addon">
 															<i class="ti ti-mail"></i>
 														</span>
-														<input type="email"
+														<input type="text"
 															name="email"
 															class="form-control"
-															value="{{ old('email') }}">
+															placeholder="Enter Email or Staff ID"
+															value="{{ old('email') }}"
+															required>
 													</div>
 
 													<!-- Password -->

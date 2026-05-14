@@ -5,45 +5,91 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deployment-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  FTP-Deploy-Action:
-    name: FTP-Deploy-Action
+  ci-cd:
+    name: Build, Test and Deploy
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4 # Updated to v4 to fix save-state warnings
-      with:
-        fetch-depth: 2 
-    
-    - name: Build assets
-      run: |
-        npm install
-        npm run build
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-    - name: Install PHP and Composer
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2'
-        tools: 'composer'
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, gd, zip
+          coverage: none
 
-    - name: Install PHP dependencies
-      run: composer install --no-dev --optimize-autoloader
-        
-    - name: FTP-Deploy-Action
-      uses: SamKirkland/FTP-Deploy-Action@4.3.3
-      with:
-        server: ${{ secrets.SERVER }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        local-dir: ./ 
-        server-dir: /public_html/
-        # Exclude files that shouldn't be overwritten or uploaded
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          .env
-          storage/*.key
-          vendor/laravel/framework/src/Illuminate/Routing/RouteCollection.php 
-          # Note: We exclude the specific problematic file briefly if it's locked, 
-          # but generally, the exclude list above is standard.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Check Code Style (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Run Tests (Pest)
+        run: |
+          php artisan key:generate
+          vendor/bin/pest
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Cleanup dependencies for production
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: FTP-Deploy-Action
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ secrets.SERVER }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          local-dir: ./ 
+          server-dir: /public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .env
+            storage/*.key
+            vendor/laravel/framework/src/Illuminate/Routing/RouteCollection.php
+            tests/
+            phpunit.xml
+            .github/
+            .editorconfig
+            .gitattributes
+            package-lock.json
+            composer.json
+            composer.lock
+            vite.config.js
+            rebranding_checklist.json
+            CLAUDE.md
+            GEMINI.md
+            README.md
+

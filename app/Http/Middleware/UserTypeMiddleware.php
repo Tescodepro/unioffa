@@ -23,6 +23,12 @@ class UserTypeMiddleware
                 default => route('staff.login'),
             };
 
+            \Log::info('UserTypeMiddleware Guest Redirect', [
+                'category' => $category,
+                'url' => $request->fullUrl(),
+                'ip' => $request->ip(),
+            ]);
+
             return redirect($redirectRoute)
                 ->with('error', 'You need to be logged in to access this page.');
         }
@@ -50,6 +56,13 @@ class UserTypeMiddleware
             if ($userType === 'student' && $category === 'applicant') {
                 return $next($request);
             }
+
+            \Log::info('UserTypeMiddleware Category Mismatch', [
+                'user' => $user->email,
+                'expected' => $category,
+                'actual' => $actualCategory,
+                'url' => $request->fullUrl(),
+            ]);
 
             return redirect()->back()
                 ->with('error', 'Unauthorized area.');

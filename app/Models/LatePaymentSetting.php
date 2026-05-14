@@ -25,6 +25,8 @@ class LatePaymentSetting extends Model
         'increment_amount',
         'increment_date',
         'excluded_matric_numbers',
+        'student_type',
+        'level',
     ];
 
     protected $casts = [
@@ -34,6 +36,8 @@ class LatePaymentSetting extends Model
         'increment_amount' => 'decimal:2',
         'increment_date' => 'datetime',
         'excluded_matric_numbers' => 'array',
+        'student_type' => 'array',
+        'level' => 'array',
     ];
 
     protected static function boot()

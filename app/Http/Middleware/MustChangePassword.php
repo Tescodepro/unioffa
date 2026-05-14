@@ -16,15 +16,20 @@ class MustChangePassword
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::user();
+        if (Auth::check()) {
+            $user = Auth::user();
 
-        // Safely check if must_change_password exists and is true
-        // We use isset() here to avoid potential QueryExceptions if the column hasn't been migrated yet on the server.
-        if (Auth::check() && isset($user->must_change_password) && $user->must_change_password) {
-            // Allow access to the change password routes and logout
-            if (! $request->routeIs('staff.password.change', 'staff.password.update', 'staff.logout')) {
+            if ($user->must_change_password) {
+                // If we are already on a password change route or logout, allow it.
+                if ($request->routeIs('staff.password.change', 'staff.password.update', 'staff.logout')) {
+                    return $next($request);
+                }
+
+                // Otherwise, redirect to password change page
+                \Log::info('MustChangePassword Redirecting', ['user' => $user->email]);
+
                 return redirect()->route('staff.password.change')
-                    ->with('warning', 'You must change your password before continuing.');
+                    ->with('warning', 'For security, you must change your password before continuing.');
             }
         }
 

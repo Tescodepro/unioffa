@@ -15,18 +15,18 @@ class PaymentSetting extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'faculty_id',
-        'department_id',
+        'faculty_ids',
+        'department_ids',
         'level',
-        'sex',
-        'matric_number',
+        'sexes',
+        'matric_numbers',
         'payment_type',
         'amount',
         'description',
         'student_type',
         'entry_mode',
         'session',
-        'semester',
+        'semesters',
         'installmental_allow_status',
         'number_of_instalment',
         'list_instalment_percentage',
@@ -37,6 +37,11 @@ class PaymentSetting extends Model
         'entry_mode' => 'array',
         'student_type' => 'array',
         'list_instalment_percentage' => 'array',
+        'faculty_ids' => 'array',
+        'department_ids' => 'array',
+        'sexes' => 'array',
+        'matric_numbers' => 'array',
+        'semesters' => 'array',
     ];
 
     protected static function boot()
@@ -124,25 +129,25 @@ class PaymentSetting extends Model
             }, function ($q) {
                 $q->whereNull('level')->orWhere('level', '[]');
             })
-            ->when($student->department?->faculty_id, function ($q) use ($student) {
-                $q->where(function ($sub) use ($student) {
-                    $sub->whereNull('faculty_id')
-                        ->orWhere('faculty_id', $student->department->faculty_id);
-                });
-            })
-            ->when($student->department_id, function ($q) use ($student) {
-                $q->where(function ($sub) use ($student) {
-                    $sub->whereNull('department_id')
-                        ->orWhere('department_id', $student->department_id);
-                });
+            ->where(function ($q) use ($student) {
+                $q->whereNull('faculty_ids')
+                    ->orWhere('faculty_ids', '[]')
+                    ->orWhereJsonContains('faculty_ids', $student->department->faculty_id);
             })
             ->where(function ($q) use ($student) {
-                $q->whereNull('sex')
-                    ->orWhere('sex', $student->sex);
+                $q->whereNull('department_ids')
+                    ->orWhere('department_ids', '[]')
+                    ->orWhereJsonContains('department_ids', $student->department_id);
             })
             ->where(function ($q) use ($student) {
-                $q->whereNull('matric_number')
-                    ->orWhere('matric_number', $student->matric_no);
+                $q->whereNull('sexes')
+                    ->orWhere('sexes', '[]')
+                    ->orWhereJsonContains('sexes', $student->sex);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('matric_numbers')
+                    ->orWhere('matric_numbers', '[]')
+                    ->orWhereJsonContains('matric_numbers', $student->matric_no);
             })
             ->where(function ($q) use ($student) {
                 $q->whereNull('entry_mode')
@@ -152,22 +157,25 @@ class PaymentSetting extends Model
             ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
                 if ($studentIsSemesterAffected) {
                     // Student matched a specific semester override → ONLY that semester's fees
-                    $q->where('semester', $currentSemester);
+                    $q->whereJsonContains('semesters', $currentSemester);
                 } else {
                     // Student is on global semester → session-wide fees only
-                    $q->whereNull('semester');
+                    $q->where(function ($sq) {
+                        $sq->whereNull('semesters')
+                            ->orWhere('semesters', '[]');
+                    });
                 }
             })
             ->get();
     }
 
-    public function faculty()
+    public function faculties()
     {
-        return $this->belongsTo(Faculty::class);
+        return Faculty::whereIn('id', $this->faculty_ids ?? [])->get();
     }
 
-    public function department()
+    public function departments()
     {
-        return $this->belongsTo(Department::class);
+        return Department::whereIn('id', $this->department_ids ?? [])->get();
     }
 }

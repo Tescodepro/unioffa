@@ -44,6 +44,12 @@ class DynamicPermission
         // Explicit "public" or "open" bypass can be handled if needed,
         // but for now, we check the user's permissions.
         if (! $user || ! $user->hasPermission($permission)) {
+            \Log::info('DynamicPermission Unauthorized Redirect', [
+                'user' => $user ? $user->email : 'null',
+                'route' => $routeName,
+                'permission' => $permission,
+                'url' => $request->fullUrl(),
+            ]);
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthorized access.'], 403);
             }

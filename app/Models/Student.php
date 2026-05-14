@@ -148,4 +148,35 @@ class Student extends Model
 
         return preg_match($pattern, $this->matric_no) === 1;
     }
+
+    /**
+     * Determine if this student is affected by specific semester overrides.
+     */
+    public function isSemesterAffected($activeSemester): bool
+    {
+        if (! $activeSemester) {
+            return false;
+        }
+
+        // Semesters should not be applicable for REGULAR and DIPLOMA programmes.
+        if (in_array(strtoupper($this->programme), ['REGULAR', 'DIPLOMA'])) {
+            return false;
+        }
+
+        $semesterStreams = $activeSemester->stream ?? [];
+        $semesterCampuses = $activeSemester->campus_id ?? [];
+        $semesterProgrammes = $activeSemester->programme ?? [];
+
+        $isSpecificOverride = ! empty($semesterStreams) || ! empty($semesterCampuses) || ! empty($semesterProgrammes);
+
+        if (! $isSpecificOverride) {
+            return false;
+        }
+
+        $matchesStream = empty($semesterStreams) || in_array((string) $this->stream, $semesterStreams);
+        $matchesCampus = empty($semesterCampuses) || in_array($this->campus_id, $semesterCampuses);
+        $matchesProgramme = empty($semesterProgrammes) || in_array($this->programme, $semesterProgrammes);
+
+        return $matchesStream && $matchesCampus && $matchesProgramme;
+    }
 }

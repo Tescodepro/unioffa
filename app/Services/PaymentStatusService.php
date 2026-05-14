@@ -20,82 +20,26 @@ class PaymentStatusService
             $level_payment = $student->level;
         }
 
-        // Determine if student is semester-affected based on the active semester overrides
         $activeSemester = activeSemester();
         $currentSemester = $activeSemester?->code;
+        $studentIsSemesterAffected = $student->isSemesterAffected($activeSemester);
 
-        $isSpecificOverride = false;
-        $studentIsSemesterAffected = false;
-        if ($currentSemester && $activeSemester) {
-            $semesterStreams = $activeSemester->stream ?? [];
-            $semesterCampuses = $activeSemester->campus_id ?? [];
-            $semesterProgrammes = $activeSemester->programme ?? [];
+        // 1. Fetch payment settings using the centralized model logic
+        $allSettings = PaymentSetting::getFeesForStudent($student, $session);
 
-            $isSpecificOverride = ! empty($semesterStreams) || ! empty($semesterCampuses) || ! empty($semesterProgrammes);
-
-            $matchesStream = empty($semesterStreams) || in_array((string) $student->stream, $semesterStreams);
-            $matchesCampus = empty($semesterCampuses) || in_array($student->campus_id, $semesterCampuses);
-            $matchesProgramme = empty($semesterProgrammes) || in_array($student->programme, $semesterProgrammes);
-
-            $studentIsSemesterAffected = $isSpecificOverride && $matchesStream && $matchesCampus && $matchesProgramme;
-
-            // Semesters should not be applicable for REGULAR and DIPLOMA programmes.
-            if (in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA'])) {
-                $studentIsSemesterAffected = false;
+        // 2. Apply semester filtering
+        $paymentSettings = $allSettings->filter(function ($payment) use ($studentIsSemesterAffected, $currentSemester) {
+            if ($studentIsSemesterAffected) {
+                // If student matches a specific semester override → ONLY that semester's fees
+                return ! empty($payment->semesters) && in_array($currentSemester, $payment->semesters);
+            } else {
+                // If student is NOT semester-affected → ONLY session-wide fees (empty semesters)
+                return empty($payment->semesters);
             }
-        }
+        });
 
-        $paymentSettings = PaymentSetting::query()
-            ->where(function ($q) use ($student) {
-                $q->whereNull('student_type')
-                    ->orWhere('student_type', '[]')
-                    ->orWhereJsonContains('student_type', $student->programme);
-            })
-            ->when(strtoupper($student->entry_mode) === 'TRANSFER', function ($query) {
-                $query->where('payment_type', '!=', 'matriculation');
-            })
-            ->where(function ($q) use ($level_payment) {
-                $q->whereNull('level')
-                    ->orWhere('level', '[]')
-                    ->orWhereJsonContains('level', (int) $level_payment);
-            })
-            ->where('session', $session)
-            ->when($student->department?->faculty_id, function ($q) use ($student) {
-                $q->where(function ($sub) use ($student) {
-                    $sub->whereNull('faculty_id')
-                        ->orWhere('faculty_id', $student->department->faculty_id);
-                });
-            })
-            ->when($student->department_id, function ($q) use ($student) {
-                $q->where(function ($sub) use ($student) {
-                    $sub->whereNull('department_id')
-                        ->orWhere('department_id', $student->department_id);
-                });
-            })
-            ->where(function ($q) use ($student) {
-                $q->whereNull('sex')
-                    ->orWhere('sex', $student->sex);
-            })
-            ->where(function ($q) use ($student) {
-                $q->whereNull('matric_number')
-                    ->orWhere('matric_number', $student->matric_number);
-            })
-            ->where(function ($q) use ($student) {
-                $q->whereNull('entry_mode')
-                    ->orWhere('entry_mode', '[]')
-                    ->orWhereJsonContains('entry_mode', $student->entry_mode);
-            })
-            ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
-                if ($studentIsSemesterAffected) {
-                    // Student matched a specific semester override → ONLY that semester's fees
-                    $q->where('semester', $currentSemester);
-                } else {
-                    // Student is on global semester → session-wide fees only
-                    $q->whereNull('semester');
-                }
-            })
-            ->whereNotIn('payment_type', ['accommodation', 'maintenance']) // 🚫 exclude these
-            ->get();
+        // 3. Exclude accommodation and maintenance (handled separately)
+        $paymentSettings = $paymentSettings->whereNotIn('payment_type', ['accommodation', 'maintenance']);
 
         if ($paymentSettings->isEmpty()) {
             return [];

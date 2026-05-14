@@ -42,11 +42,4 @@ class Department extends Model
     {
         return $this->hasMany(Student::class);
     }
-
-    // app/Models/Department.php
-
-    public function paymentSettings()
-    {
-        return $this->hasMany(PaymentSetting::class, 'department_id');
-    }
 }

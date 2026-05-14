@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademicSemester;
 use App\Models\AcademicSession;
 use App\Models\Department;
+use App\Models\EntryMode;
 use App\Models\Faculty;
 use App\Models\PaymentSetting;
 use Illuminate\Http\Request;
@@ -14,8 +15,7 @@ class PaymentSettingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PaymentSetting::with(['faculty', 'department'])
-            ->orderBy('created_at', 'desc');
+        $query = PaymentSetting::orderBy('created_at', 'desc');
 
         // Apply filters
         if ($request->filled('payment_type')) {
@@ -27,22 +27,29 @@ class PaymentSettingController extends Controller
         }
 
         if ($request->filled('faculty_id')) {
-            $query->where('faculty_id', $request->input('faculty_id'));
+            $query->whereJsonContains('faculty_ids', $request->input('faculty_id'));
         }
-
         if ($request->filled('department_id')) {
-            $query->where('department_id', $request->input('department_id'));
+            $query->whereJsonContains('department_ids', $request->department_id);
         }
-
+        if ($request->filled('student_type')) {
+            $query->whereJsonContains('student_type', $request->student_type);
+        }
+        if ($request->filled('entry_mode')) {
+            $query->whereJsonContains('entry_mode', $request->entry_mode);
+        }
+        if ($request->filled('level')) {
+            $query->whereJsonContains('level', $request->level);
+        }
         if ($request->filled('installmental_allow_status')) {
-            $query->where('installmental_allow_status', $request->input('installmental_allow_status'));
+            $query->where('installmental_allow_status', $request->installmental_allow_status);
         }
         if ($request->filled('matric_number')) {
-            $query->where('matric_number', $request->input('matric_number'));
+            $query->whereJsonContains('matric_numbers', $request->input('matric_number'));
         }
 
         if ($request->filled('semester')) {
-            $query->where('semester', $request->input('semester'));
+            $query->whereJsonContains('semesters', $request->input('semester'));
         }
 
         $settings = $query->paginate(20);
@@ -52,13 +59,17 @@ class PaymentSettingController extends Controller
         $departments = Department::all();
         $sessions = PaymentSetting::select('session')->distinct()->pluck('session');
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
+        $programmes = \DB::table('students')->distinct()->pluck('programme')->filter()->values();
+        $entryModes = EntryMode::orderBy('name')->get();
 
         return view('staff.bursary.payment_settings.index', compact(
             'settings',
             'faculties',
             'departments',
             'sessions',
-            'paymentTypes'
+            'paymentTypes',
+            'programmes',
+            'entryModes'
         ));
     }
 
@@ -77,16 +88,19 @@ class PaymentSettingController extends Controller
     {
         // 1. Validate the incoming request
         $validated = $request->validate([
-            'faculty_id' => 'nullable|exists:faculties,id',
-            'department_id' => 'nullable|exists:departments,id',
+            'faculty_ids' => 'nullable|array',
+            'faculty_ids.*' => 'exists:faculties,id',
+            'department_ids' => 'nullable|array',
+            'department_ids.*' => 'exists:departments,id',
             'level' => 'nullable|array',
             'payment_type' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'session' => 'required|string|max:255',
-            'semester' => 'nullable|string|max:255',
+            'semesters' => 'nullable|array',
             'student_type' => 'nullable|array',
             'entry_mode' => 'nullable|array',
-            'matric_number' => 'nullable|string|max:255',
+            'sexes' => 'nullable|array',
+            'matric_numbers' => 'nullable|array',
             'description' => 'nullable|string',
             'installmental_allow_status' => 'required|boolean',
             'number_of_instalment' => 'required_if:installmental_allow_status,1|nullable|integer|min:1|max:9',
@@ -97,7 +111,15 @@ class PaymentSettingController extends Controller
         if (isset($validated['level']) && is_array($validated['level'])) {
             $validated['level'] = array_map('intval', $validated['level']);
         } else {
-            $validated['level'] = null;
+            $validated['level'] = [];
+        }
+
+        // Prepare 'matric_numbers' (Parse from textarea)
+        if (isset($validated['matric_numbers']) && is_array($validated['matric_numbers'])) {
+            $raw = $validated['matric_numbers'][0] ?? '';
+            $validated['matric_numbers'] = array_values(array_filter(array_map('trim', explode(',', str_replace(["\r", "\n"], ',', $raw)))));
+        } else {
+            $validated['matric_numbers'] = [];
         }
 
         // 3. Prepare 'list_instalment_percentage'
@@ -110,17 +132,17 @@ class PaymentSettingController extends Controller
         // 4. Create the Record
         // We use json_encode() on array fields to fix the "Array to string conversion" error
         PaymentSetting::create([
-            'faculty_id' => $validated['faculty_id'] ?? null,
-            'department_id' => $validated['department_id'] ?? null,
-            // Fix: Encode array to JSON string
-            'level' => $validated['level'] ? $validated['level'] : [],
+            'faculty_ids' => $validated['faculty_ids'] ?? [],
+            'department_ids' => $validated['department_ids'] ?? [],
+            'level' => $validated['level'] ?? [],
             'payment_type' => $validated['payment_type'],
             'amount' => $validated['amount'],
             'session' => $validated['session'],
-            'semester' => $validated['semester'] ?? null,
+            'semesters' => $validated['semesters'] ?? [],
             'student_type' => $validated['student_type'] ?? [],
             'entry_mode' => $validated['entry_mode'] ?? [],
-            'matric_number' => $validated['matric_number'] ?? null,
+            'sexes' => $validated['sexes'] ?? [],
+            'matric_numbers' => $validated['matric_numbers'] ?? [],
             'description' => $validated['description'] ?? null,
             'installmental_allow_status' => $validated['installmental_allow_status'],
             'number_of_instalment' => $validated['number_of_instalment'] ?? 1,
@@ -146,50 +168,57 @@ class PaymentSettingController extends Controller
     public function update(Request $request, PaymentSetting $paymentSetting)
     {
         $validated = $request->validate([
-            'faculty_id' => 'nullable|uuid',
-            'department_id' => 'nullable|uuid',
+            'faculty_ids' => 'nullable|array',
+            'faculty_ids.*' => 'exists:faculties,id',
+            'department_ids' => 'nullable|array',
+            'department_ids.*' => 'exists:departments,id',
             'level' => 'nullable|array',
-            'payment_type' => 'required|string',
+            'payment_type' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
-            'session' => 'required|string',
-            'semester' => 'nullable|string|max:255',
+            'session' => 'required|string|max:255',
+            'semesters' => 'nullable|array',
             'student_type' => 'nullable|array',
             'entry_mode' => 'nullable|array',
+            'sexes' => 'nullable|array',
+            'matric_numbers' => 'nullable|array',
             'description' => 'nullable|string',
-            'installmental_allow_status' => 'required|boolean',
-            'number_of_instalment' => 'required_if:installmental_allow_status,1|nullable|integer|min:1|max:9',
-            'list_instalment_percentage' => 'required_if:installmental_allow_status,1|nullable|array',
-            'matric_number' => 'nullable|string|max:20',
+            'installmental_allow_status' => 'required',
+            'number_of_instalment' => 'nullable|integer|min:1|max:9',
+            'list_instalment_percentage' => 'nullable|array',
         ]);
 
         // ✅ Convert all level values to integers
-        if (isset($validated['level']) && is_array($validated['level'])) {
-            $validated['level'] = array_map('intval', $validated['level']);
-        } else {
-            $validated['level'] = null;
+        $level = isset($validated['level']) ? array_map('intval', (array) $validated['level']) : [];
+
+        // Prepare 'matric_numbers' (Parse from textarea if it comes as an array with one string)
+        $matricNumbers = [];
+        if (isset($validated['matric_numbers']) && is_array($validated['matric_numbers'])) {
+            $raw = $validated['matric_numbers'][0] ?? '';
+            $matricNumbers = array_values(array_filter(array_map('trim', explode(',', str_replace(["\r", "\n"], ',', $raw)))));
         }
 
-        // Total percentage validation removed as per existing code comment pattern
-        $listInstalmentPercentage = $validated['installmental_allow_status']
-            ? $validated['list_instalment_percentage']
-            : null;
+        // Handle Installments logic explicitly
+        $allowInstallments = (bool) $validated['installmental_allow_status'];
+        $instalmentData = $allowInstallments ? ($validated['list_instalment_percentage'] ?? []) : null;
+        $numInstalments = $allowInstallments ? ($validated['number_of_instalment'] ?? 2) : 1;
 
         // ✅ Save updated data
         $paymentSetting->update([
-            'faculty_id' => $validated['faculty_id'] ?? null,
-            'department_id' => $validated['department_id'] ?? null,
-            'level' => $validated['level'] ? $validated['level'] : [], // fixed here
+            'faculty_ids' => $validated['faculty_ids'] ?? [],
+            'department_ids' => $validated['department_ids'] ?? [],
+            'level' => $level,
             'payment_type' => $validated['payment_type'],
             'amount' => $validated['amount'],
             'session' => $validated['session'],
-            'semester' => $validated['semester'] ?? null,
+            'semesters' => $validated['semesters'] ?? [],
             'student_type' => $validated['student_type'] ?? [],
             'entry_mode' => $validated['entry_mode'] ?? [],
-            'description' => $validated['description'],
-            'installmental_allow_status' => $validated['installmental_allow_status'],
-            'number_of_instalment' => $validated['number_of_instalment'] ?? 1,
-            'list_instalment_percentage' => $listInstalmentPercentage,
-            'matric_number' => $validated['matric_number'] ?? null,
+            'sexes' => $validated['sexes'] ?? [],
+            'matric_numbers' => $matricNumbers,
+            'description' => $validated['description'] ?? null,
+            'installmental_allow_status' => $allowInstallments,
+            'number_of_instalment' => $numInstalments,
+            'list_instalment_percentage' => $instalmentData,
         ]);
 
         return redirect()
@@ -202,5 +231,13 @@ class PaymentSettingController extends Controller
         $paymentSetting->delete();
 
         return back()->with('success', 'Payment setting deleted successfully.');
+    }
+
+    public function export(Request $request)
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\PaymentSettingsExport($request),
+            'payment_settings_'.now()->format('Y_m_d_His').'.xlsx'
+        );
     }
 }
