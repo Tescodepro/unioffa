@@ -34,7 +34,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label class="form-label small fw-bold text-muted text-uppercase">Level</label>
                                 <select name="level" class="form-select border-0 bg-light shadow-none rounded-3">
                                     <option value="">All Levels</option>
@@ -50,7 +50,7 @@
                                 <input type="text" name="matric_no" class="form-control border-0 bg-light shadow-none rounded-3" 
                                     placeholder="Search by matric no" value="{{ request('matric_no') }}">
                             </div>
-                            <div class="col-md-2 d-flex align-items-end">
+                            <div class="col-md-3 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary w-100 py-2 rounded-3">
                                     <i class="ti ti-search me-1"></i> Filter
                                 </button>

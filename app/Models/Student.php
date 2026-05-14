@@ -225,27 +225,26 @@ class Student extends Model
             return 0.0;
         }
 
-        // Get all academic sessions from admission until now
-        $sessions = AcademicSession::where('name', '>=', $admissionSession)
-            ->orderBy('name', 'asc')
-            ->pluck('name');
+        $currentSessionName = activeSession()->name ?? null;
+
+        // Get all academic sessions from admission until PREVIOUS session
+        $query = AcademicSession::where('name', '>=', $admissionSession);
+        
+        if ($currentSessionName) {
+            $query->where('name', '<', $currentSessionName);
+        }
+
+        $sessions = $query->orderBy('name', 'asc')->pluck('name');
 
         $totalDebt = 0.0;
 
         foreach ($sessions as $sessionName) {
-            // Get required fees for this session (simulating the level they were at in that session)
-            // This is a bit complex if they were at different levels, 
-            // but for simple debt tracking, we check if they paid all fees for sessions they attended.
-            
-            // To be accurate, we should know their level for each session.
-            // For now, we'll check against current level or assume they progressed.
-            // A more robust way would be a "level_history" table, but let's use current level-based fee matching for now.
-            
+            // Get required fees for this session based on matching criteria
             $requiredFees = PaymentSetting::getFeesForStudent($this, $sessionName)->sum('amount');
             
             $paidAmount = Transaction::where('user_id', $this->user_id)
                 ->where('session', $sessionName)
-                ->where('payment_status', 'success')
+                ->where('payment_status', 1)
                 ->sum('amount');
 
             if ($paidAmount < $requiredFees) {
