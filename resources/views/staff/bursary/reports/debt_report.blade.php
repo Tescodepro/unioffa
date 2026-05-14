@@ -19,6 +19,34 @@
                     @include('layouts.flash-message')
                 </div>
 
+                <!-- Information Section -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 bg-primary-subtle">
+                    <div class="card-body p-4">
+                        <div class="d-flex gap-3">
+                            <div class="bg-primary text-white p-2 rounded-3 h-100">
+                                <i class="ti ti-info-circle fs-20"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold text-primary mb-2">How the Debt Report Works</h5>
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <ul class="list-unstyled mb-0 small text-muted">
+                                            <li class="mb-2"><i class="ti ti-check text-primary me-2"></i><strong>Historical Focus:</strong> This report only tracks debts from <strong>previous sessions</strong>. It excludes the currently active session.</li>
+                                            <li class="mb-2"><i class="ti ti-check text-primary me-2"></i><strong>Smart Calculation:</strong> Debt is calculated starting from the student's <strong>Admission Session</strong>.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <ul class="list-unstyled mb-0 small text-muted">
+                                            <li class="mb-2"><i class="ti ti-check text-primary me-2"></i><strong>Mandatory Priority:</strong> Only required session fees (Tuition, ICT, etc.) are counted. Optional fees (like Hostel) do not clear tuition debt.</li>
+                                            <li class="mb-2"><i class="ti ti-check text-primary me-2"></i><strong>Penalty Policy:</strong> Late payment penalties are additional and do not reduce the base tuition balance.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Filters -->
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
@@ -121,6 +149,8 @@
 
     <style>
         .bg-soft-dark { background-color: rgba(33, 37, 41, 0.1); }
+        .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
         .rounded-4 { border-radius: 1rem !important; }
+        .fs-20 { font-size: 20px; }
     </style>
 @endsection
