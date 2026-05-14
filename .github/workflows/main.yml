@@ -53,10 +53,9 @@ jobs:
       - name: Check Code Style (Pint)
         run: vendor/bin/pint --test
 
+
       - name: Run Tests (Pest)
-        run: |
-          php artisan key:generate
-          vendor/bin/pest
+        run: vendor/bin/pest
 
       - name: Build assets
         run: npm run build
