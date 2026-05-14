@@ -12,6 +12,11 @@ class Student extends Model
 {
     use HasFactory;
 
+    const STATUS_ACTIVE = 1;
+    const STATUS_INACTIVE = 0;
+    const STATUS_GRADUATED = 2;
+    const STATUS_SPILLED = 3;
+
     public $incrementing = false; // because UUID
 
     protected $keyType = 'string';
@@ -173,10 +178,86 @@ class Student extends Model
             return false;
         }
 
-        $matchesStream = empty($semesterStreams) || in_array((string) $this->stream, $semesterStreams);
+        $matchesStream = $this->matchesStream($semesterStreams);
         $matchesCampus = empty($semesterCampuses) || in_array($this->campus_id, $semesterCampuses);
         $matchesProgramme = empty($semesterProgrammes) || in_array($this->programme, $semesterProgrammes);
 
         return $matchesStream && $matchesCampus && $matchesProgramme;
+    }
+
+    public function matchesStream($semesterStreams): bool
+    {
+        return empty($semesterStreams) || in_array((string) $this->stream, $semesterStreams);
+    }
+
+    // 🔹 Graduation & Duration Logic
+
+    public function programmeDuration()
+    {
+        return ProgrammeDuration::where('department_id', $this->department_id)
+            ->where('programme', $this->programme)
+            ->first();
+    }
+
+    public function getMaxLevel(): int
+    {
+        return $this->programmeDuration()?->max_level ?? 400;
+    }
+
+    public function hasGraduated(): bool
+    {
+        if ($this->status == self::STATUS_GRADUATED) {
+            return true;
+        }
+
+        return $this->level > $this->getMaxLevel();
+    }
+
+    // 🔹 Financial / Debt Logic
+
+    /**
+     * Calculate the total outstanding debt for this student since their admission session.
+     */
+    public function getOutstandingDebt(): float
+    {
+        $admissionSession = $this->admission_session;
+        if (! $admissionSession) {
+            return 0.0;
+        }
+
+        // Get all academic sessions from admission until now
+        $sessions = AcademicSession::where('name', '>=', $admissionSession)
+            ->orderBy('name', 'asc')
+            ->pluck('name');
+
+        $totalDebt = 0.0;
+
+        foreach ($sessions as $sessionName) {
+            // Get required fees for this session (simulating the level they were at in that session)
+            // This is a bit complex if they were at different levels, 
+            // but for simple debt tracking, we check if they paid all fees for sessions they attended.
+            
+            // To be accurate, we should know their level for each session.
+            // For now, we'll check against current level or assume they progressed.
+            // A more robust way would be a "level_history" table, but let's use current level-based fee matching for now.
+            
+            $requiredFees = PaymentSetting::getFeesForStudent($this, $sessionName)->sum('amount');
+            
+            $paidAmount = Transaction::where('user_id', $this->user_id)
+                ->where('session', $sessionName)
+                ->where('payment_status', 'success')
+                ->sum('amount');
+
+            if ($paidAmount < $requiredFees) {
+                $totalDebt += ($requiredFees - $paidAmount);
+            }
+        }
+
+        return $totalDebt;
+    }
+
+    public function isBlockedByDebt(): bool
+    {
+        return $this->getOutstandingDebt() > 0;
     }
 }

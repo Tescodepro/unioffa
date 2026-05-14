@@ -28,7 +28,13 @@ class CourseRegistrationController extends Controller
         $activeSemester = activeSemester();
         $currentSemester = $activeSemester->code ?? ($activeSemester->name ?? '1st');
 
-        // Check payment status
+        // Check for outstanding debt from previous sessions
+        if ($student->isBlockedByDebt()) {
+            $debt = $student->getOutstandingDebt();
+            return redirect()->route('student.dashboard')->with('error', "You have an outstanding debt of ₦" . number_format($debt, 2) . ". Please clear your balance before registering for courses.");
+        }
+
+        // Check payment status for current session
         $paymentStatusService = new PaymentStatusService;
         $rawStatus = $paymentStatusService->getStatus($student, $currentSession);
 
@@ -220,6 +226,12 @@ class CourseRegistrationController extends Controller
 
         if (! $student) {
             return redirect()->back()->with('error', 'Student profile not found.');
+        }
+
+        // Check for outstanding debt from previous sessions
+        if ($student->isBlockedByDebt()) {
+            $debt = $student->getOutstandingDebt();
+            return redirect()->route('student.dashboard')->with('error', "You have an outstanding debt of ₦" . number_format($debt, 2) . ". Please clear your balance before registering for courses.");
         }
 
         // Check payment status before allowing registration

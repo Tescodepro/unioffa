@@ -103,7 +103,13 @@ class DashboardController extends Controller
         $closestClosingDate = null;
         $closestClosingAmount = null;
 
+        $debt = 0;
+        $isBlocked = false;
+
         if ($user->student) {
+            $debt = $user->student->getOutstandingDebt();
+            $isBlocked = $user->student->isBlockedByDebt();
+            
             $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($user->student, $currentSession, $currentSemester);
             try {
                 $paymentSettings = $this->getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester);
@@ -131,7 +137,7 @@ class DashboardController extends Controller
             }
         }
 
-        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount'));
+        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount', 'debt', 'isBlocked'));
     }
 
     public function loadPayment()

@@ -224,6 +224,12 @@ Route::prefix('staff')->group(function () {
             Route::get('/ict/students/change-level', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'index'])->name('ict.students.change-level');
             Route::post('/ict/students/change-level/specific', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'updateSpecific'])->name('ict.students.change-level.specific');
             Route::post('/ict/students/change-level/bulk', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'updateBulk'])->name('ict.students.change-level.bulk');
+
+            // Session Management
+            Route::get('/ict/sessions', [\App\Http\Controllers\Staff\Ict\SessionManagementController::class, 'index'])->name('ict.sessions.index');
+            Route::post('/ict/sessions/active', [\App\Http\Controllers\Staff\Ict\SessionManagementController::class, 'setActiveSession'])->name('ict.sessions.set-active');
+            Route::post('/ict/sessions/progress', [\App\Http\Controllers\Staff\Ict\SessionManagementController::class, 'processProgression'])->name('ict.sessions.progress');
+            Route::post('/ict/sessions/store', [\App\Http\Controllers\Staff\Ict\SessionManagementController::class, 'store'])->name('ict.sessions.store');
         });
 
         // --- Financial / Bursary Management ---
@@ -252,10 +258,13 @@ Route::prefix('staff')->group(function () {
                 Route::get('/payment-settings/export', 'export')->name('bursary.payment-settings.export');
                 Route::post('/payment-settings', 'store')->name('bursary.payment-settings.store');
                 Route::get('/payment-settings/create', 'create')->name('bursary.payment-settings.create');
-                Route::get('/payment-settings/{paymentSetting}/edit', 'edit')->name('bursary.payment-settings.edit');
-                Route::put('/payment-settings/{paymentSetting}', 'update')->name('bursary.payment-settings.update');
-                Route::delete('/payment-settings/{paymentSetting}', 'destroy')->name('bursary.payment-settings.destroy');
+                Route::get('/payment-settings/{payment_setting}/edit', 'edit')->name('bursary.payment-settings.edit');
+                Route::put('/payment-settings/{payment_setting}', 'update')->name('bursary.payment-settings.update');
+                Route::delete('/payment-settings/{payment_setting}', 'destroy')->name('bursary.payment-settings.destroy');
             });
+            
+            // Financial Reports
+            Route::get('/reports/debtors', [\App\Http\Controllers\Staff\Bursary\DebtReportController::class, 'index'])->name('bursary.reports.debtors');
             Route::controller(LatePaymentSettingController::class)->group(function () {
                 Route::get('/late-payment-settings', 'index')->name('bursary.late-payment-settings.index');
                 Route::get('/late-payment-settings/export', 'export')->name('bursary.late-payment-settings.export');

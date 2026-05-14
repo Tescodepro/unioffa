@@ -43,6 +43,50 @@
                             @include('student.partials.profile-card')
                             <!-- /Profile Card -->
 
+                            @if($isBlocked)
+                                <div class="col-xl-12 d-flex mb-4">
+                                    <div class="card bg-danger-subtle border-0 flex-fill">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="avatar avatar-md bg-danger text-white rounded">
+                                                        <i class="ti ti-lock-off fs-16"></i>
+                                                    </span>
+                                                    <div>
+                                                        <h5 class="text-danger mb-1">Account Restricted - Outstanding Debt</h5>
+                                                        <p class="mb-0">You have an outstanding debt of <strong>₦{{ number_format($debt, 2) }}</strong>. Your access to course registration and other features is currently restricted.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <a href="{{ route('students.load_payment') }}" class="btn btn-danger">Clear Debt Now</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @elseif($debt > 0)
+                                <div class="col-xl-12 d-flex mb-4">
+                                    <div class="card bg-warning-subtle border-0 flex-fill">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <span class="avatar avatar-md bg-warning text-white rounded">
+                                                        <i class="ti ti-alert-triangle fs-16"></i>
+                                                    </span>
+                                                    <div>
+                                                        <h5 class="text-warning-dark mb-1">Outstanding Balance</h5>
+                                                        <p class="mb-0">You have an outstanding balance of <strong>₦{{ number_format($debt, 2) }}</strong>. Please settle this to avoid future restrictions.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="text-end">
+                                                    <a href="{{ route('students.load_payment') }}" class="btn btn-warning">Pay Balance</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
                             @if(isset($courseRegistrationSetting))
                                 <div class="col-xl-12 d-flex mb-4">
                                     <div class="card bg-primary-subtle border-0 flex-fill">
