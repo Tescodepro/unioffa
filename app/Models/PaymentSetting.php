@@ -85,10 +85,9 @@ class PaymentSetting extends Model
         }
 
         // Determine if student is semester-affected based on all override fields
-        // A "specific override" has at least one non-empty override field.
-        $isSpecificOverride = false;
+        // Rule: Semesters should not be applicable for REGULAR and DIPLOMA programmes.
         $studentIsSemesterAffected = false;
-        if ($currentSemester && $activeSemester) {
+        if ($currentSemester && $activeSemester && ! in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA'])) {
             $semesterStreams = $activeSemester->stream ?? [];
             $semesterCampuses = $activeSemester->campus_id ?? [];
             $semesterProgrammes = $activeSemester->programme ?? [];
@@ -156,8 +155,12 @@ class PaymentSetting extends Model
             })
             ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
                 if ($studentIsSemesterAffected) {
-                    // Student matched a specific semester override → ONLY that semester's fees
-                    $q->whereJsonContains('semesters', $currentSemester);
+                    // Student matched a specific semester override → show that semester's fees + session-wide fees
+                    $q->where(function ($sq) use ($currentSemester) {
+                        $sq->whereJsonContains('semesters', $currentSemester)
+                            ->orWhereNull('semesters')
+                            ->orWhere('semesters', '[]');
+                    });
                 } else {
                     // Student is on global semester → session-wide fees only
                     $q->where(function ($sq) {

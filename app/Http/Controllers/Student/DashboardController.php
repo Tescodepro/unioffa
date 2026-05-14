@@ -109,7 +109,7 @@ class DashboardController extends Controller
         if ($user->student) {
             $debt = $user->student->getOutstandingDebt();
             $isBlocked = $user->student->isBlockedByDebt();
-            
+
             $courseRegistrationSetting = \App\Models\CourseRegistrationSetting::getActiveForStudent($user->student, $currentSession, $currentSemester);
             try {
                 $paymentSettings = $this->getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester);
@@ -201,8 +201,8 @@ class DashboardController extends Controller
         // 2. Apply semester filtering
         $paymentSettings = $allSettings->filter(function ($payment) use ($studentIsSemesterAffected, $currentSemester) {
             if ($studentIsSemesterAffected) {
-                // If student matches a specific semester override → ONLY that semester's fees
-                return ! empty($payment->semesters) && in_array($currentSemester, $payment->semesters);
+                // If student matches a specific semester override → show that semester's fees + session-wide fees
+                return (! empty($payment->semesters) && in_array($currentSemester, $payment->semesters)) || empty($payment->semesters);
             } else {
                 // If student is NOT semester-affected → ONLY session-wide fees (empty semesters)
                 return empty($payment->semesters);
