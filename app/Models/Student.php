@@ -239,16 +239,20 @@ class Student extends Model
         $totalDebt = 0.0;
 
         foreach ($sessions as $sessionName) {
-            // Get required fees for this session based on matching criteria
-            $requiredFees = PaymentSetting::getFeesForStudent($this, $sessionName)->sum('amount');
+            $requiredFees = PaymentSetting::getFeesForStudent($this, $sessionName);
+            $totalRequired = $requiredFees->sum('amount');
+            $requiredTypes = $requiredFees->pluck('payment_type')->toArray();
             
+            // Only count standard required types towards the base debt.
+            // Penalties like 'tuition_late_payment' do NOT reduce the base debt.
             $paidAmount = Transaction::where('user_id', $this->user_id)
                 ->where('session', $sessionName)
                 ->where('payment_status', 1)
+                ->whereIn('payment_type', $requiredTypes)
                 ->sum('amount');
 
-            if ($paidAmount < $requiredFees) {
-                $totalDebt += ($requiredFees - $paidAmount);
+            if ($paidAmount < $totalRequired) {
+                $totalDebt += ($totalRequired - $paidAmount);
             }
         }
 
