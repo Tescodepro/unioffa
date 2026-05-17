@@ -52,6 +52,10 @@ class PaymentSettingController extends Controller
             $query->whereJsonContains('semesters', $request->input('semester'));
         }
 
+        if ($request->filled('admission_session')) {
+            $query->whereJsonContains('admission_session', $request->input('admission_session'));
+        }
+
         $settings = $query->paginate(20);
 
         // Optional: load for filters
@@ -61,6 +65,7 @@ class PaymentSettingController extends Controller
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
         $programmes = \DB::table('students')->distinct()->pluck('programme')->filter()->values();
         $entryModes = EntryMode::orderBy('name')->get();
+        $academicSessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
 
         return view('staff.bursary.payment_settings.index', compact(
             'settings',
@@ -69,7 +74,8 @@ class PaymentSettingController extends Controller
             'sessions',
             'paymentTypes',
             'programmes',
-            'entryModes'
+            'entryModes',
+            'academicSessions'
         ));
     }
 
@@ -105,6 +111,7 @@ class PaymentSettingController extends Controller
             'installmental_allow_status' => 'required|boolean',
             'number_of_instalment' => 'required_if:installmental_allow_status,1|nullable|integer|min:1|max:9',
             'list_instalment_percentage' => 'required_if:installmental_allow_status,1|nullable|array',
+            'admission_session' => 'nullable|array',
         ]);
 
         // 2. Prepare 'level' data (Convert strings like ["100"] to integers [100])
@@ -147,6 +154,7 @@ class PaymentSettingController extends Controller
             'installmental_allow_status' => $validated['installmental_allow_status'],
             'number_of_instalment' => $validated['number_of_instalment'] ?? 1,
             'list_instalment_percentage' => $instalmentData,
+            'admission_session' => $validated['admission_session'] ?? [],
         ]);
 
         return redirect()
@@ -185,6 +193,7 @@ class PaymentSettingController extends Controller
             'installmental_allow_status' => 'required',
             'number_of_instalment' => 'nullable|integer|min:1|max:9',
             'list_instalment_percentage' => 'nullable|array',
+            'admission_session' => 'nullable|array',
         ]);
 
         // ✅ Convert all level values to integers
@@ -219,6 +228,7 @@ class PaymentSettingController extends Controller
             'installmental_allow_status' => $allowInstallments,
             'number_of_instalment' => $numInstalments,
             'list_instalment_percentage' => $instalmentData,
+            'admission_session' => $validated['admission_session'] ?? [],
         ]);
 
         return redirect()

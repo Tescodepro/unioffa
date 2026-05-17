@@ -13,6 +13,7 @@ Shared partial for payment setting form fields.
     $selectedSemesters = $ps ? ($ps->semesters ?? []) : [];
     $percentages = $ps ? ($ps->list_instalment_percentage ?? []) : [];
     $matricNumbers = $ps ? ($ps->matric_numbers ?? []) : [];
+    $selectedAdmissionSessions = $ps ? ($ps->admission_session ?? []) : [];
 @endphp
 
 <div class="row g-4">
@@ -110,6 +111,17 @@ Shared partial for payment setting form fields.
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Target Admission Session(s)</label>
+                        <select name="admission_session[]" multiple class="form-select select2-multi bg-light border-0">
+                            @foreach ($sessions as $sess)
+                                <option value="{{ $sess }}" {{ in_array($sess, $selectedAdmissionSessions) ? 'selected' : '' }}>
+                                    {{ $sess }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text x-small">Leave empty for universal admission session access</div>
                     </div>
                 </div>
             </div>

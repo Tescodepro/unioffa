@@ -30,6 +30,7 @@ class PaymentSetting extends Model
         'installmental_allow_status',
         'number_of_instalment',
         'list_instalment_percentage',
+        'admission_session',
     ];
 
     protected $casts = [
@@ -42,6 +43,7 @@ class PaymentSetting extends Model
         'sexes' => 'array',
         'matric_numbers' => 'array',
         'semesters' => 'array',
+        'admission_session' => 'array',
     ];
 
     protected static function boot()
@@ -152,6 +154,11 @@ class PaymentSetting extends Model
                 $q->whereNull('entry_mode')
                     ->orWhere('entry_mode', '[]')
                     ->orWhereJsonContains('entry_mode', $student->entry_mode);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('admission_session')
+                    ->orWhere('admission_session', '[]')
+                    ->orWhereJsonContains('admission_session', $student->admission_session);
             })
             ->where(function ($q) use ($studentIsSemesterAffected, $currentSemester) {
                 if ($studentIsSemesterAffected) {

@@ -147,6 +147,17 @@
                                         <option value="0" {{ request('installmental_allow_status') == '0' ? 'selected' : '' }}>One-off Only</option>
                                     </select>
                                 </div>
+                                <div class="col-md-2">
+                                    <label class="form-label text-dark fw-semibold small mb-2">Admission Session</label>
+                                    <select name="admission_session" class="form-select border-light-subtle shadow-none rounded-3">
+                                        <option value="">All Admission Sessions</option>
+                                        @foreach ($academicSessions as $sess)
+                                            <option value="{{ $sess }}" {{ request('admission_session') == $sess ? 'selected' : '' }}>
+                                                {{ $sess }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div class="col-md-4 d-flex gap-2">
                                     <button type="submit" class="btn btn-dark w-100 rounded-3 d-flex align-items-center justify-content-center">
                                         <i class="ti ti-adjustments-horizontal me-2"></i> Apply Filters
@@ -240,6 +251,12 @@
                                                     @if (is_array($setting->entry_mode) && count($setting->entry_mode))
                                                         @foreach ($setting->entry_mode as $mode)
                                                             <span class="badge bg-soft-info rounded-pill px-2 border-0">{{ $mode }}</span>
+                                                            @php $targets++; @endphp
+                                                        @endforeach
+                                                    @endif
+                                                    @if (is_array($setting->admission_session) && count($setting->admission_session))
+                                                        @foreach ($setting->admission_session as $admSess)
+                                                            <span class="badge rounded-pill px-2 border-0" style="background-color: #f1f5f9; color: #475569;">{{ $admSess }}</span>
                                                             @php $targets++; @endphp
                                                         @endforeach
                                                     @endif
