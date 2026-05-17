@@ -35,9 +35,9 @@ class PaymentLockdownSettingController extends Controller
 
     public function create()
     {
-        $campuses = Campus::all();
-        $faculties = Faculty::orderBy('name')->get();
-        $departments = Department::orderBy('name')->get();
+        $campuses = Campus::orderBy('name')->get();
+        $faculties = Faculty::orderBy('faculty_name')->get();
+        $departments = Department::orderBy('department_name')->get();
         $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
         $entryModes = EntryMode::orderBy('name')->get();
         $programmes = DB::table('students')->distinct()->pluck('programme')->filter()->values();
@@ -88,9 +88,9 @@ class PaymentLockdownSettingController extends Controller
 
     public function edit(PaymentLockdownSetting $paymentLockdownSetting)
     {
-        $campuses = Campus::all();
-        $faculties = Faculty::orderBy('name')->get();
-        $departments = Department::orderBy('name')->get();
+        $campuses = Campus::orderBy('name')->get();
+        $faculties = Faculty::orderBy('faculty_name')->get();
+        $departments = Department::orderBy('department_name')->get();
         $sessions = AcademicSession::orderBy('name', 'desc')->pluck('name');
         $entryModes = EntryMode::orderBy('name')->get();
         $programmes = DB::table('students')->distinct()->pluck('programme')->filter()->values();
