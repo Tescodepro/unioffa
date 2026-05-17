@@ -121,6 +121,17 @@
                                     </select>
                                 </div>
                                 <div class="col-md-2">
+                                    <label class="form-label fw-bold small text-muted text-uppercase mb-1">Adm Session</label>
+                                    <select name="admission_session" class="form-select border-0 bg-light">
+                                        <option value="">All</option>
+                                        @foreach ($sessions as $sess)
+                                            <option value="{{ $sess }}" {{ request('admission_session') == $sess ? 'selected' : '' }}>
+                                                {{ $sess }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
                                     <label class="form-label fw-bold small text-muted text-uppercase mb-1">Entry Mode</label>
                                     <select name="entry_mode" class="form-select border-0 bg-light">
                                         <option value="">All</option>
@@ -221,6 +232,16 @@
                                                     @endforeach
                                                     @if(count($setting->student_type) > 2)
                                                         <span class="badge bg-light text-muted border-0 rounded-pill fw-normal px-2">+{{ count($setting->student_type) - 2 }}</span>
+                                                    @endif
+                                                @endif
+
+                                                {{-- Admission Sessions --}}
+                                                @if (is_array($setting->admission_session) && count($setting->admission_session))
+                                                    @foreach (array_slice($setting->admission_session, 0, 2) as $as)
+                                                        <span class="badge bg-soft-warning text-warning border-0 rounded-pill fw-normal px-2">{{ $as }}</span>
+                                                    @endforeach
+                                                    @if(count($setting->admission_session) > 2)
+                                                        <span class="badge bg-light text-muted border-0 rounded-pill fw-normal px-2">+{{ count($setting->admission_session) - 2 }}</span>
                                                     @endif
                                                 @endif
 

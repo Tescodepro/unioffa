@@ -27,6 +27,7 @@ class LatePaymentSetting extends Model
         'excluded_matric_numbers',
         'student_type',
         'level',
+        'admission_session',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class LatePaymentSetting extends Model
         'excluded_matric_numbers' => 'array',
         'student_type' => 'array',
         'level' => 'array',
+        'admission_session' => 'array',
     ];
 
     protected static function boot()
@@ -73,6 +75,22 @@ class LatePaymentSetting extends Model
                 $q->whereNull('semester')
                     ->orWhere('semester', '[]')
                     ->orWhere('semester', $semester);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('student_type')
+                    ->orWhere('student_type', '[]')
+                    ->orWhereJsonContains('student_type', $student->programme);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('level')
+                    ->orWhere('level', '[]')
+                    ->orWhereJsonContains('level', (string) $student->level)
+                    ->orWhereJsonContains('level', (int) $student->level);
+            })
+            ->where(function ($q) use ($student) {
+                $q->whereNull('admission_session')
+                    ->orWhere('admission_session', '[]')
+                    ->orWhereJsonContains('admission_session', $student->admission_session);
             })
             ->orderBy('created_at', 'desc')
             ->first();

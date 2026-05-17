@@ -40,6 +40,9 @@ class LatePaymentSettingController extends Controller
         if ($request->filled('entry_mode')) {
             $query->whereJsonContains('entry_mode', $request->entry_mode);
         }
+        if ($request->filled('admission_session')) {
+            $query->whereJsonContains('admission_session', $request->admission_session);
+        }
 
         $settings = $query->paginate(20);
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
@@ -81,6 +84,7 @@ class LatePaymentSettingController extends Controller
             'excluded_matric_numbers' => 'nullable|string',
             'student_type' => 'nullable|array',
             'level' => 'nullable|array',
+            'admission_session' => 'nullable|array',
         ]);
 
         LatePaymentSetting::create([
@@ -98,6 +102,7 @@ class LatePaymentSettingController extends Controller
                 : null,
             'student_type' => $request->input('student_type', []),
             'level' => $request->input('level', []),
+            'admission_session' => $request->input('admission_session', []),
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')
@@ -132,6 +137,7 @@ class LatePaymentSettingController extends Controller
             'excluded_matric_numbers' => 'nullable|string',
             'student_type' => 'nullable|array',
             'level' => 'nullable|array',
+            'admission_session' => 'nullable|array',
         ]);
 
         $latePaymentSetting->update([
@@ -149,6 +155,7 @@ class LatePaymentSettingController extends Controller
                 : null,
             'student_type' => $request->input('student_type', []),
             'level' => $request->input('level', []),
+            'admission_session' => $request->input('admission_session', []),
         ]);
 
         return redirect()->route('bursary.late-payment-settings.index')
@@ -164,7 +171,7 @@ class LatePaymentSettingController extends Controller
 
     public function export(Request $request)
     {
-        $filters = $request->only(['payment_type', 'session', 'semester', 'campus_id']);
+        $filters = $request->only(['payment_type', 'session', 'semester', 'campus_id', 'admission_session']);
 
         return Excel::download(new LatePaymentSettingsExport($filters), 'late_payment_settings_'.now()->format('Y_m_d_His').'.xlsx');
     }

@@ -100,6 +100,12 @@ class PaymentController extends Controller
                 return back()->with('error', 'Student record not found for this user.');
             }
 
+            // Check for payment lockdown enforcement
+            $lockdown = \App\Models\PaymentLockdownSetting::getLockdownForStudent($student, $request->fee_type);
+            if ($lockdown && $lockdown->deadline->isPast()) {
+                return back()->with('error', 'Payment portal is locked: '.$lockdown->title.' deadline ('.$lockdown->deadline->format('d M, Y h:i A').') has passed.');
+            }
+
             // Block payment if a late penalty is owed for this specific fee type
             if (! str_ends_with($request->fee_type, '_late_payment')) {
                 $latePaymentService = app(\App\Services\LatePaymentService::class);

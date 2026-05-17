@@ -137,7 +137,9 @@ class DashboardController extends Controller
             }
         }
 
-        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount', 'debt', 'isBlocked'));
+        $activeLockdown = $user->student ? \App\Models\PaymentLockdownSetting::getLockdownForStudent($user->student) : null;
+
+        return view('student.dashboard', compact('user', 'courseRegistrationSetting', 'hasLatePenalty', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount', 'debt', 'isBlocked', 'activeLockdown'));
     }
 
     public function loadPayment()
@@ -182,7 +184,9 @@ class DashboardController extends Controller
             $closestClosingAmount = $upcomingPenalty->upcoming_penalty_amount;
         }
 
-        return view('student.payment', compact('paymentSettings', 'currentSession', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount'));
+        $activeLockdown = \App\Models\PaymentLockdownSetting::getLockdownForStudent($user->student);
+
+        return view('student.payment', compact('paymentSettings', 'currentSession', 'closestIncrementDate', 'closestIncrementAmount', 'closestClosingDate', 'closestClosingAmount', 'activeLockdown'));
     }
 
     public function getPaymentSettingsForStudent($user, $currentSession, $currentSemester, $activeSemester)

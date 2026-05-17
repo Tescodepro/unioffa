@@ -219,7 +219,7 @@ Route::prefix('staff')->group(function () {
             Route::get('/ict/students/template', 'downloadTemplate')->name('ict.students.bulk.template');
             Route::get('/ict/students/bulk', 'bulkUploadForm')->name('ict.students.bulk');
             Route::post('/ict/students/bulk', 'bulkUpload')->name('ict.students.bulk.upload');
-            
+
             // Student Level Management
             Route::get('/ict/students/change-level', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'index'])->name('ict.students.change-level');
             Route::post('/ict/students/change-level/specific', [\App\Http\Controllers\Staff\Ict\StudentLevelManagementController::class, 'updateSpecific'])->name('ict.students.change-level.specific');
@@ -262,7 +262,7 @@ Route::prefix('staff')->group(function () {
                 Route::put('/payment-settings/{payment_setting}', 'update')->name('bursary.payment-settings.update');
                 Route::delete('/payment-settings/{payment_setting}', 'destroy')->name('bursary.payment-settings.destroy');
             });
-            
+
             // Financial Reports
             Route::get('/reports/debtors', [\App\Http\Controllers\Staff\Bursary\DebtReportController::class, 'index'])->name('bursary.reports.debtors');
             Route::controller(LatePaymentSettingController::class)->group(function () {
@@ -273,6 +273,15 @@ Route::prefix('staff')->group(function () {
                 Route::get('/late-payment-settings/{latePaymentSetting}/edit', 'edit')->name('bursary.late-payment-settings.edit');
                 Route::put('/late-payment-settings/{latePaymentSetting}', 'update')->name('bursary.late-payment-settings.update');
                 Route::delete('/late-payment-settings/{latePaymentSetting}', 'destroy')->name('bursary.late-payment-settings.destroy');
+            });
+
+            Route::controller(\App\Http\Controllers\Staff\PaymentLockdownSettingController::class)->group(function () {
+                Route::get('/payment-lockdown-settings', 'index')->name('bursary.payment-lockdown-settings.index');
+                Route::post('/payment-lockdown-settings', 'store')->name('bursary.payment-lockdown-settings.store');
+                Route::get('/payment-lockdown-settings/create', 'create')->name('bursary.payment-lockdown-settings.create');
+                Route::get('/payment-lockdown-settings/{paymentLockdownSetting}/edit', 'edit')->name('bursary.payment-lockdown-settings.edit');
+                Route::put('/payment-lockdown-settings/{paymentLockdownSetting}', 'update')->name('bursary.payment-lockdown-settings.update');
+                Route::delete('/payment-lockdown-settings/{paymentLockdownSetting}', 'destroy')->name('bursary.payment-lockdown-settings.destroy');
             });
         });
 

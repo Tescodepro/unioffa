@@ -111,7 +111,7 @@ it('loads session-wide fees for REGULAR students even if matching a specific sem
         'payment_type' => 'exam_fee',
         'amount' => 5000,
         'session' => '2025/2026',
-        'semester' => '2nd',
+        'semesters' => ['2nd'],
         'student_type' => ['REGULAR'],
         'entry_mode' => ['UTME'],
     ]);

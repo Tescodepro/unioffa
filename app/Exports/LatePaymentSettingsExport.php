@@ -44,6 +44,9 @@ class LatePaymentSettingsExport implements FromQuery, WithHeadings, WithMapping
         if (! empty($this->filters['entry_mode'])) {
             $query->whereJsonContains('entry_mode', $this->filters['entry_mode']);
         }
+        if (! empty($this->filters['admission_session'])) {
+            $query->whereJsonContains('admission_session', $this->filters['admission_session']);
+        }
 
         return $query;
     }
@@ -62,6 +65,7 @@ class LatePaymentSettingsExport implements FromQuery, WithHeadings, WithMapping
             'Increment Date',
             'Student Type',
             'Level(s)',
+            'Admission Session(s)',
             'Created At',
         ];
     }
@@ -80,6 +84,7 @@ class LatePaymentSettingsExport implements FromQuery, WithHeadings, WithMapping
             $setting->increment_date ? $setting->increment_date->format('Y-m-d H:i:s') : 'N/A',
             is_array($setting->student_type) ? implode(', ', $setting->student_type) : ($setting->student_type ?? 'All'),
             is_array($setting->level) ? implode(', ', $setting->level) : ($setting->level ?? 'All'),
+            is_array($setting->admission_session) ? implode(', ', $setting->admission_session) : ($setting->admission_session ?? 'All'),
             $setting->created_at->format('Y-m-d'),
         ];
     }

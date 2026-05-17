@@ -197,7 +197,7 @@
                                         </select>
                                         <div class="form-text x-small">Empty = All Programmes</div>
                                     </div>
-                                    <div class="mb-0">
+                                    <div class="mb-3">
                                         <label class="form-label-premium">Target Levels</label>
                                         <select name="level[]" class="form-select select2-multi" multiple="multiple">
                                             @foreach ($levels as $level)
@@ -207,6 +207,17 @@
                                             @endforeach
                                         </select>
                                         <div class="form-text x-small">Empty = All Levels</div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <label class="form-label-premium">Target Admission Sessions</label>
+                                        <select name="admission_session[]" class="form-select select2-multi" multiple="multiple">
+                                            @foreach ($sessions as $sess)
+                                                <option value="{{ $sess }}" {{ in_array($sess, old('admission_session', [])) ? 'selected' : '' }}>
+                                                    {{ $sess }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div class="form-text x-small">Empty = All Admission Sessions</div>
                                     </div>
                                 </div>
                             </div>

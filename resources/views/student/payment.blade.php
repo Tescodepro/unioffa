@@ -124,6 +124,93 @@
                     </div>
                 </div>
 
+                <!-- Payment Lockdown Banners -->
+                @if(isset($activeLockdown))
+                    @if($activeLockdown->deadline->isPast())
+                        <div class="card bg-danger border-0 mb-4 text-white shadow-lg overflow-hidden position-relative" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border-radius: 12px;">
+                            <div class="position-absolute end-0 top-0 p-3 opacity-10" style="pointer-events: none;">
+                                <i class="fas fa-lock" style="font-size: 8rem; transform: rotate(15deg); color: #fff;"></i>
+                            </div>
+                            <div class="card-body p-4 position-relative">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="avatar avatar-lg bg-white bg-opacity-20 text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
+                                            <i class="fas fa-lock fs-4"></i>
+                                        </span>
+                                        <div>
+                                            <h4 class="text-white fw-bold mb-1">PORTAL LOCKED: {{ $activeLockdown->title }}</h4>
+                                            <p class="mb-0 text-white text-opacity-90">
+                                                The payment option for <strong>{{ $activeLockdown->payment_type ? ucfirst($activeLockdown->payment_type) : 'All Fees' }}</strong> has been officially locked. The deadline passed on <strong>{{ $activeLockdown->deadline->format('d M, Y h:i A') }}</strong>.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-white text-danger fw-bold px-3 py-2 fs-6 rounded-pill shadow-sm">LOCKED</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="card border-0 mb-4 text-white shadow-lg overflow-hidden position-relative" style="background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); border-radius: 12px;">
+                            <div class="position-absolute end-0 top-0 p-3 opacity-10" style="pointer-events: none;">
+                                <i class="fas fa-clock" style="font-size: 8rem; transform: rotate(-15deg); color: #fff;"></i>
+                            </div>
+                            <div class="card-body p-4 position-relative">
+                                <div class="row align-items-center g-3">
+                                    <div class="col-md-7 d-flex align-items-center gap-3">
+                                        <span class="avatar avatar-lg bg-white bg-opacity-20 text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; min-width: 48px;">
+                                            <i class="fas fa-lock-open fs-4"></i>
+                                        </span>
+                                        <div>
+                                            <h4 class="text-white fw-bold mb-1">{{ $activeLockdown->title }}</h4>
+                                            <p class="mb-0 text-white text-opacity-90">
+                                                Payment portal closure for <strong>{{ $activeLockdown->payment_type ? ucfirst($activeLockdown->payment_type) : 'All Fees' }}</strong> is active. Please complete payment before lock down.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 text-md-end text-start">
+                                        <div class="d-inline-block bg-white bg-opacity-10 rounded-3 px-4 py-3 border border-white border-opacity-10" style="backdrop-filter: blur(10px);">
+                                            <div class="text-white text-opacity-75 small text-uppercase fw-bold mb-1 text-center">CLOSES IN</div>
+                                            <h3 class="text-white fw-bold mb-0 font-monospace text-center" id="lockdown-countdown" style="font-size: 1.5rem;">
+                                                Loading...
+                                             </h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @push('scripts')
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const targetTime = new Date("{{ $activeLockdown->deadline->toIso8601String() }}").getTime();
+                                    const countdownText = document.getElementById('lockdown-countdown');
+                                    
+                                    if (countdownText) {
+                                        const interval = setInterval(() => {
+                                            const now = new Date().getTime();
+                                            const difference = targetTime - now;
+                                            
+                                            if (difference < 0) {
+                                                clearInterval(interval);
+                                                countdownText.innerHTML = "LOCKED";
+                                                window.location.reload();
+                                                return;
+                                            }
+                                            
+                                            const d = Math.floor(difference / (1000 * 60 * 60 * 24));
+                                            const h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                            const m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                                            const s = Math.floor((difference % (1000 * 60)) / 1000);
+                                            
+                                            countdownText.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+                                        }, 1000);
+                                    }
+                                });
+                            </script>
+                        @endpush
+                    @endif
+                @endif
+
                 <!-- Late Payment Banners -->
                 @if(isset($closestClosingDate) && now()->lt(\Carbon\Carbon::parse($closestClosingDate)))
                     <div class="card bg-warning-subtle border-0 mb-4 shadow-sm">
@@ -198,7 +285,23 @@
                                             <td>{{ number_format($payment->balance, 2) }}</td>
                                             <td>
                                                 @if ($payment->balance > 0)
-                                                    @if (isset($payment->has_late_penalty) && $payment->has_late_penalty)
+                                                    @php
+                                                        $isRowLocked = false;
+                                                        if (isset($activeLockdown) && $activeLockdown->deadline->isPast()) {
+                                                            if ($activeLockdown->payment_type === null || strtolower($activeLockdown->payment_type) === strtolower($payment->payment_type)) {
+                                                                $isRowLocked = true;
+                                                            }
+                                                        }
+                                                    @endphp
+
+                                                    @if ($isRowLocked)
+                                                        <button type="button" class="btn btn-sm btn-danger disabled" title="This payment option is locked down.">
+                                                            <i class="fas fa-lock me-1"></i> Locked
+                                                        </button>
+                                                        <div class="small fw-bold text-danger mt-1" style="font-size: 0.75rem;">
+                                                            <i class="fas fa-lock"></i> Deadline Passed
+                                                        </div>
+                                                    @elseif (isset($payment->has_late_penalty) && $payment->has_late_penalty)
                                                         <button type="button" class="btn btn-sm btn-secondary disabled" title="Pay your penalty fee to unlock this payment">
                                                             <i class="fas fa-lock me-1"></i> Locked
                                                         </button>
