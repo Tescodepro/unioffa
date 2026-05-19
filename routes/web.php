@@ -283,6 +283,17 @@ Route::prefix('staff')->group(function () {
                 Route::put('/payment-lockdown-settings/{paymentLockdownSetting}', 'update')->name('bursary.payment-lockdown-settings.update');
                 Route::delete('/payment-lockdown-settings/{paymentLockdownSetting}', 'destroy')->name('bursary.payment-lockdown-settings.destroy');
             });
+
+            // Scholarship Settings (Accessible by Admin/VC)
+            Route::controller(\App\Http\Controllers\Staff\ScholarshipSettingController::class)->group(function () {
+                Route::get('/scholarship-settings', 'index')->name('scholarship-settings.index');
+                Route::post('/scholarship-settings', 'store')->name('scholarship-settings.store');
+                Route::get('/scholarship-settings/create', 'create')->name('scholarship-settings.create');
+                Route::get('/scholarship-settings/{scholarshipSetting}/edit', 'edit')->name('scholarship-settings.edit');
+                Route::put('/scholarship-settings/{scholarshipSetting}', 'update')->name('scholarship-settings.update');
+                Route::delete('/scholarship-settings/{scholarshipSetting}', 'destroy')->name('scholarship-settings.destroy');
+                Route::get('/scholarship-settings/applications', 'applications')->name('scholarship-settings.applications');
+            });
         });
 
         // --- Academic / Result Management ---

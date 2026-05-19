@@ -49,7 +49,7 @@
 
                 <!-- FINANCIAL SERVICES -->
                 <li
-                    class="{{ request()->is('students/load_payment*') || request()->is('students/payment/history*') ? 'open' : '' }}">
+                    class="{{ request()->is('students/load_payment*') || request()->is('students/payment/history*') || request()->is('students/scholarship*') ? 'open' : '' }}">
                     <h6 class="submenu-hdr"><span>Financial Services</span></h6>
                     <ul>
                         <li>
@@ -64,6 +64,13 @@
                                 class="{{ request()->routeIs('students.payment.history') ? 'active' : '' }}">
                                 <i class="ti ti-history"></i>
                                 <span>Payment History</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('student.scholarship.index') }}"
+                                class="{{ request()->routeIs('student.scholarship.*') ? 'active' : '' }}">
+                                <i class="ti ti-gift"></i>
+                                <span>Apply for Scholarship</span>
                             </a>
                         </li>
                     </ul>
