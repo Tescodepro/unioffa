@@ -28,7 +28,7 @@
                             
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">Academic Session</label>
+                                    <label class="form-label">Admission Session</label>
                                     <input type="text" name="academic_session" class="form-control" placeholder="e.g. 2025/2026" required value="{{ old('academic_session') }}">
                                     @error('academic_session') <span class="text-danger">{{ $message }}</span> @enderror
                                 </div>

@@ -34,7 +34,7 @@
                                     <tr>
                                         <th>Applicant Name</th>
                                         <th>Matric/Reg No</th>
-                                        <th>Academic Session</th>
+                                        <th>Admission Session</th>
                                         <th>Requested %</th>
                                         <th>Form Details</th>
                                         <th>Status</th>

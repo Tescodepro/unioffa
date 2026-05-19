@@ -37,7 +37,7 @@
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Academic Session</th>
+                                        <th>Admission Session</th>
                                         <th>Application Type</th>
                                         <th>Min JAMB Score</th>
                                         <th>Status</th>

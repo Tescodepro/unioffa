@@ -32,7 +32,7 @@ class ScholarshipController extends Controller
         // Check if student already applied
         $existingApplication = \App\Models\ScholarshipApplication::where('user_id', $user->id)->first();
 
-        return view('students.scholarship.index', compact('student', 'jambScore', 'settings', 'existingApplication'));
+        return view('student.scholarship.index', compact('student', 'jambScore', 'settings', 'existingApplication'));
     }
 
     public function store(Request $request)
