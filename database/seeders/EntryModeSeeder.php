@@ -20,6 +20,7 @@ class EntryModeSeeder extends Seeder
             ['name' => 'IDEL UTME', 'code' => 'IDELUTME', 'student_type' => 'IDELUTME', 'matric_prefix' => 'D', 'default_level' => '100'],
             ['name' => 'IDEL DE', 'code' => 'IDELDE', 'student_type' => 'IDELDE', 'matric_prefix' => 'D', 'default_level' => '200'],
             ['name' => 'Diploma', 'code' => 'DIPLOMA', 'student_type' => 'DIPLOMA', 'matric_prefix' => 'DP', 'default_level' => '100'],
+            ['name' => 'Bridging (Pre-degree)', 'code' => 'Pre-degree', 'student_type' => 'PRE_DEGREE', 'matric_prefix' => 'PD', 'default_level' => '100'],
         ];
 
         foreach ($modes as $mode) {
