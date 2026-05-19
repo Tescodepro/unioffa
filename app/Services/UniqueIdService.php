@@ -18,9 +18,19 @@ class UniqueIdService
         $prefix = strtoupper(substr($userType->name, 0, 3));
         $year = now()->format('Y');
 
-        // Start counting from the current number of users
+        // If the user is an applicant, use the active academic session year instead of the calendar year
+        if ($userTypeName === 'applicant') {
+            $prefix = 'REG'; // Use REG instead of APP to start fresh numbering
+            $activeSetting = \App\Models\ApplicationSetting::where('enabled', true)->latest()->first();
+            if ($activeSetting && $activeSetting->academic_session) {
+                // Extracts "2025" from "2025/2026"
+                $year = explode('/', $activeSetting->academic_session)[0];
+            }
+        }
+
+        // Start counting based on the username prefix instead of created_at to avoid resetting counts across calendar years
         $count = User::where('user_type_id', $userType->id)
-            ->whereYear('created_at', $year)
+            ->where('username', 'LIKE', "UOO/{$prefix}/{$year}/%")
             ->count() + 1;
 
         do {
