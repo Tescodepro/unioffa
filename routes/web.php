@@ -155,6 +155,12 @@ Route::prefix('students')->group(function () {
             Route::delete('course-registration/{id}', 'removeCourse')->name('students.course.remove');
             Route::get('course-registration/download', 'downloadCourseForm')->name('students.course.download');
         });
+        
+        // Student Scholarship Route
+        Route::controller(\App\Http\Controllers\Student\ScholarshipController::class)->group(function () {
+            Route::get('/scholarship', 'index')->name('student.scholarship.index');
+            Route::post('/scholarship', 'store')->name('student.scholarship.store');
+        });
     });
 });
 
