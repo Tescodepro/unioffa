@@ -401,6 +401,7 @@
                                     <tr>
                                         <th>Reference</th>
                                         <th>Student</th>
+                                        <th>Entry Mode</th>
                                         <th>Amount</th>
                                         <th>Status</th>
                                         <th>Payment Type</th>
@@ -412,6 +413,11 @@
                                         <tr>
                                             <td>{{ $txn->refernce_number }}</td>
                                             <td>{{ $txn->user?->full_name ?? 'Unknown' }}</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">
+                                                    {{ optional($txn->user->studentProfile)->entry_mode ?? '—' }}
+                                                </span>
+                                            </td>
                                             <td>₦{{ number_format($txn->amount, 2) }}</td>
                                             <td>
                                                 @if($txn->payment_status == 1)
@@ -427,7 +433,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="text-center text-muted">No recent transactions found</td>
+                                            <td colspan="7" class="text-center text-muted">No recent transactions found</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

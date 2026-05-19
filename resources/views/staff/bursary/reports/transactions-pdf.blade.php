@@ -115,6 +115,7 @@
                 <th>#</th>
                 <th>Reference</th>
                 <th>Student</th>
+                <th>Entry Mode</th>
                 <th>Payment Type</th>
                 <th>Amount (₦)</th>
                 <th>Status</th>
@@ -127,6 +128,7 @@
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $txn->refernce_number }}</td>
                     <td>{{ optional($txn->user)->first_name }} {{ optional($txn->user)->last_name }}</td>
+                    <td>{{ optional($txn->user->studentProfile)->entry_mode ?? '—' }}</td>
                     <td>{{ ucfirst($txn->payment_type) }}</td>
                     <td>{{ number_format($txn->amount, 2) }}</td>
                     <td>
@@ -142,7 +144,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align:center;">No transaction records found.</td>
+                    <td colspan="8" style="text-align:center;">No transaction records found.</td>
                 </tr>
             @endforelse
         </tbody>

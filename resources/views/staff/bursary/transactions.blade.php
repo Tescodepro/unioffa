@@ -91,9 +91,20 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
+                            <label class="form-label">Entry Mode</label>
+                            <select name="entry_mode" class="form-select">
+                                <option value="">-- All Entry Modes --</option>
+                                @foreach ($entryModes as $mode)
+                                    <option value="{{ $mode->code }}" {{ request('entry_mode') == $mode->code ? 'selected' : '' }}>
+                                        {{ $mode->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100">
-                                <i class="ti ti-search"></i>
+                                <i class="ti ti-search"></i> Search
                             </button>
                         </div>
                     </form>
@@ -115,6 +126,7 @@
                                     <th>Reference</th>
                                     <th>Student</th>
                                     <th>Matric No / Student ID</th>
+                                    <th>Entry Mode</th>
                                     <th>Center</th>
                                     <th>Payment Type</th>
                                     <th>Amount</th>
@@ -130,6 +142,11 @@
                                         <td><strong>{{ $txn->refernce_number }}</strong></td>
                                         <td>{{ optional($txn->user)->first_name }} {{ optional($txn->user)->last_name }}</td>
                                         <td>{{ optional($txn->user)->username }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">
+                                                {{ optional($txn->user->studentProfile)->entry_mode ?? '—' }}
+                                            </span>
+                                        </td>
                                         <td>
                                             <span class="badge bg-light text-dark border">
                                                 {{ optional($txn->user->campus)->name ?? '—' }}
@@ -162,7 +179,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="10" class="text-center text-muted p-4">
+                                        <td colspan="11" class="text-center text-muted p-4">
                                             No transactions found.
                                         </td>
                                     </tr>

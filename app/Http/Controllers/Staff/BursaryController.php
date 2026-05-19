@@ -193,7 +193,7 @@ class BursaryController extends Controller
             ];
         }
 
-        $recentTransactions = Transaction::with('user')
+        $recentTransactions = Transaction::with(['user', 'user.studentProfile'])
             ->where('session', $selectedSession)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
@@ -278,7 +278,7 @@ class BursaryController extends Controller
     public function transactions(Request $request)
     {
         $query = Transaction::query()
-            ->with(['user:id,first_name,last_name,username,campus_id', 'user.campus:id,name'])
+            ->with(['user:id,first_name,last_name,username,campus_id', 'user.campus:id,name', 'user.studentProfile:id,user_id,entry_mode'])
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
@@ -338,13 +338,20 @@ class BursaryController extends Controller
             }
         }
 
+        if ($request->filled('entry_mode')) {
+            $query->whereHas('user.studentProfile', function ($q) use ($request) {
+                $q->where('entry_mode', $request->entry_mode);
+            });
+        }
+
         $transactions = $query->latest()->paginate(100)->withQueryString();
 
         $paymentTypes = PaymentSetting::select('payment_type')->distinct()->pluck('payment_type');
         $campuses = Campus::orderBy('name')->get();
         $sessions = \App\Models\AcademicSession::orderBy('name', 'desc')->get();
+        $entryModes = \App\Models\EntryMode::orderBy('name')->get();
 
-        return view('staff.bursary.transactions', compact('transactions', 'paymentTypes', 'campuses', 'sessions'));
+        return view('staff.bursary.transactions', compact('transactions', 'paymentTypes', 'campuses', 'sessions', 'entryModes'));
     }
 
     public function exportTransactions(Request $request, $format)
@@ -353,7 +360,7 @@ class BursaryController extends Controller
         ini_set('memory_limit', '1G');
 
         $query = Transaction::query()
-            ->with(['user:id,first_name,last_name,username,campus_id', 'user.campus:id,name'])
+            ->with(['user:id,first_name,last_name,username,campus_id', 'user.campus:id,name', 'user.studentProfile:id,user_id,entry_mode'])
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
@@ -394,6 +401,22 @@ class BursaryController extends Controller
         if ($request->filled('campus_id')) {
             $query->whereHas('user', function ($q) use ($request) {
                 $q->where('campus_id', $request->campus_id);
+            });
+        }
+
+        if ($request->filled('programme')) {
+            if ($request->programme === 'UNASSIGNED') {
+                $query->whereDoesntHave('user.studentProfile');
+            } else {
+                $query->whereHas('user.studentProfile', function ($q) use ($request) {
+                    $q->where('programme', $request->programme);
+                });
+            }
+        }
+
+        if ($request->filled('entry_mode')) {
+            $query->whereHas('user.studentProfile', function ($q) use ($request) {
+                $q->where('entry_mode', $request->entry_mode);
             });
         }
 
