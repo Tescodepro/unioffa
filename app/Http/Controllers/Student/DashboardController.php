@@ -73,8 +73,9 @@ class DashboardController extends Controller
                         // If tuition is returned in status, it is NOT fully cleared (pending balance > 0 and < 56%)
                         // If tuition is missing from status, it is considered cleared (>= 56% paid)
                         $tuitionPending = collect($status)->firstWhere('payment_type', 'tuition');
+                        $isTuitionCleared = ! $tuitionPending || ($tuitionPending['percentage_paid'] ?? 0) >= 56;
 
-                        if (! $tuitionPending) {
+                        if ($isTuitionCleared) {
                             $generated = $matricService->generateIfNeeded($student);
                             if ($generated) {
                                 Log::info("Matric number generated for student {$student->id} from dashboard verification");

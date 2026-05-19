@@ -286,27 +286,15 @@ class ApplicationController extends Controller
                 $student = $user->student;
 
                 if ($student && $student->department) {
-                    if (empty($student->matric_no)) {
-                        $year = $student->admission_session;
-                        $newMatricNo = Student::generateMatricNo(
-                            $student->department->department_code,
-                            $year,
-                            $student->entry_mode
-                        );
-
-                        if ($newMatricNo) {
-                            $student->update(['matric_no' => $newMatricNo]);
-                            $student->user->update(['username' => $newMatricNo]);
-
-                            $redirectRoute = 'students.dashboard';
-                            $redirectMessage = 'Tuition payment successful! Matric number generated: '.$newMatricNo;
-                            break;
-                        }
-                    } else {
-                        $redirectRoute = 'students.dashboard';
-                        $redirectMessage = 'Tuition payment successful! You already have a valid matric number.';
-                        break;
+                    $matricService = new \App\Services\MatricNumberGenerationService;
+                    if (! $student->hasMatricNumber()) {
+                        $matricService->generateIfNeeded($student);
+                        $student->refresh();
                     }
+
+                    $redirectRoute = 'students.dashboard';
+                    $redirectMessage = 'Tuition payment successful! Matric number: '.$student->matric_no;
+                    break;
                 }
             }
         }

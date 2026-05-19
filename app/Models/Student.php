@@ -13,8 +13,11 @@ class Student extends Model
     use HasFactory;
 
     const STATUS_ACTIVE = 1;
+
     const STATUS_INACTIVE = 0;
+
     const STATUS_GRADUATED = 2;
+
     const STATUS_SPILLED = 3;
 
     public $incrementing = false; // because UUID
@@ -93,18 +96,19 @@ class Student extends Model
             $department = Department::where('department_code', $departmentCode)->firstOrFail();
             $faculty = $department->faculty;
 
+            [$startYear] = explode('/', $admissionYear);
+            $startYear = trim($startYear);
+
             // Count students in this department + year
             $allMatricNumbers = self::where('department_id', $department->id)
-                ->whereYear('admission_session', $admissionYear)
+                ->where('admission_session', 'like', $startYear.'%')
                 ->pluck('matric_no')
                 ->filter(function ($matric) {
                     return preg_match('/^\d{2}\/[A-Z]{2,5}\/(T|D|DP|DE|TR)?[A-Z]{2,5}\/\d{3}$/', $matric);
                 });
             $count = $allMatricNumbers->count() + 1;
 
-            // Format year (last 2 digits only)
-            [$startYear] = explode('/', $admissionYear);
-            $yearShort = substr(trim($startYear), -2); // e.g., 2023 -> "23"
+            $yearShort = substr($startYear, -2); // e.g., 2023 -> "23"
 
             // Format sequence (3 digits: 001, 002, etc.)
             $sequence = str_pad($count, 3, '0', STR_PAD_LEFT);
@@ -229,7 +233,7 @@ class Student extends Model
 
         // Get all academic sessions from admission until PREVIOUS session
         $query = AcademicSession::where('name', '>=', $admissionSession);
-        
+
         if ($currentSessionName) {
             $query->where('name', '<', $currentSessionName);
         }
@@ -242,7 +246,7 @@ class Student extends Model
             $requiredFees = PaymentSetting::getFeesForStudent($this, $sessionName);
             $totalRequired = $requiredFees->sum('amount');
             $requiredTypes = $requiredFees->pluck('payment_type')->toArray();
-            
+
             // Only count standard required types towards the base debt.
             // Penalties like 'tuition_late_payment' do NOT reduce the base debt.
             $paidAmount = Transaction::where('user_id', $this->user_id)
