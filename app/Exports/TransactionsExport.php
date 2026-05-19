@@ -51,7 +51,7 @@ class TransactionsExport implements FromQuery, WithHeadings, WithMapping
             $this->rowNumber,
             $transaction->refernce_number,
             ($transaction->user->first_name ?? '').' '.($transaction->user->last_name ?? ''),
-            $transaction->user->studentProfile->entry_mode ?? '—',
+            $transaction->user->studentProfile->entry_mode ?? optional($transaction->user->applicationSetting)->application_code ?? '—',
             ucfirst($transaction->payment_type),
             number_format($transaction->amount, 2),
             $status,

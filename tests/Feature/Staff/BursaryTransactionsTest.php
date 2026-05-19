@@ -188,3 +188,56 @@ it('exports transactions to pdf respecting entry_mode filter', function () {
     $response->assertHeader('Content-Type');
     expect($response->headers->get('Content-Type'))->toContain('application/pdf');
 });
+
+it('can filter transactions by entry_mode for applicants using their application_code fallback', function () {
+    // Create an ApplicationSetting for DIPLOMA
+    $appSetting = \App\Models\ApplicationSetting::create([
+        'name' => 'Diploma Admission',
+        'application_code' => 'DIPLOMA',
+        'enabled' => 1,
+        'academic_session' => '2026/2027',
+        'application_fee' => 10000.00,
+        'acceptance_fee' => 20000.00,
+        'description' => 'Diploma Admission Program',
+    ]);
+
+    // Create a user who is an applicant (no student profile)
+    $applicantUser = User::factory()->create([
+        'user_type_id' => $this->studentUserType->id,
+    ]);
+
+    // Link the user to the application setting via user_applications table
+    \App\Models\UserApplications::create([
+        'user_id' => $applicantUser->id,
+        'application_setting_id' => $appSetting->id,
+        'academic_session' => '2026/2027',
+        'is_approved' => 0,
+    ]);
+
+    // Create a transaction for the applicant
+    Transaction::create([
+        'user_id' => $applicantUser->id,
+        'amount' => 10000.00,
+        'refernce_number' => 'TXN-APP-DIP',
+        'payment_status' => 1,
+        'payment_type' => 'application',
+        'session' => '2026/2027',
+        'description' => 'Application Fee Payment',
+        'payment_method' => 'paystack',
+    ]);
+
+    // Query for DIPLOMA - should see applicant transaction
+    actingAs($this->user)
+        ->get(route('bursary.transactions', ['entry_mode' => 'DIPLOMA']))
+        ->assertOk()
+        ->assertSee('TXN-APP-DIP')
+        ->assertDontSee('TXN-UTME-123')
+        ->assertDontSee('TXN-DE-456');
+
+    // Query for UTME - should NOT see applicant transaction
+    actingAs($this->user)
+        ->get(route('bursary.transactions', ['entry_mode' => 'UTME']))
+        ->assertOk()
+        ->assertSee('TXN-UTME-123')
+        ->assertDontSee('TXN-APP-DIP');
+});

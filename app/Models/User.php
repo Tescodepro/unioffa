@@ -112,7 +112,14 @@ class User extends Authenticatable
 
     public function applicationSetting()
     {
-        return $this->belongsTo(ApplicationSetting::class, 'application_setting_id');
+        return $this->hasOneThrough(
+            ApplicationSetting::class,
+            UserApplications::class,
+            'user_id',
+            'id',
+            'id',
+            'application_setting_id'
+        );
     }
 
     public function student()

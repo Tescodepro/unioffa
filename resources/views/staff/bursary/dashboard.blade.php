@@ -415,7 +415,7 @@
                                             <td>{{ $txn->user?->full_name ?? 'Unknown' }}</td>
                                             <td>
                                                 <span class="badge bg-light text-dark border">
-                                                    {{ optional($txn->user->studentProfile)->entry_mode ?? '—' }}
+                                                {{ optional($txn->user->studentProfile)->entry_mode ?? optional(optional($txn->user)->applicationSetting)->application_code ?? '—' }}
                                                 </span>
                                             </td>
                                             <td>₦{{ number_format($txn->amount, 2) }}</td>

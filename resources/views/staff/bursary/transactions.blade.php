@@ -144,7 +144,7 @@
                                         <td>{{ optional($txn->user)->username }}</td>
                                         <td>
                                             <span class="badge bg-light text-dark border">
-                                                {{ optional($txn->user->studentProfile)->entry_mode ?? '—' }}
+                                                {{ optional($txn->user->studentProfile)->entry_mode ?? optional(optional($txn->user)->applicationSetting)->application_code ?? '—' }}
                                             </span>
                                         </td>
                                         <td>

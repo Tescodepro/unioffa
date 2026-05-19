@@ -128,7 +128,7 @@
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $txn->refernce_number }}</td>
                     <td>{{ optional($txn->user)->first_name }} {{ optional($txn->user)->last_name }}</td>
-                    <td>{{ optional($txn->user->studentProfile)->entry_mode ?? '—' }}</td>
+                    <td>{{ optional($txn->user->studentProfile)->entry_mode ?? optional(optional($txn->user)->applicationSetting)->application_code ?? '—' }}</td>
                     <td>{{ ucfirst($txn->payment_type) }}</td>
                     <td>{{ number_format($txn->amount, 2) }}</td>
                     <td>
