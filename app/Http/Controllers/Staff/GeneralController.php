@@ -35,7 +35,7 @@ class GeneralController extends Controller
         }
         $sessions = $sessionsQuery->pluck('academic_session');
 
-        $selectedSession = $request->get('academic_session', $sessions->first());
+        $selectedSession = $request->get('academic_session', $sessions->contains('2026/2027') ? '2026/2027' : $sessions->first());
 
         // Get all campuses
         $campuses = Campus::all();

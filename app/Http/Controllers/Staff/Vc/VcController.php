@@ -18,7 +18,7 @@ class VcController extends Controller
     public function dashboard()
     {
         $sessions = UserApplications::select('academic_session')->distinct()->pluck('academic_session');
-        $latestSession = $sessions->first();
+        $latestSession = $sessions->contains('2026/2027') ? '2026/2027' : $sessions->first();
 
         // ── Institutional Overview ─────────────────────────────────────────────
         $totalStudents = Student::count();

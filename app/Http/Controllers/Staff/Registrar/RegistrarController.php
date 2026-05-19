@@ -16,7 +16,7 @@ class RegistrarController extends Controller
     public function dashboard()
     {
         $sessions = UserApplications::select('academic_session')->distinct()->pluck('academic_session');
-        $latestSession = $sessions->first();
+        $latestSession = $sessions->contains('2026/2027') ? '2026/2027' : $sessions->first();
 
         $totalApplicants = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
             ->whereHas('applications', fn ($q) => $q->where('academic_session', $latestSession)

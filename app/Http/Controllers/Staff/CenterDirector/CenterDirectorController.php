@@ -22,7 +22,7 @@ class CenterDirectorController extends Controller
         $campusId = Auth::user()->campus_id;
 
         $sessions = UserApplications::select('academic_session')->distinct()->pluck('academic_session');
-        $latestSession = $sessions->first();
+        $latestSession = $sessions->contains('2026/2027') ? '2026/2027' : $sessions->first();
 
         $totalApplicants = User::whereHas('userType', fn ($q) => $q->where('name', 'applicant'))
             ->where('campus_id', $campusId)
@@ -66,7 +66,7 @@ class CenterDirectorController extends Controller
         $selectedCampusId = $isCenterDir ? $user->campus_id : $request->get('campus_id');
 
         $sessions = UserApplications::select('academic_session')->distinct()->pluck('academic_session');
-        $selectedSession = $request->get('academic_session', $sessions->first());
+        $selectedSession = $request->get('academic_session', $sessions->contains('2026/2027') ? '2026/2027' : $sessions->first());
 
         // Entry modes (Application Settings) - restrict for PD
         $entryModesQuery = ApplicationSetting::where('academic_session', $selectedSession);

@@ -31,7 +31,7 @@ class ProgrammeDirectorController extends Controller
                 ->distinct()
                 ->pluck('academic_session');
 
-            $latestSession = $request->session ?? $sessions->first();
+            $latestSession = $request->get('session') ?? ($sessions->contains('2026/2027') ? '2026/2027' : $sessions->first());
 
             $totalApplicants = UserApplications::whereIn('application_setting_id', $assignedTypeIds)
                 ->where('academic_session', $latestSession)
