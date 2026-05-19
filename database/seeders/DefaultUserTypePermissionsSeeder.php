@@ -104,7 +104,7 @@ class DefaultUserTypePermissionsSeeder extends Seeder
         'public relations officer' => [
             'route' => 'pro.dashboard',
             'perms' => [
-                'view_dashboard', 'access_pro_portal',
+                'view_dashboard', 'access_pro_portal', 'manage_website',
             ],
         ],
         'applicant' => [

@@ -155,7 +155,7 @@ Route::prefix('students')->group(function () {
             Route::delete('course-registration/{id}', 'removeCourse')->name('students.course.remove');
             Route::get('course-registration/download', 'downloadCourseForm')->name('students.course.download');
         });
-        
+
         // Student Scholarship Route
         Route::controller(\App\Http\Controllers\Student\ScholarshipController::class)->group(function () {
             Route::get('/scholarship', 'index')->name('student.scholarship.index');
@@ -208,6 +208,7 @@ Route::prefix('staff')->group(function () {
         Route::get('/center-director/dashboard', [CenterDirectorController::class, 'dashboard'])->name('center-director.dashboard');
         Route::get('/center-director/admission/applicants', [CenterDirectorController::class, 'admissionApplicants'])->name('center-director.admission.applicants');
         Route::get('/programme-director/dashboard', [ProgrammeDirectorController::class, 'dashboard'])->name('programme-director.dashboard');
+        Route::get('/pro/dashboard', [\App\Http\Controllers\Staff\Pro\ProController::class, 'dashboard'])->name('pro.dashboard');
 
         // --- Student & ICT Management ---
         Route::controller(AdmittedStudentsDownloadController::class)->group(function () {
