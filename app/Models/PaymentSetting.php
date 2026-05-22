@@ -106,6 +106,9 @@ class PaymentSetting extends Model
         // Determine Effective Level for Payment
         // Rule: If student is admitted in current session AND level is 200 or 300 (DE/Transfer), pay 100 level fees.
         $effectiveLevel = (int) $student->level;
+        // if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
+        //     $effectiveLevel = 100;
+        // }
 
         return self::query()
             ->where('session', $currentSession) // session must always match
