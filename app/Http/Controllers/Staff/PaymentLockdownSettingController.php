@@ -20,7 +20,7 @@ class PaymentLockdownSettingController extends Controller
         $query = PaymentLockdownSetting::orderBy('deadline', 'asc');
 
         if ($request->filled('payment_type')) {
-            $query->where('payment_type', $request->payment_type);
+            $query->whereJsonContains('payment_types', $request->payment_type);
         }
 
         if ($request->filled('is_active')) {
@@ -54,7 +54,7 @@ class PaymentLockdownSettingController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'payment_type' => 'nullable|string',
+            'payment_types' => 'nullable|array',
             'deadline' => 'required|date',
             'campus_ids' => 'nullable|array',
             'faculty_ids' => 'nullable|array',
@@ -69,7 +69,7 @@ class PaymentLockdownSettingController extends Controller
 
         PaymentLockdownSetting::create([
             'title' => $validated['title'],
-            'payment_type' => $validated['payment_type'] ?? null,
+            'payment_types' => $request->input('payment_types', []),
             'deadline' => $validated['deadline'],
             'campus_ids' => $request->input('campus_ids', []),
             'faculty_ids' => $request->input('faculty_ids', []),
@@ -116,7 +116,7 @@ class PaymentLockdownSettingController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'payment_type' => 'nullable|string',
+            'payment_types' => 'nullable|array',
             'deadline' => 'required|date',
             'campus_ids' => 'nullable|array',
             'faculty_ids' => 'nullable|array',
@@ -131,7 +131,7 @@ class PaymentLockdownSettingController extends Controller
 
         $paymentLockdownSetting->update([
             'title' => $validated['title'],
-            'payment_type' => $validated['payment_type'] ?? null,
+            'payment_types' => $request->input('payment_types', []),
             'deadline' => $validated['deadline'],
             'campus_ids' => $request->input('campus_ids', []),
             'faculty_ids' => $request->input('faculty_ids', []),

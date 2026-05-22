@@ -61,16 +61,15 @@
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label-premium">Target Fee Type</label>
-                                            <select name="payment_type" class="form-select form-select-lg border-0 bg-light @error('payment_type') is-invalid @enderror">
-                                                <option value="">Universal (Locks All Payment Types)</option>
+                                            <label class="form-label-premium">Target Fee Types</label>
+                                            <select name="payment_types[]" class="form-select select2-multi @error('payment_types') is-invalid @enderror" multiple="multiple">
                                                 @foreach ($paymentTypes as $type)
-                                                    <option value="{{ $type }}" {{ old('payment_type', $lockdown->payment_type) == $type ? 'selected' : '' }}>
+                                                    <option value="{{ $type }}" {{ in_array($type, old('payment_types', is_array($lockdown->payment_types) ? $lockdown->payment_types : [])) ? 'selected' : '' }}>
                                                         {{ ucfirst($type) }}
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <div class="form-text x-small">Select a specific fee to lock, or leave blank to lock all payments.</div>
+                                            <div class="form-text x-small">Select specific fees to lock, or leave blank to lock all payments.</div>
                                         </div>
 
                                         <div class="col-md-6">

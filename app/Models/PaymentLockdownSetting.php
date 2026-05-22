@@ -16,7 +16,7 @@ class PaymentLockdownSetting extends Model
 
     protected $fillable = [
         'title',
-        'payment_type',
+        'payment_types',
         'deadline',
         'campus_ids',
         'faculty_ids',
@@ -31,6 +31,7 @@ class PaymentLockdownSetting extends Model
 
     protected $casts = [
         'deadline' => 'datetime',
+        'payment_types' => 'array',
         'campus_ids' => 'array',
         'faculty_ids' => 'array',
         'department_ids' => 'array',
@@ -64,8 +65,9 @@ class PaymentLockdownSetting extends Model
         foreach ($lockdowns as $lockdown) {
             /** @var self $lockdown */
             // 1. Payment Type matching
-            if ($paymentType !== null && $lockdown->payment_type !== null) {
-                if (strtolower($lockdown->payment_type) !== strtolower($paymentType)) {
+            if ($paymentType !== null && ! empty($lockdown->payment_types)) {
+                $lockdownPaymentTypes = array_map('strtolower', $lockdown->payment_types);
+                if (! in_array(strtolower($paymentType), $lockdownPaymentTypes)) {
                     continue;
                 }
             }

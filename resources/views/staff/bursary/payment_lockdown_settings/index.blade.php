@@ -102,9 +102,19 @@
 
                                         {{-- Targeted Fee --}}
                                         <td>
-                                            <span class="badge bg-soft-info text-info border-0 rounded-pill px-3 py-1">
-                                                {{ $lockdown->payment_type ? ucfirst($lockdown->payment_type) : 'All Payments' }}
-                                            </span>
+                                            @if(is_array($lockdown->payment_types) && count($lockdown->payment_types) > 0)
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    @foreach($lockdown->payment_types as $ptype)
+                                                        <span class="badge bg-soft-info text-info border-0 rounded-pill px-2 py-1">
+                                                            {{ ucfirst($ptype) }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="badge bg-soft-info text-info border-0 rounded-pill px-3 py-1">
+                                                    All Payments
+                                                </span>
+                                            @endif
                                         </td>
 
                                         {{-- Lockdown Deadline --}}
