@@ -194,9 +194,9 @@ class DashboardController extends Controller
     {
         $student = $user->student;
         $effectiveLevel = (int) $student->level;
-        if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
-            $effectiveLevel = 100;
-        }
+        // if ($student->admission_session === $currentSession && in_array($effectiveLevel, [200, 300])) {
+        //     $effectiveLevel = 100;
+        // }
 
         $studentIsSemesterAffected = $student->isSemesterAffected($activeSemester);
 
