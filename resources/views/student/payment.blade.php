@@ -140,7 +140,7 @@
                                         <div>
                                             <h4 class="text-white fw-bold mb-1">PORTAL LOCKED: {{ $activeLockdown->title }}</h4>
                                             <p class="mb-0 text-white text-opacity-90">
-                                                The payment option for <strong>{{ $activeLockdown->payment_type ? ucfirst($activeLockdown->payment_type) : 'All Fees' }}</strong> has been officially locked. The deadline passed on <strong>{{ $activeLockdown->deadline->format('d M, Y h:i A') }}</strong>.
+                                                The payment option for <strong>{{ !empty($activeLockdown->payment_types) ? implode(', ', array_map(function($t) { return ucwords(str_replace('_', ' ', $t)); }, $activeLockdown->payment_types)) : 'All Fees' }}</strong> has been officially locked. The deadline passed on <strong>{{ $activeLockdown->deadline->format('d M, Y h:i A') }}</strong>.
                                             </p>
                                         </div>
                                     </div>
@@ -164,7 +164,7 @@
                                         <div>
                                             <h4 class="text-white fw-bold mb-1">{{ $activeLockdown->title }}</h4>
                                             <p class="mb-0 text-white text-opacity-90">
-                                                Payment portal closure for <strong>{{ $activeLockdown->payment_type ? ucfirst($activeLockdown->payment_type) : 'All Fees' }}</strong> is active. Please complete payment before lock down.
+                                                Payment portal closure for <strong>{{ !empty($activeLockdown->payment_types) ? implode(', ', array_map(function($t) { return ucwords(str_replace('_', ' ', $t)); }, $activeLockdown->payment_types)) : 'All Fees' }}</strong> is active. Please complete payment before lock down.
                                             </p>
                                         </div>
                                     </div>
@@ -288,7 +288,7 @@
                                                     @php
                                                         $isRowLocked = false;
                                                         if (isset($activeLockdown) && $activeLockdown->deadline->isPast()) {
-                                                            if ($activeLockdown->payment_type === null || strtolower($activeLockdown->payment_type) === strtolower($payment->payment_type)) {
+                                                            if (empty($activeLockdown->payment_types) || in_array(strtolower($payment->payment_type), array_map('strtolower', $activeLockdown->payment_types))) {
                                                                 $isRowLocked = true;
                                                             }
                                                         }

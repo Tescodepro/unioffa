@@ -59,7 +59,7 @@
                                                         <div>
                                                             <h4 class="text-white fw-bold mb-1">PORTAL LOCKED DOWN: {{ $activeLockdown->title }}</h4>
                                                             <p class="mb-0 text-white text-opacity-90">
-                                                                The payment portal for <strong>{{ $activeLockdown->payment_type ? ucfirst($activeLockdown->payment_type) : 'All Fees' }}</strong> has been officially locked. The deadline passed on <strong>{{ $activeLockdown->deadline->format('d M, Y h:i A') }}</strong>.
+                                                                The payment portal for <strong>{{ !empty($activeLockdown->payment_types) ? implode(', ', array_map(function($t) { return ucwords(str_replace('_', ' ', $t)); }, $activeLockdown->payment_types)) : 'All Fees' }}</strong> has been officially locked. The deadline passed on <strong>{{ $activeLockdown->deadline->format('d M, Y h:i A') }}</strong>.
                                                             </p>
                                                         </div>
                                                     </div>
@@ -85,7 +85,7 @@
                                                         <div>
                                                             <h4 class="text-white fw-bold mb-1">{{ $activeLockdown->title }}</h4>
                                                             <p class="mb-0 text-white text-opacity-90">
-                                                                Payment portal closure for <strong>{{ $activeLockdown->payment_type ? ucfirst($activeLockdown->payment_type) : 'All Fees' }}</strong>. Please complete your payment before the portal locks.
+                                                                Payment portal closure for <strong>{{ !empty($activeLockdown->payment_types) ? implode(', ', array_map(function($t) { return ucwords(str_replace('_', ' ', $t)); }, $activeLockdown->payment_types)) : 'All Fees' }}</strong>. Please complete your payment before the portal locks.
                                                             </p>
                                                         </div>
                                                     </div>
