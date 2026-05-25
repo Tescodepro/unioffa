@@ -24,21 +24,7 @@ jobs:
         extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath, zip
         coverage: none
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-        cache: 'npm'
-
-    - name: Install NPM Dependencies & Build Assets
-      run: |
-        npm ci
-        npm run build
-
-    - name: Install Composer Dependencies
-      run: composer install --no-ansi --no-dev --no-interaction --no-plugins --no-progress --no-scripts --optimize-autoloader
-
-    - name: 📂 Sync app files (including vendor)
+    - name: 📂 Sync app files (excluding vendor)
       # NOTE: If you encounter ENETUNREACH or ETIMEDOUT on port 21, ensure your
       # FTP server hostname is NOT proxied by Cloudflare (set to "DNS only" / Grey Cloud).
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -63,6 +49,7 @@ jobs:
           .gitignore
           .claude
           node_modules/**
+          vendor/**
           tests/**
           package.json
           package-lock.json
