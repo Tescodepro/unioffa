@@ -186,7 +186,7 @@
 
                                         {{-- Financial Rule --}}
                                         <td>
-                                            <div class="fw-bold text-danger fs-5">₦{{ number_format($setting->late_fee_amount, 2) }}</div>
+                                            <div class="fw-bold text-danger">₦{{ number_format($setting->late_fee_amount, 2) }}</div>
                                             @if($setting->increment_amount > 0)
                                                 <div class="text-muted extra-small">
                                                     <i class="ti ti-arrow-up-right"></i> Increases by ₦{{ number_format($setting->increment_amount) }} 
