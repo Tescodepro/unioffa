@@ -53,16 +53,16 @@
 
         /* Main Content Container */
         .content {
-            padding: 130px 25mm 50px 25mm;
+            padding: 220px 25mm 40px 25mm;
             /* Top space for letterhead, sides for margins */
             font-size: 11pt;
-            line-height: 1.4;
+            line-height: 1.35;
             position: relative;
             z-index: 5;
         }
 
         .student-info {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .student-info table {
@@ -71,7 +71,7 @@
         }
 
         .student-info td {
-            padding: 2px 0;
+            padding: 1px 0;
             vertical-align: top;
         }
 
@@ -82,60 +82,60 @@
 
         .date-block {
             text-align: right;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         h4 {
             text-align: center;
             text-transform: uppercase;
             font-weight: bold;
-            font-size: 12pt;
-            margin: 15px 0 15px 0;
+            font-size: 11.5pt;
+            margin: 10px 0 10px 0;
             text-decoration: underline;
             line-height: 1.3;
         }
 
         p {
             text-align: justify;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         ol {
-            margin: 10px 0;
+            margin: 8px 0;
             padding-left: 20px;
         }
 
         ol li {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-align: justify;
         }
 
         ul {
-            margin-top: 5px;
-            margin-bottom: 10px;
+            margin-top: 4px;
+            margin-bottom: 6px;
             padding-left: 30px;
         }
 
         ul li {
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             list-style-type: disc;
         }
 
         .congratulations {
-            margin-top: 15px;
+            margin-top: 10px;
             font-weight: bold;
         }
 
         /* Signature Section */
         .signature-block {
-            margin-top: 25px;
+            margin-top: 20px;
             page-break-inside: avoid;
         }
 
         .signature-line {
             width: 250px;
             border-top: 1px solid #000;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .signature-name {
@@ -194,10 +194,6 @@
                     <tr>
                         <td class="label">Gender:</td>
                         <td>{{ strtoupper(optional($profile)->gender ?? '---') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="label">Application ID:</td>
-                        <td>{{ $application->application_setting_id }}-{{ $application->id }}</td>
                     </tr>
                 </table>
             </div>
