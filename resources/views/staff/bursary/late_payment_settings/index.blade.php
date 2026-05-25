@@ -190,7 +190,10 @@
                                             @if($setting->increment_amount > 0)
                                                 <div class="text-muted extra-small">
                                                     <i class="ti ti-arrow-up-right"></i> Increases by ₦{{ number_format($setting->increment_amount) }} 
-                                                    on {{ $setting->increment_date ? $setting->increment_date->format('d M') : 'N/A' }}
+                                                    on {{ $setting->increment_date ? $setting->increment_date->format('d M, Y h:i A') : 'N/A' }}
+                                                    @if($setting->increment_date && $setting->increment_date->isFuture())
+                                                        <span class="text-danger">({{ $setting->increment_date->diffForHumans() }})</span>
+                                                    @endif
                                                 </div>
                                             @else
                                                 <div class="text-muted extra-small">Fixed Penalty</div>
