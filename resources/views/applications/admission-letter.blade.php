@@ -27,7 +27,7 @@
         .letterhead {
             width: 100%;
             position: fixed;
-            top: 70px;
+            top: 0;
             left: 0;
             z-index: 10;
         }
@@ -53,16 +53,16 @@
 
         /* Main Content Container */
         .content {
-            padding: 50px 25mm 100px 25mm;
+            padding: 130px 25mm 50px 25mm;
             /* Top space for letterhead, sides for margins */
-            font-size: 11.5pt;
-            line-height: 1.6;
+            font-size: 11pt;
+            line-height: 1.4;
             position: relative;
             z-index: 5;
         }
 
         .student-info {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         .student-info table {
@@ -82,31 +82,31 @@
 
         .date-block {
             text-align: right;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         h4 {
             text-align: center;
             text-transform: uppercase;
             font-weight: bold;
-            font-size: 13pt;
-            margin: 30px 0 20px 0;
+            font-size: 12pt;
+            margin: 15px 0 15px 0;
             text-decoration: underline;
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         p {
             text-align: justify;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         ol {
-            margin: 15px 0;
+            margin: 10px 0;
             padding-left: 20px;
         }
 
         ol li {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-align: justify;
         }
 
@@ -117,18 +117,18 @@
         }
 
         ul li {
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             list-style-type: disc;
         }
 
         .congratulations {
-            margin-top: 25px;
+            margin-top: 15px;
             font-weight: bold;
         }
 
         /* Signature Section */
         .signature-block {
-            margin-top: 40px;
+            margin-top: 25px;
             page-break-inside: avoid;
         }
 
@@ -140,13 +140,13 @@
 
         .signature-name {
             font-weight: bold;
-            font-size: 12pt;
+            font-size: 11pt;
             margin-bottom: 2px;
         }
 
         .signature-title {
             font-style: italic;
-            font-size: 11pt;
+            font-size: 10pt;
         }
 
         .signature-img {
@@ -178,7 +178,7 @@
         <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="letterhead">
 
         <!-- Watermark -->
-        <img src="{{ public_path('portal_assets/img/users/letter_head.png') }}" class="watermark">
+        <img src="{{ public_path('assets/img/logo/logo.jpeg') }}" class="watermark">
 
         <div class="content">
             <div class="date-block">
