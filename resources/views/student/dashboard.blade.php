@@ -268,9 +268,9 @@
                                                     </div>
                                                 </div>
                                                 <div class="text-end">
-                                                    @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
-                                                        <h6 class="text-danger mb-1">Fee increases to ₦{{ number_format($closestIncrementAmount, 2) }} in:</h6>
-                                                        <h5 class="text-danger fw-bold mb-2" id="penalty-increment-countdown">Loading...</h5>
+                                                    @if($payment->has_late_penalty && $payment->increment_date && now()->lt(\Carbon\Carbon::parse($payment->increment_date)))
+                                                        <h6 class="text-danger mb-1">Fee increases to ₦{{ number_format($payment->increment_amount, 2) }} in:</h6>
+                                                        <h5 class="text-danger fw-bold mb-2 penalty-increment-countdown" data-deadline="{{ \Carbon\Carbon::parse($payment->increment_date)->toIso8601String() }}">Loading...</h5>
                                                     @endif
                                                     <a href="{{ route('students.load_payment') }}" class="btn btn-danger">Pay Now</a>
                                                 </div>
@@ -468,31 +468,42 @@
                     var latePenaltyModal = new bootstrap.Modal(document.getElementById('latePenaltyModal'));
                     latePenaltyModal.show();
                         @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
-                            const incDeadline = new Date("{{ \Carbon\Carbon::parse($closestIncrementDate)->toIso8601String() }}").getTime();
-                            const incEls = [
-                                document.getElementById('penalty-increment-countdown'),
-                                document.getElementById('modal-penalty-increment-countdown')
-                            ];
+                            const globalDeadline = new Date("{{ \Carbon\Carbon::parse($closestIncrementDate)->toIso8601String() }}").getTime();
                             
                             setInterval(() => {
                                 const now = new Date().getTime();
-                                const distance = incDeadline - now;
                                 
-                                if (distance < 0) {
-                                    incEls.forEach(el => {
-                                        if (el) el.innerHTML = "Fee Increased";
-                                    });
-                                    return;
+                                // Update modal
+                                const modalEl = document.getElementById('modal-penalty-increment-countdown');
+                                if (modalEl) {
+                                    const distance = globalDeadline - now;
+                                    if (distance < 0) {
+                                        modalEl.innerHTML = "Fee Increased";
+                                    } else {
+                                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                        modalEl.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+                                    }
                                 }
-                                
-                                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                                const timeStr = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
-                                
-                                incEls.forEach(el => {
-                                    if (el) el.innerHTML = timeStr;
+
+                                // Update all cards
+                                const cardEls = document.querySelectorAll('.penalty-increment-countdown');
+                                cardEls.forEach(el => {
+                                    const deadlineStr = el.getAttribute('data-deadline');
+                                    if (deadlineStr) {
+                                        const distance = new Date(deadlineStr).getTime() - now;
+                                        if (distance < 0) {
+                                            el.innerHTML = "Fee Increased";
+                                        } else {
+                                            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                            el.innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+                                        }
+                                    }
                                 });
                             }, 1000);
                         @endif
