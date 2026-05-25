@@ -268,9 +268,9 @@
                                                     </div>
                                                 </div>
                                                 <div class="text-end">
-                                                    @if($payment->has_late_penalty && $payment->increment_date && now()->lt(\Carbon\Carbon::parse($payment->increment_date)))
-                                                        <h6 class="text-danger mb-1">Fee increases to ₦{{ number_format($payment->increment_amount, 2) }} in:</h6>
-                                                        <h5 class="text-danger fw-bold mb-2 penalty-increment-countdown" data-deadline="{{ \Carbon\Carbon::parse($payment->increment_date)->toIso8601String() }}">Loading...</h5>
+                                                    @if(isset($closestIncrementDate) && now()->lt(\Carbon\Carbon::parse($closestIncrementDate)))
+                                                        <h6 class="text-danger mb-1">Fee increases to ₦{{ number_format($closestIncrementAmount, 2) }} in:</h6>
+                                                        <h5 class="text-danger fw-bold mb-2 penalty-increment-countdown" data-deadline="{{ \Carbon\Carbon::parse($closestIncrementDate)->toIso8601String() }}">Loading...</h5>
                                                     @endif
                                                     <a href="{{ route('students.load_payment') }}" class="btn btn-danger">Pay Now</a>
                                                 </div>
