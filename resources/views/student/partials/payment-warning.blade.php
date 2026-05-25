@@ -54,7 +54,11 @@
             Outstanding Balance:
             <span class="text-danger">₦{{ number_format($payment_status['outstanding'], 2) }}</span>
         </p>
-        <p class="text-muted mb-0">Please clear your dues to enable course registration.</p>
+        @if (isset($canRegister) && $canRegister)
+            <p class="text-muted mb-0">You have outstanding optional payments. You may clear them now or proceed with registration.</p>
+        @else
+            <p class="text-muted mb-0">Please clear your dues to enable course registration.</p>
+        @endif
     </div>
 
     <div class="mt-3">

@@ -172,17 +172,18 @@
 
                 @include('layouts.flash-message')
 
-                @if (!$payment_status['allCleared'] && (isset($payment_status['status']['tuition']) && $payment_status['status']['tuition']['percentage_paid'] >= 60 && strtolower($currentSemester ?? '') === '1st'))
-                    {{-- Tuition ≥ 60% and it’s first semester --}}
-                    @include('student.partials.filter-form')
-                    @include('student.partials.available-courses')
+                @php
+                    $compulsoryPendingStatus = collect($payment_status['status'])->filter(fn ($p) => $p['is_compulsory'] && $p['balance'] > 0);
+                    $otherCompulsoryPending = $compulsoryPendingStatus->except('tuition')->count();
+                    $hasPartialTuitionAccess = ($payment_status['tuitionPercentage'] >= 60 && strtolower($currentSemester ?? '') === '1st' && $otherCompulsoryPending === 0);
+                    $canRegister = $payment_status['allCompulsoryCleared'] || $hasPartialTuitionAccess;
+                @endphp
 
-                @elseif (!$payment_status['allCleared'])
+                @if (!$payment_status['allCleared'])
+                    @include('student.partials.payment-warning', ['canRegister' => $canRegister])
+                @endif
 
-                    @include('student.partials.payment-warning')
-
-                @else
-                    {{-- All cleared --}}
+                @if ($canRegister)
                     @include('student.partials.filter-form')
                     @include('student.partials.available-courses')
                 @endif
