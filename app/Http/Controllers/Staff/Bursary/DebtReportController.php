@@ -47,6 +47,7 @@ class DebtReportController extends Controller
                     'debt_amount' => $debt,
                 ];
             }
+
             return null;
         })->filter()->sortByDesc('debt_amount');
 

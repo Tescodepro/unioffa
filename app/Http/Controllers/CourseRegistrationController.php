@@ -31,7 +31,8 @@ class CourseRegistrationController extends Controller
         // Check for outstanding debt from previous sessions
         if ($student->isBlockedByDebt()) {
             $debt = $student->getOutstandingDebt();
-            return redirect()->route('student.dashboard')->with('error', "You have an outstanding debt of ₦" . number_format($debt, 2) . ". Please clear your balance before registering for courses.");
+
+            return redirect()->route('student.dashboard')->with('error', 'You have an outstanding debt of ₦'.number_format($debt, 2).'. Please clear your balance before registering for courses.');
         }
 
         // Check payment status for current session
@@ -49,6 +50,7 @@ class CourseRegistrationController extends Controller
         $payment_status = [
             'status' => $keyedStatus,
             'allCleared' => $paymentStatusService->hasClearedAll($student, $currentSession),
+            'allCompulsoryCleared' => $paymentStatusService->hasClearedCompulsory($student, $currentSession),
             'outstanding' => $paymentStatusService->getTotalOutstanding($student, $currentSession),
             'tuitionPercentage' => $tuitionPercentage,
         ];
@@ -128,12 +130,14 @@ class CourseRegistrationController extends Controller
                 ->exists();
         }
 
-        if (! $payment_status['allCleared']) {
+        if (! $payment_status['allCompulsoryCleared']) {
             $courses = collect();
 
-            // Allow showing courses if tuition is >= 60%, it's 1st semester, and no other fees are pending
-            $otherPending = collect($keyedStatus)->except('tuition')->count();
-            $hasPartialTuitionAccess = ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st' && $otherPending === 0);
+            // Allow showing courses if tuition is >= 60%, it's 1st semester, and no OTHER COMPULSORY fees are pending
+            $compulsoryPendingStatus = collect($keyedStatus)->filter(fn ($p) => $p['is_compulsory'] && $p['balance'] > 0);
+            $otherCompulsoryPending = $compulsoryPendingStatus->except('tuition')->count();
+
+            $hasPartialTuitionAccess = ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st' && $otherCompulsoryPending === 0);
 
             if ($hasPartialTuitionAccess) {
                 $courses = Course::where('active_for_register', 1)
@@ -172,7 +176,7 @@ class CourseRegistrationController extends Controller
                 'closestIncrementAmount',
                 'closestClosingDate',
                 'closestClosingAmount'
-            ))->with('error', $hasPartialTuitionAccess ? null : 'You must clear all outstanding payments before registering courses.');
+            ))->with('error', $hasPartialTuitionAccess ? null : 'You must clear all compulsory outstanding payments before registering courses.');
         }
 
         $isRegularOrDiploma = in_array(strtoupper($student->programme), ['REGULAR', 'DIPLOMA']);
@@ -231,7 +235,8 @@ class CourseRegistrationController extends Controller
         // Check for outstanding debt from previous sessions
         if ($student->isBlockedByDebt()) {
             $debt = $student->getOutstandingDebt();
-            return redirect()->route('student.dashboard')->with('error', "You have an outstanding debt of ₦" . number_format($debt, 2) . ". Please clear your balance before registering for courses.");
+
+            return redirect()->route('student.dashboard')->with('error', 'You have an outstanding debt of ₦'.number_format($debt, 2).'. Please clear your balance before registering for courses.');
         }
 
         // Check payment status before allowing registration
@@ -246,12 +251,14 @@ class CourseRegistrationController extends Controller
 
         $currentSemester = activeSemester()->code ?? (activeSemester()->name ?? '1st');
 
-        if (! $paymentStatusService->hasClearedAll($student, $currentSession)) {
-            $otherPending = collect($keyedStatus)->except('tuition')->count();
-            $canRegisterPartial = ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st' && $otherPending === 0);
+        if (! $paymentStatusService->hasClearedCompulsory($student, $currentSession)) {
+            $compulsoryPendingStatus = collect($keyedStatus)->filter(fn ($p) => $p['is_compulsory'] && $p['balance'] > 0);
+            $otherCompulsoryPending = $compulsoryPendingStatus->except('tuition')->count();
+
+            $canRegisterPartial = ($tuitionPercentage >= 60 && strtolower($currentSemester) === '1st' && $otherCompulsoryPending === 0);
 
             if (! $canRegisterPartial) {
-                return redirect()->back()->with('error', 'You must clear all outstanding payments before registering courses.');
+                return redirect()->back()->with('error', 'You must clear all compulsory outstanding payments before registering courses.');
             }
         }
 

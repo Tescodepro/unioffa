@@ -112,6 +112,7 @@ class PaymentSettingController extends Controller
             'number_of_instalment' => 'required_if:installmental_allow_status,1|nullable|integer|min:1|max:9',
             'list_instalment_percentage' => 'required_if:installmental_allow_status,1|nullable|array',
             'admission_session' => 'nullable|array',
+            'is_compulsory' => 'nullable|boolean',
         ]);
 
         // 2. Prepare 'level' data (Convert strings like ["100"] to integers [100])
@@ -155,6 +156,7 @@ class PaymentSettingController extends Controller
             'number_of_instalment' => $validated['number_of_instalment'] ?? 1,
             'list_instalment_percentage' => $instalmentData,
             'admission_session' => $validated['admission_session'] ?? [],
+            'is_compulsory' => $validated['is_compulsory'] ?? false,
         ]);
 
         return redirect()
@@ -194,6 +196,7 @@ class PaymentSettingController extends Controller
             'number_of_instalment' => 'nullable|integer|min:1|max:9',
             'list_instalment_percentage' => 'nullable|array',
             'admission_session' => 'nullable|array',
+            'is_compulsory' => 'nullable|boolean',
         ]);
 
         // ✅ Convert all level values to integers
@@ -229,6 +232,7 @@ class PaymentSettingController extends Controller
             'number_of_instalment' => $numInstalments,
             'list_instalment_percentage' => $instalmentData,
             'admission_session' => $validated['admission_session'] ?? [],
+            'is_compulsory' => $validated['is_compulsory'] ?? false,
         ]);
 
         return redirect()

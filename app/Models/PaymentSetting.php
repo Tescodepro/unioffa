@@ -31,6 +31,7 @@ class PaymentSetting extends Model
         'number_of_instalment',
         'list_instalment_percentage',
         'admission_session',
+        'is_compulsory',
     ];
 
     protected $casts = [
@@ -44,6 +45,7 @@ class PaymentSetting extends Model
         'matric_numbers' => 'array',
         'semesters' => 'array',
         'admission_session' => 'array',
+        'is_compulsory' => 'boolean',
     ];
 
     protected static function boot()

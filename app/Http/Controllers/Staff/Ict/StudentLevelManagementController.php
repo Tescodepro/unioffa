@@ -8,7 +8,6 @@ use App\Models\Department;
 use App\Models\EntryMode;
 use App\Models\Student;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class StudentLevelManagementController extends Controller
 {
@@ -20,14 +19,14 @@ class StudentLevelManagementController extends Controller
         $departments = Department::with('faculty')->orderBy('department_name')->get();
         $campuses = Campus::orderBy('name')->get();
         $entryModes = EntryMode::orderBy('name')->get();
-        
+
         // Get unique admission sessions and programmes from students table for filters
         $admissionSessions = Student::select('admission_session')
             ->whereNotNull('admission_session')
             ->distinct()
             ->orderBy('admission_session', 'desc')
             ->pluck('admission_session');
-            
+
         $programmes = Student::select('programme')
             ->whereNotNull('programme')
             ->distinct()
@@ -43,10 +42,10 @@ class StudentLevelManagementController extends Controller
         }
 
         return view('staff.ict.students.change_level', compact(
-            'departments', 
-            'campuses', 
-            'entryModes', 
-            'admissionSessions', 
+            'departments',
+            'campuses',
+            'entryModes',
+            'admissionSessions',
             'programmes',
             'specificStudent'
         ));
@@ -103,7 +102,7 @@ class StudentLevelManagementController extends Controller
         }
 
         $count = $query->count();
-        
+
         if ($count === 0) {
             return back()->with('error', 'No students found matching the selected criteria.');
         }

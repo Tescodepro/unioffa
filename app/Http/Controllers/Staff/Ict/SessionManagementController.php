@@ -7,7 +7,6 @@ use App\Models\AcademicSession;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class SessionManagementController extends Controller
 {
@@ -18,7 +17,7 @@ class SessionManagementController extends Controller
     {
         $sessions = AcademicSession::orderBy('name', 'desc')->get();
         $activeSession = AcademicSession::where('status', '1')->first();
-        
+
         // Stats for progression readiness
         $studentStats = [
             'active_students' => Student::where('status', Student::STATUS_ACTIVE)->count(),
@@ -27,7 +26,7 @@ class SessionManagementController extends Controller
                 ->count(),
             'candidates_for_graduation' => Student::where('status', Student::STATUS_ACTIVE)
                 ->get()
-                ->filter(function($student) {
+                ->filter(function ($student) {
                     return $student->level >= $student->getMaxLevel();
                 })->count(),
         ];
@@ -44,16 +43,16 @@ class SessionManagementController extends Controller
             'session_id' => 'required|exists:academic_sessions,id',
         ]);
 
-        DB::transaction(function() use ($request) {
+        DB::transaction(function () use ($request) {
             // Deactivate all
             AcademicSession::query()->update(['status' => '0']);
-            
+
             // Activate selected
             $session = AcademicSession::findOrFail($request->session_id);
             $session->update(['status' => '1']);
         });
 
-        return back()->with('success', "Academic session updated successfully. Active session is now " . AcademicSession::where('status', '1')->first()->name);
+        return back()->with('success', 'Academic session updated successfully. Active session is now '.AcademicSession::where('status', '1')->first()->name);
     }
 
     /**
@@ -63,8 +62,8 @@ class SessionManagementController extends Controller
     {
         // This is a heavy operation, we should use a job if students > 1000
         // For now, we'll run it in a transaction
-        
-        return DB::transaction(function() {
+
+        return DB::transaction(function () {
             $students = Student::where('status', Student::STATUS_ACTIVE)->get();
             $progressed = 0;
             $graduated = 0;

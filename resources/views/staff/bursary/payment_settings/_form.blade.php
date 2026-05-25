@@ -47,6 +47,16 @@ Shared partial for payment setting form fields.
                         <textarea name="description" class="form-control bg-light border-0" rows="2"
                             placeholder="Briefly explain the purpose of this fee...">{{ old('description', optional($ps)->description) }}</textarea>
                     </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch mt-2">
+                            <input type="hidden" name="is_compulsory" value="0">
+                            <input class="form-check-input" type="checkbox" name="is_compulsory" id="is_compulsory" value="1" {{ old('is_compulsory', $ps->is_compulsory ?? true) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold small text-muted" for="is_compulsory">
+                                Compulsory for Course Registration
+                            </label>
+                            <div class="form-text x-small">If enabled, students must clear this fee before they can register for courses.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

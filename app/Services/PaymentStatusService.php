@@ -81,6 +81,7 @@ class PaymentStatusService
                 'amount_paid' => (int) $amountPaid,
                 'balance' => (int) $balance,
                 'status' => $balance <= 0 ? 'PAID' : 'PENDING',
+                'is_compulsory' => (bool) $payment->is_compulsory,
             ];
 
             if ($payment->payment_type === 'tuition') {
@@ -103,6 +104,18 @@ class PaymentStatusService
         $status = $this->getStatus($student, $session);
 
         return collect($status)->every(fn ($p) => $p['balance'] <= 0);
+    }
+
+    /**
+     * Check if student has cleared all COMPULSORY assigned payments.
+     */
+    public function hasClearedCompulsory($student, string $session): bool
+    {
+        $status = $this->getStatus($student, $session);
+
+        return collect($status)
+            ->filter(fn ($p) => $p['is_compulsory'])
+            ->every(fn ($p) => $p['balance'] <= 0);
     }
 
     /**
