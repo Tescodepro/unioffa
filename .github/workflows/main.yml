@@ -1,88 +1,69 @@
-name: Publish Website to CPanel
-
+name: Deploy to Production
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
-concurrency:
-  group: deployment-${{ github.ref }}
-  cancel-in-progress: true
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  ci-cd:
-    name: Build, Test and Deploy
+  web-deploy:
+    name: Deploy
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4.2.2
+      with:
+        fetch-depth: 2
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, gd, zip
-          coverage: none
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath, zip
+        coverage: none
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: 'npm'
 
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+    - name: Install NPM Dependencies & Build Assets
+      run: |
+        npm ci
+        npm run build
 
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+    - name: Install Composer Dependencies
+      run: composer install --no-ansi --no-dev --no-interaction --no-plugins --no-progress --no-scripts --optimize-autoloader
 
-      - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
-
-      - name: Install Node dependencies
-        run: npm ci
-
-
-      - name: Build assets
-        run: npm run build
-
-      - name: Cleanup dependencies for production
-        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-      - name: FTP-Deploy-Action
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
-        with:
-          server: ${{ secrets.SERVER }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          local-dir: ./ 
-          server-dir: /public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            .env
-            storage/*.key
-            vendor/laravel/framework/src/Illuminate/Routing/RouteCollection.php
-            tests/
-            phpunit.xml
-            .github/
-            .editorconfig
-            .gitattributes
-            package-lock.json
-            composer.json
-            composer.lock
-            vite.config.js
-            rebranding_checklist.json
-            CLAUDE.md
-            GEMINI.md
-            README.md
-
+    - name: 📂 Sync app files (including vendor)
+      # NOTE: If you encounter ENETUNREACH or ETIMEDOUT on port 21, ensure your
+      # FTP server hostname is NOT proxied by Cloudflare (set to "DNS only" / Grey Cloud).
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.SERVER }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        server-dir: /public_html/
+        port: 21
+        protocol: ftp
+        security: loose
+        timeout: 700000
+        state-name: .ftp-deploy-sync-state.json
+        exclude: |
+          .env
+          phpunit.xml
+          vite.config.js
+          README.md
+          GEMINI.md
+          CLAUDE.md
+          .github
+          .gitignore
+          .claude
+          node_modules/**
+          tests/**
+          package.json
+          package-lock.json
+          webpack.mix.js
