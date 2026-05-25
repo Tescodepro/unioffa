@@ -45,8 +45,9 @@ jobs:
           README.md
           GEMINI.md
           CLAUDE.md
-          .github
+          .github/**
           .gitignore
+          .git/**
           .claude
           node_modules/**
           vendor/**
