@@ -20,7 +20,7 @@ class LatePaymentService
      *               'late_fee_type' => string|null
      *               ]
      */
-    public function checkPenalty(Student $student, string $paymentType, string $session, string $semester)
+    public function checkPenalty(Student $student, string $paymentType, ?string $session, ?string $semester)
     {
         // 1. Get the applicable late payment setting for this fee
         $setting = LatePaymentSetting::getActiveForStudent($student, $session, $semester, $paymentType);
