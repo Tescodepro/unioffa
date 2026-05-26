@@ -10,7 +10,7 @@ class LatePaymentService
 {
     /**
      * Checks if a specific payment type for a student is currently blocked
-     * by an outstanding late penalty.
+     * by an outstanding late penalty. 
      *
      * @return array [
      *               'has_penalty' => bool,
