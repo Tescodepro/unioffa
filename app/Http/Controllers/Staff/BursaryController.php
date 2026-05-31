@@ -367,7 +367,13 @@ class BursaryController extends Controller
         ini_set('memory_limit', '1G');
 
         $query = Transaction::query()
-            ->with(['user:id,first_name,last_name,username,campus_id', 'user.campus:id,name', 'user.studentProfile:id,user_id,entry_mode', 'user.applicationSetting'])
+            ->with([
+                'user:id,first_name,last_name,username,campus_id',
+                'user.campus:id,name',
+                'user.studentProfile:id,user_id,entry_mode,matric_no,level,department_id',
+                'user.studentProfile.department:id,department_name',
+                'user.applicationSetting',
+            ])
             ->where('payment_status', 1)
             ->where(function ($q) {
                 $q->where('payment_type', '!=', 'technical')
