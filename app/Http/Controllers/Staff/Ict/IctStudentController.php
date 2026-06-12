@@ -114,6 +114,11 @@ class IctStudentController extends Controller
         return view('staff.ict.students.index', compact('students', 'departments', 'campuses', 'stats'));
     }
 
+    public function export(Request $request)
+    {
+        return Excel::download(new \App\Exports\FilteredStudentsExport($request->all()), 'students.xlsx');
+    }
+
     public function create()
     {
         $departments = Department::with('faculty')->orderBy('department_name')->get();

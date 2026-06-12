@@ -18,6 +18,9 @@
                     </div>
                     @include('layouts.flash-message')
                     <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ route('ict.students.export', request()->query()) }}" class="btn btn-success">
+                            <i class="ti ti-download"></i> Export Filtered
+                        </a>
                         <a href="{{ route('ict.students.create') }}" class="btn btn-primary">
                             <i class="ti ti-user-plus"></i> Add Student
                         </a>
