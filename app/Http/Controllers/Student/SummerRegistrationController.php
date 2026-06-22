@@ -86,33 +86,6 @@ class SummerRegistrationController extends Controller
             ]
         );
 
-        $student = $user->student;
-        if ($student) {
-            // First delete any existing unapproved summer registrations for this session
-            CourseRegistration::where('student_id', $user->id)
-                ->where('session', $currentSession->name)
-                ->where('semester', '3rd')
-                ->whereNotIn('status', ['approved'])
-                ->delete();
-
-            foreach ($courseIds as $courseId) {
-                $course = Course::find($courseId);
-                if ($course) {
-                    CourseRegistration::firstOrCreate([
-                        'student_id' => $user->id,
-                        'course_id' => $course->id,
-                        'session' => $currentSession->name,
-                        'semester' => '3rd',
-                        'matric_no' => $student->matric_no,
-                        'course_code' => $course->course_code,
-                        'course_title' => $course->course_title,
-                        'course_unit' => $course->course_unit,
-                        'status' => $status,
-                    ]);
-                }
-            }
-        }
-
         if ($status === 'pending_vc_approval') {
             return redirect()->route('student.summer.index')->with('success', 'Your request for more than 6 courses has been submitted to the VC for approval.');
         }
@@ -165,11 +138,28 @@ class SummerRegistrationController extends Controller
                 'status' => 'registered',
             ]);
 
-            // Mark the actual courses as approved
-            CourseRegistration::where('student_id', $userId)
-                ->where('session', $currentSession->name ?? $registration->academic_session)
-                ->where('semester', '3rd')
-                ->update(['status' => 'approved']);
+            $user = \App\Models\User::find($userId);
+            $student = $user->student;
+
+            // Register the actual courses
+            if (is_array($registration->courses)) {
+                foreach ($registration->courses as $courseId) {
+                    $course = Course::find($courseId);
+                    if ($course) {
+                        CourseRegistration::firstOrCreate([
+                            'student_id' => $user->id,
+                            'course_id' => $course->id,
+                            'session' => $currentSession->name ?? $registration->academic_session,
+                            'semester' => '3rd', // Summer semester
+                            'matric_no' => $student->matric_no,
+                            'course_code' => $course->course_code,
+                            'course_title' => $course->course_title,
+                            'course_unit' => $course->course_unit,
+                            'status' => 'approved', // Summer courses might be auto-approved
+                        ]);
+                    }
+                }
+            }
         }
     }
 }
