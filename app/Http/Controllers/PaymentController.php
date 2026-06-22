@@ -190,6 +190,8 @@ class PaymentController extends Controller
         } else {
             if (in_array($paymentType, ['accommodation', 'hostel', 'maintenance'])) {
                 $backRoute = route('students.hostel.index');
+            } elseif ($paymentType == 'summer_registration') {
+                $backRoute = route('student.summer.index');
             } else {
                 $backRoute = route('students.load_payment');
             }
@@ -212,6 +214,9 @@ class PaymentController extends Controller
                         Log::info("Matric number generated for student {$student->id} after tuition payment");
                     }
                 }
+            } elseif ($paymentType == 'summer_registration') {
+                $summerRegController = app(\App\Http\Controllers\Student\SummerRegistrationController::class);
+                $summerRegController->processSuccessfulPayment($transaction->user_id);
             }
 
             return view('payment-status-page', compact('paymentType', 'transaction', 'backRoute'))->with('success', 'Payment successful');

@@ -67,8 +67,10 @@
                                 </div>
 
                                 <div class="text-center">
-                                    <form action="{{ route('student.summer.payment.simulate', $registration->id) }}" method="POST">
+                                    <form action="{{ route('application.payment.process') }}" method="POST">
                                         @csrf
+                                        <input type="hidden" name="fee_type" value="summer_registration">
+                                        <input type="hidden" name="amount" value="{{ $registration->total_fee }}">
                                         <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm mb-3">
                                             <i class="fas fa-lock me-2"></i> Pay ₦{{ number_format($registration->total_fee, 2) }} Now
                                         </button>
