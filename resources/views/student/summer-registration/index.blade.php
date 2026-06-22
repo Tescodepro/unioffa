@@ -3,13 +3,23 @@
 @section('title', 'Summer Registration')
 
 @section('content')
-<div class="container mx-auto p-4 md:p-6">
+    <div id="global-loader">
+        <div class="page-loader"></div>
+    </div>
+
+    <div class="main-wrapper">
+        @include('student.partials.header')
+        @include('student.partials.sidebar')
+
+        <div class="page-wrapper">
+            <div class="content">
+                <div class="container mx-auto p-4 md:p-6">
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Summer Registration</h1>
         <p class="text-gray-600 mt-2">Register for summer courses. The summer application fee is ₦30,000, and each course costs ₦20,000.</p>
     </div>
 
-    @include('components.alert')
+    @include('layouts.flash-message')
 
     @if($summerRegistration && in_array($summerRegistration->status, ['pending_vc_approval', 'pending_payment', 'registered']))
         <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -151,52 +161,57 @@
 
     @endif
 </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const checkboxes = document.querySelectorAll('.course-checkbox');
-        const courseCountSpan = document.getElementById('courseCount');
-        const estimatedTotalSpan = document.getElementById('estimatedTotal');
-        const reasonContainer = document.getElementById('reasonContainer');
-        const reasonTextarea = document.getElementById('reason_for_increase');
-        const submitBtn = document.getElementById('submitBtn');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.course-checkbox');
+            const courseCountSpan = document.getElementById('courseCount');
+            const estimatedTotalSpan = document.getElementById('estimatedTotal');
+            const reasonContainer = document.getElementById('reasonContainer');
+            const reasonTextarea = document.getElementById('reason_for_increase');
+            const submitBtn = document.getElementById('submitBtn');
 
-        const summaryFee = 30000;
-        const perCourseFee = 20000;
+            const summaryFee = 30000;
+            const perCourseFee = 20000;
 
-        function updateSummary() {
-            let count = 0;
+            function updateSummary() {
+                let count = 0;
+                checkboxes.forEach(cb => {
+                    if(cb.checked) count++;
+                });
+
+                courseCountSpan.textContent = count;
+                
+                if(count > 0) {
+                    const total = summaryFee + (count * perCourseFee);
+                    estimatedTotalSpan.textContent = '₦' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
+                    submitBtn.disabled = false;
+                } else {
+                    estimatedTotalSpan.textContent = '₦' + summaryFee.toLocaleString('en-US', {minimumFractionDigits: 2});
+                    submitBtn.disabled = true;
+                }
+
+                if(count > 6) {
+                    reasonContainer.classList.remove('hidden');
+                    reasonTextarea.required = true;
+                    submitBtn.textContent = 'Submit for VC Approval';
+                } else {
+                    reasonContainer.classList.add('hidden');
+                    reasonTextarea.required = false;
+                    submitBtn.textContent = 'Proceed to Payment';
+                }
+            }
+
             checkboxes.forEach(cb => {
-                if(cb.checked) count++;
+                cb.addEventListener('change', updateSummary);
             });
-
-            courseCountSpan.textContent = count;
             
-            if(count > 0) {
-                const total = summaryFee + (count * perCourseFee);
-                estimatedTotalSpan.textContent = '₦' + total.toLocaleString('en-US', {minimumFractionDigits: 2});
-                submitBtn.disabled = false;
-            } else {
-                estimatedTotalSpan.textContent = '₦' + summaryFee.toLocaleString('en-US', {minimumFractionDigits: 2});
-                submitBtn.disabled = true;
-            }
-
-            if(count > 6) {
-                reasonContainer.classList.remove('hidden');
-                reasonTextarea.required = true;
-                submitBtn.textContent = 'Submit for VC Approval';
-            } else {
-                reasonContainer.classList.add('hidden');
-                reasonTextarea.required = false;
-                submitBtn.textContent = 'Proceed to Payment';
-            }
-        }
-
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', updateSummary);
+            updateSummary();
         });
-    });
-</script>
+    </script>
 @endpush

@@ -3,13 +3,23 @@
 @section('title', 'Summer Registration Payment')
 
 @section('content')
-<div class="container mx-auto p-4 md:p-6">
+    <div id="global-loader">
+        <div class="page-loader"></div>
+    </div>
+
+    <div class="main-wrapper">
+        @include('student.partials.header')
+        @include('student.partials.sidebar')
+
+        <div class="page-wrapper">
+            <div class="content">
+                <div class="container mx-auto p-4 md:p-6">
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Summer Registration Payment</h1>
         <p class="text-gray-600 mt-2">Complete your payment to finalize summer registration.</p>
     </div>
 
-    @include('components.alert')
+    @include('layouts.flash-message')
 
     <div class="bg-white rounded-lg shadow max-w-2xl mx-auto overflow-hidden">
         <div class="p-6">
@@ -53,4 +63,7 @@
         </div>
     </div>
 </div>
+            </div>
+        </div>
+    </div>
 @endsection
