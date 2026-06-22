@@ -156,6 +156,13 @@ Route::prefix('students')->group(function () {
             Route::get('course-registration/download', 'downloadCourseForm')->name('students.course.download');
         });
 
+        Route::controller(\App\Http\Controllers\Student\SummerRegistrationController::class)->group(function () {
+            Route::get('/summer-registration', 'index')->name('student.summer.index');
+            Route::post('/summer-registration', 'store')->name('student.summer.store');
+            Route::get('/summer-registration/payment/{id}', 'payment')->name('student.summer.payment');
+            Route::post('/summer-registration/simulate-payment/{id}', 'simulatePayment')->name('student.summer.payment.simulate');
+        });
+
         // Student Scholarship Route
         Route::controller(\App\Http\Controllers\Student\ScholarshipController::class)->group(function () {
             Route::get('/scholarship', 'index')->name('student.scholarship.index');
@@ -204,6 +211,9 @@ Route::prefix('staff')->group(function () {
         Route::get('/dashboard', [StaffGeneralController::class, 'index_admin'])->name('admin.dashboard');
 
         Route::get('/vc/dashboard', [VcController::class, 'dashboard'])->name('vc.dashboard');
+        Route::get('/vc/summer-requests', [VcController::class, 'summerRequests'])->name('vc.summer.requests');
+        Route::post('/vc/summer-requests/{id}/approve', [VcController::class, 'approveSummerRequest'])->name('vc.summer.approve');
+        Route::post('/vc/summer-requests/{id}/reject', [VcController::class, 'rejectSummerRequest'])->name('vc.summer.reject');
         Route::get('/registrar/dashboard', [RegistrarController::class, 'dashboard'])->name('registrar.dashboard');
         Route::get('/center-director/dashboard', [CenterDirectorController::class, 'dashboard'])->name('center-director.dashboard');
         Route::get('/center-director/admission/applicants', [CenterDirectorController::class, 'admissionApplicants'])->name('center-director.admission.applicants');

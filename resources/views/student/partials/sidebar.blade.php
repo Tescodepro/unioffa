@@ -28,7 +28,7 @@
                 </li>
 
                 <!-- ACADEMICS -->
-                <li class="{{ request()->is('students/course*') || request()->is('students/results*') ? 'open' : '' }}">
+                <li class="{{ request()->is('students/course*') || request()->is('summer-registration*') || request()->is('students/results*') ? 'open' : '' }}">
                     <h6 class="submenu-hdr"><span>Academics</span></h6>
                     <ul>
                         <li>
@@ -36,6 +36,13 @@
                                 class="{{ request()->routeIs('students.course.registration') ? 'active' : '' }}">
                                 <i class="ti ti-book"></i>
                                 <span>Course Registration</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('student.summer.index') }}"
+                                class="{{ request()->routeIs('student.summer.*') ? 'active' : '' }}">
+                                <i class="ti ti-sun"></i>
+                                <span>Summer Registration</span>
                             </a>
                         </li>
                         <li>

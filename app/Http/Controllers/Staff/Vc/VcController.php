@@ -55,4 +55,31 @@ class VcController extends Controller
             'totalRevenue',
         ));
     }
+
+    // ─── Summer Requests ────────────────────────────────────────────────────────────
+
+    public function summerRequests()
+    {
+        $requests = \App\Models\SummerRegistration::with(['student.student'])
+            ->where('status', 'pending_vc_approval')
+            ->get();
+
+        return view('staff.vc.summer-requests', compact('requests'));
+    }
+
+    public function approveSummerRequest($id)
+    {
+        $registration = \App\Models\SummerRegistration::findOrFail($id);
+        $registration->update(['status' => 'pending_payment']);
+
+        return redirect()->back()->with('success', 'Summer registration request approved successfully. Student can now proceed to payment.');
+    }
+
+    public function rejectSummerRequest($id)
+    {
+        $registration = \App\Models\SummerRegistration::findOrFail($id);
+        $registration->update(['status' => 'rejected']);
+
+        return redirect()->back()->with('success', 'Summer registration request rejected successfully.');
+    }
 }
