@@ -19,6 +19,24 @@
                         <h3 class="page-title mb-1">Summer Registration Payment</h3>
                         <p class="mb-1 text-muted">Complete your payment to finalize summer registration.</p>
                     </div>
+                    <div class="my-auto mt-3 mt-lg-0">
+                        <div class="row g-2">
+                            <div class="col-12 text-end">
+                                <a href="{{ route('students.dashboard') }}" class="btn btn-light btn-sm">
+                                    <i class="fas fa-home"></i> Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="bg-light p-3 rounded shadow-sm">
+                            <p class="mb-1"><strong>Current Session:</strong>
+                                {{ activeSession()->name ?? 'No active session' }}
+                            </p>
+                            <p class="mb-0"><strong>Current Semester:</strong>
+                                Summer
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 <!-- /Page Header -->
 
