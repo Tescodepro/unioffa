@@ -57,20 +57,20 @@
                                         <span class="fw-medium">₦30,000.00</span>
                                     </div>
                                     <div class="d-flex justify-content-between py-2 border-bottom">
-                                        <span class="text-muted">Course Registration Fee ({{ is_array($summerRegistration->courses) ? count($summerRegistration->courses) : 0 }} courses):</span>
-                                        <span class="fw-medium">₦{{ number_format((is_array($summerRegistration->courses) ? count($summerRegistration->courses) : 0) * 20000, 2) }}</span>
+                                        <span class="text-muted">Course Registration Fee ({{ is_array($registration->courses) ? count($registration->courses) : 0 }} courses):</span>
+                                        <span class="fw-medium">₦{{ number_format((is_array($registration->courses) ? count($registration->courses) : 0) * 20000, 2) }}</span>
                                     </div>
                                     <div class="d-flex justify-content-between py-2 mt-2">
                                         <span class="h5 fw-bold mb-0">Total Amount:</span>
-                                        <span class="h5 fw-bold text-primary mb-0">₦{{ number_format($summerRegistration->total_fee, 2) }}</span>
+                                        <span class="h5 fw-bold text-primary mb-0">₦{{ number_format($registration->total_fee, 2) }}</span>
                                     </div>
                                 </div>
 
                                 <div class="text-center">
-                                    <form action="{{ route('student.summer.payment.simulate', $summerRegistration->id) }}" method="POST">
+                                    <form action="{{ route('student.summer.payment.simulate', $registration->id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="btn btn-success btn-lg w-100 shadow-sm mb-3">
-                                            <i class="fas fa-lock me-2"></i> Pay ₦{{ number_format($summerRegistration->total_fee, 2) }} Now
+                                            <i class="fas fa-lock me-2"></i> Pay ₦{{ number_format($registration->total_fee, 2) }} Now
                                         </button>
                                         <p class="text-muted small">
                                             <i class="fas fa-info-circle"></i> For demonstration purposes, this will simulate a successful payment and register you for the selected courses.
