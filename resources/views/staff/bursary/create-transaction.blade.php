@@ -40,6 +40,7 @@
                                             <option value="{{ $type }}"
                                                 {{ old('payment_type') == $type ? 'selected' : '' }}>
                                                 {{ ucfirst($type) }}
+                                                <option value="summer_registration">Summer Registration</option>
                                             </option>
                                          @endif
                                     @endforeach
