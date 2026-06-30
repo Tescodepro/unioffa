@@ -68,9 +68,9 @@
                                     </td>
                                     <td class="searchable-cell">
                                         {{ $course->course_code }}
-                                        @if($isCarryOver)
+                                        <!-- @if($isCarryOver)
                                             <span class="badge bg-danger ms-1">Carry Over</span>
-                                        @endif
+                                        @endif -->
                                     </td>
                                     <td class="searchable-cell">{{ $course->course_title }}</td>
                                     <td>{{ $course->course_unit }}</td>
