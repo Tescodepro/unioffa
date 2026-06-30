@@ -634,8 +634,8 @@
                                                                     <a href="{{ asset('storage/' . $documents[$doc]->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">View</a>
                                                                 </div>
                                                             @endif
-                                                            <input type="file" class="form-control" name="documents[{{ $doc }}]" accept=".pdf" {{ !isset($documents[$doc]) ? 'required' : '' }}>
-                                                            <small class="text-muted">PDF format only, max 2MB {{ isset($documents[$doc]) ? '(Upload new file to replace current one)' : '' }}</small>
+                                                            <input type="file" class="form-control" name="documents[{{ $doc }}]" accept=".pdf,image/*" {{ !isset($documents[$doc]) ? 'required' : '' }}>
+                                                            <small class="text-muted">PDF or Image format, max 2MB {{ isset($documents[$doc]) ? '(Upload new file to replace current one)' : '' }}</small>
                                                         </div>
                                                     @endforeach
                                                     
