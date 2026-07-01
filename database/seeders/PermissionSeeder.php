@@ -45,6 +45,7 @@ class PermissionSeeder extends Seeder
             // Course Management
             ['identifier' => 'view_all_courses', 'name' => 'View All Courses'],
             ['identifier' => 'view_course_assignments', 'name' => 'View Course Assignments'],
+            ['identifier' => 'manage_course_assignments', 'name' => 'Manage Course Assignments'],
 
             // Staff Management
             ['identifier' => 'manage_staff', 'name' => 'Manage Staff'],
